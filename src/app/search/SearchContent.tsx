@@ -1,0 +1,226 @@
+'use client';
+
+import React, { useState, useEffect } from 'react';
+import { useSearchParams, useRouter } from 'next/navigation';
+import { Search, Star, Heart, ArrowRight } from 'lucide-react';
+import { mockProducts } from '../../data/mockShoes';
+import { useCart } from '../../context/CartContext';
+import Link from 'next/link';
+
+export default function SearchContent() {
+  const searchParams = useSearchParams();
+  const router = useRouter();
+  const { wishlist, toggleWishlist } = useCart();
+  
+  const query = searchParams.get('q') || '';
+  const [searchInput, setSearchInput] = useState(query);
+
+  useEffect(() => {
+    setSearchInput(query);
+  }, [query]);
+
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    router.push(`/search?q=${encodeURIComponent(searchInput.trim())}`);
+  };
+
+  const popularSuggestions = [
+    'Sneakers',
+    'Volt',
+    'Leather',
+    'Waterproof',
+    'Boots',
+    'AeroStride',
+    'ApexCraft'
+  ];
+
+  const handleTagClick = (tag: string) => {
+    setSearchInput(tag);
+    router.push(`/search?q=${encodeURIComponent(tag)}`);
+  };
+
+  // Search filter logic
+  const matchedProducts = query
+    ? mockProducts.filter((product) => {
+        const queryLower = query.toLowerCase();
+        return (
+          product.title.toLowerCase().includes(queryLower) ||
+          product.brand_name.toLowerCase().includes(queryLower) ||
+          product.description.toLowerCase().includes(queryLower) ||
+          product.category_slug.toLowerCase().includes(queryLower) ||
+          (product.specifications &&
+            Object.values(product.specifications).some((val) =>
+              val.toLowerCase().includes(queryLower)
+            ))
+        );
+      })
+    : [];
+
+  const recommendations = mockProducts.slice(0, 3);
+
+  return (
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+      {/* Search Bar Block */}
+      <div className="max-w-2xl mx-auto text-center space-y-6 mb-12">
+        <h1 className="text-3xl font-extrabold text-white tracking-tight">Explore Stepzy Marketplace</h1>
+        
+        <form onSubmit={handleSearchSubmit} className="relative group">
+          <input
+            type="text"
+            placeholder="Search footwear by brand, color, purpose..."
+            value={searchInput}
+            onChange={(e) => setSearchInput(e.target.value)}
+            className="w-full bg-zinc-900 text-white placeholder-zinc-500 border border-white/[0.08] group-hover:border-white/[0.15] focus:border-primary focus:bg-white/[0.04] focus:ring-1 focus:ring-primary rounded-2xl py-4 pl-5 pr-14 outline-none transition-all duration-300 text-sm font-medium"
+          />
+          <button
+            type="submit"
+            className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary-hover p-2.5 rounded-xl text-white transition-all cursor-pointer"
+            aria-label="Search Submit"
+          >
+            <Search className="h-4.5 w-4.5" />
+          </button>
+        </form>
+
+        {/* Popular Tags */}
+        <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
+          <span className="text-zinc-500 font-semibold uppercase tracking-wider">Popular Searches:</span>
+          {popularSuggestions.map((tag) => (
+            <button
+              key={tag}
+              onClick={() => handleTagClick(tag)}
+              className="bg-white/[0.03] hover:bg-primary/20 text-zinc-400 hover:text-white border border-white/[0.06] hover:border-primary/30 rounded-lg px-3 py-1 font-semibold transition-all cursor-pointer"
+            >
+              {tag}
+            </button>
+          ))}
+        </div>
+      </div>
+
+      {/* Results Block */}
+      {query ? (
+        <div className="space-y-6">
+          <div className="border-b border-white/[0.06] pb-4">
+            <h2 className="text-xl font-bold text-white tracking-tight">
+              Search Results
+            </h2>
+            <p className="text-zinc-500 text-sm mt-1">
+              Found {matchedProducts.length} results for "{query}"
+            </p>
+          </div>
+
+          {matchedProducts.length === 0 ? (
+            <div className="glass-card p-12 rounded-3xl text-center space-y-4 max-w-xl mx-auto">
+              <p className="text-3xl">🕵️‍♂️👟</p>
+              <h3 className="text-xl font-extrabold text-white">No results found</h3>
+              <p className="text-zinc-500 text-sm leading-relaxed">
+                We couldn't find anything matching your keywords. Double-check your spelling or click one of the popular search tags above.
+              </p>
+            </div>
+          ) : (
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+              {matchedProducts.map((product) => {
+                const isWishlisted = wishlist.includes(product.id);
+                const price = product.price;
+                const salePrice = product.sale_price;
+
+                return (
+                  <div key={product.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative border border-white/[0.04] group">
+                    <button 
+                      onClick={() => toggleWishlist(product.id)}
+                      className="absolute top-4 right-4 z-20 p-2.5 bg-zinc-900/60 hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-full border border-white/[0.04] transition-colors cursor-pointer"
+                      aria-label="Toggle Wishlist"
+                    >
+                      <Heart className={`h-4.5 w-4.5 ${isWishlisted ? 'fill-accent text-accent' : ''}`} />
+                    </button>
+
+                    {salePrice && (
+                      <span className="absolute top-4 left-4 z-20 px-2 py-0.5 bg-accent text-white text-[10px] font-bold uppercase rounded-md">
+                        Sale
+                      </span>
+                    )}
+
+                    <Link href={`/product/${product.slug}`} className="block aspect-square w-full p-6 bg-zinc-950/40 relative overflow-hidden flex items-center justify-center">
+                      <img 
+                        src={product.images[0]} 
+                        alt={product.title} 
+                        className="max-h-[140px] w-auto object-contain transform -rotate-6 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300 drop-shadow-[0_10px_15px_rgba(0,0,0,0.4)]"
+                      />
+                    </Link>
+
+                    <div className="p-4 flex-grow flex flex-col justify-between">
+                      <div>
+                        <div className="flex justify-between items-center text-[10px] text-zinc-500 mb-1">
+                          <span>{product.brand_name}</span>
+                          <div className="flex items-center gap-0.5 text-accent font-semibold">
+                            <Star className="h-3 w-3 fill-accent" />
+                            <span>{product.rating}</span>
+                          </div>
+                        </div>
+
+                        <Link href={`/product/${product.slug}`}>
+                          <h3 className="font-bold text-white text-sm hover:text-primary transition-colors line-clamp-1">
+                            {product.title}
+                          </h3>
+                        </Link>
+                      </div>
+
+                      <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/[0.04]">
+                        <div>
+                          {salePrice ? (
+                            <div className="flex items-center gap-1.5">
+                              <span className="text-xs line-through text-zinc-500">${price}</span>
+                              <span className="text-sm font-black text-white">${salePrice}</span>
+                            </div>
+                          ) : (
+                            <span className="text-sm font-black text-white">${price}</span>
+                          )}
+                        </div>
+                        <Link 
+                          href={`/product/${product.slug}`}
+                          className="bg-white/[0.05] hover:bg-primary text-white p-2 rounded-xl border border-white/[0.06] hover:border-primary transition-all"
+                        >
+                          <ArrowRight className="h-3.5 w-3.5" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
+      ) : (
+        /* Empty Search State: Recommendations */
+        <div className="space-y-6 pt-6 border-t border-white/[0.06]">
+          <h2 className="text-xl font-bold text-white text-center mb-6">Trending In Store</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
+            {recommendations.map((product) => (
+              <div key={product.id} className="glass-card rounded-2xl overflow-hidden flex flex-col border border-white/[0.04] p-4 group">
+                <Link href={`/product/${product.slug}`} className="block aspect-[4/3] bg-zinc-950/20 rounded-xl p-4 flex items-center justify-center overflow-hidden">
+                  <img
+                    src={product.images[0]}
+                    alt={product.title}
+                    className="max-h-[100px] w-auto object-contain transform -rotate-6 group-hover:rotate-0 group-hover:scale-105 transition-all duration-300"
+                  />
+                </Link>
+                <div className="mt-3 flex justify-between items-start gap-2">
+                  <div>
+                    <h3 className="font-bold text-white text-sm line-clamp-1">{product.title}</h3>
+                    <p className="text-[10px] text-zinc-500 mt-0.5">{product.brand_name}</p>
+                  </div>
+                  <span className="text-sm font-black text-primary">${product.sale_price || product.price}</span>
+                </div>
+                <Link
+                  href={`/product/${product.slug}`}
+                  className="w-full bg-white/[0.04] hover:bg-primary hover:text-white text-zinc-300 py-2 rounded-xl text-xs font-bold text-center mt-4 border border-white/[0.06] transition-colors"
+                >
+                  View Shoe
+                </Link>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
