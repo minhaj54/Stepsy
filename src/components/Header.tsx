@@ -27,18 +27,19 @@ export const Header: React.FC = () => {
     { label: 'Sneakers', href: '/shop?category=sneakers' },
     { label: 'Boots', href: '/shop?category=boots' },
     { label: 'Formal', href: '/shop?category=formal' },
+    { label: 'Partners', href: '/partners' },
     { label: 'Blog', href: '/blog' }
   ];
 
   return (
     <header className="sticky top-0 z-50 w-full glass-panel border-b border-white/[0.06] backdrop-blur-md">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center gap-2 group">
               <span className="text-2xl font-black tracking-tighter text-white flex items-center">
-                STEP<span className="text-primary group-hover:text-accent transition-colors duration-300">ZY</span>
+                WHISH<span className="text-primary group-hover:text-accent transition-colors duration-300">KHU</span>
               </span>
               <span className="hidden sm:inline-block px-1.5 py-0.5 text-[10px] uppercase font-bold tracking-widest bg-primary/20 text-primary rounded">
                 MVP

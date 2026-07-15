@@ -40,7 +40,7 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex-grow flex flex-col items-center justify-center text-center space-y-6">
+      <div className="px-4 sm:px-6 lg:px-8 py-20 flex-grow flex flex-col items-center justify-center text-center space-y-6">
         <div className="h-24 w-24 bg-zinc-900 border border-white/[0.04] rounded-full flex items-center justify-center text-4xl">
           🛒
         </div>
@@ -62,7 +62,7 @@ export default function CartPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-8">
+    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-8">
       <h1 className="text-3xl font-extrabold text-white tracking-tight">Your Shopping Cart</h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
@@ -120,7 +120,7 @@ export default function CartPage() {
 
                 {/* Price and Action */}
                 <div className="flex flex-col items-center sm:items-end gap-1.5 min-w-[80px]">
-                  <span className="font-black text-white text-base">${itemPrice * item.quantity}</span>
+                  <span className="font-black text-white text-base">₹{itemPrice * item.quantity}</span>
                   <button
                     onClick={() => removeFromCart(item.variant.id)}
                     className="text-zinc-500 hover:text-destructive transition-colors flex items-center gap-1 text-xs font-semibold cursor-pointer"
@@ -142,7 +142,7 @@ export default function CartPage() {
             <div className="space-y-3.5 text-sm">
               <div className="flex justify-between text-zinc-400">
                 <span>Subtotal</span>
-                <span className="font-bold text-white">${cartTotal}</span>
+                <span className="font-bold text-white">₹{cartTotal}</span>
               </div>
 
               {appliedCoupon && (
@@ -150,21 +150,21 @@ export default function CartPage() {
                   <span className="flex items-center gap-1">
                     Discount ({appliedCoupon.code})
                   </span>
-                  <span>-${discountAmount}</span>
+                  <span>-₹{discountAmount}</span>
                 </div>
               )}
 
               <div className="flex justify-between text-zinc-400">
                 <span>Shipping</span>
                 <span className="text-primary font-bold">
-                  {cartTotal >= 150 ? 'Free' : '$15'}
+                  {cartTotal >= 1500 ? 'Free' : '₹150'}
                 </span>
               </div>
 
               <div className="border-t border-white/[0.06] pt-3.5 flex justify-between text-base">
                 <span className="font-bold text-white">Total</span>
                 <span className="font-black text-white">
-                  ${discountedTotal + (cartTotal >= 150 ? 0 : 15)}
+                  ₹{discountedTotal + (cartTotal >= 1500 ? 0 : 150)}
                 </span>
               </div>
             </div>
@@ -206,7 +206,7 @@ export default function CartPage() {
               {couponSuccess && (
                 <p className="text-[10px] text-green-500 font-medium animate-pulse">Coupon code applied successfully!</p>
               )}
-              <p className="text-[10px] text-zinc-500">Try coupon <strong>STEPZY20</strong> (20% off) or <strong>SHOEHEAVEN</strong> ($30 off).</p>
+              <p className="text-[10px] text-zinc-500">Try coupon <strong>STEPZY20</strong> (20% off) or <strong>SHOEHEAVEN</strong> (₹300 off).</p>
             </div>
 
             {/* Checkout CTA */}

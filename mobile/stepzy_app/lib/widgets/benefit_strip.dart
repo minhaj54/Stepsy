@@ -19,7 +19,7 @@ class BenefitStrip extends StatelessWidget {
             (benefit) => Expanded(
               child: Column(
                 children: [
-                  Icon(benefit.$1, color: StepzyColors.primary),
+                  Icon(benefit.$1, color: WhishkhuColors.primary),
                   const SizedBox(height: 6),
                   Text(
                     benefit.$2,

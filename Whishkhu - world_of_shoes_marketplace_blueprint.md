@@ -1,4 +1,4 @@
-# Stepzy - Marketplace Infrastructure Blueprint
+# Whishkhu - Marketplace Infrastructure Blueprint
 
 ## Vision
 

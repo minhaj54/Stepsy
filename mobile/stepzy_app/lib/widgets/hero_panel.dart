@@ -11,7 +11,7 @@ class HeroPanel extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(26),
-        border: Border.all(color: StepzyColors.border),
+        border: Border.all(color: WhishkhuColors.border),
         image: DecorationImage(
           image: const NetworkImage(
             'https://images.unsplash.com/photo-1552346154-21d32810aba3?auto=format&fit=crop&q=80&w=800',
@@ -29,10 +29,10 @@ class HeroPanel extends StatelessWidget {
           Container(
             padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
             decoration: BoxDecoration(
-              color: StepzyColors.primary.withValues(alpha: 0.2),
+              color: WhishkhuColors.primary.withValues(alpha: 0.2),
               borderRadius: BorderRadius.circular(20),
               border: Border.all(
-                color: StepzyColors.primary.withValues(alpha: 0.3),
+                color: WhishkhuColors.primary.withValues(alpha: 0.3),
               ),
             ),
             child: const Row(
@@ -41,7 +41,7 @@ class HeroPanel extends StatelessWidget {
                 Icon(
                   Icons.auto_awesome,
                   size: 14,
-                  color: StepzyColors.accent,
+                  color: WhishkhuColors.accent,
                 ),
                 SizedBox(width: 6),
                 Text(

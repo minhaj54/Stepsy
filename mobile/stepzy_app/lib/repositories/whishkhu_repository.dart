@@ -10,8 +10,8 @@ import '../models/shipping_address.dart';
 import '../data/mock_data.dart';
 import '../core/constants.dart';
 
-class StepzyRepository {
-  StepzyRepository(this.client);
+class WhishkhuRepository {
+  WhishkhuRepository(this.client);
 
   final SupabaseClient? client;
 
@@ -118,12 +118,12 @@ class StepzyRepository {
   }
 
   Future<String?> sendOtp(String phone) async {
-    if (stepzyApiBaseUrl.isEmpty) {
-      return 'STEPZY_API_BASE_URL is not configured for this build.';
+    if (whishkhuApiBaseUrl.isEmpty) {
+      return 'WHISHKHU_API_BASE_URL is not configured for this build.';
     }
     try {
       final response = await http.post(
-        Uri.parse('$stepzyApiBaseUrl/api/auth/send-otp'),
+        Uri.parse('$whishkhuApiBaseUrl/api/auth/send-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phone': phone}),
       );
@@ -138,15 +138,15 @@ class StepzyRepository {
   }
 
   Future<String?> verifyOtp(String phone, String code, String? fullName) async {
-    if (stepzyApiBaseUrl.isEmpty) {
-      return 'STEPZY_API_BASE_URL is not configured for this build.';
+    if (whishkhuApiBaseUrl.isEmpty) {
+      return 'WHISHKHU_API_BASE_URL is not configured for this build.';
     }
     if (client == null) {
       return 'Supabase is not configured for this build.';
     }
     try {
       final response = await http.post(
-        Uri.parse('$stepzyApiBaseUrl/api/auth/verify-otp'),
+        Uri.parse('$whishkhuApiBaseUrl/api/auth/verify-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'phone': phone,

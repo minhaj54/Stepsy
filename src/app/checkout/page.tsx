@@ -7,6 +7,7 @@ import { useAuth } from '../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../lib/supabase/client';
 import { ArrowLeft, CheckCircle, CreditCard, ShieldCheck, ShoppingBag, Landmark, Sparkles, MapPin } from 'lucide-react';
 import confetti from 'canvas-confetti';
+import ShimmerImage from '../../components/ShimmerImage';
 
 export default function CheckoutPage() {
   const { cart, cartTotal, discountedTotal, placeOrder } = useCart();
@@ -44,7 +45,7 @@ export default function CheckoutPage() {
       if (!error && data) {
         setSavedAddresses(data);
         // Auto-select default address if available
-        const defaultAddr = data.find(addr => addr.is_default);
+        const defaultAddr = data.find((addr: any) => addr.is_default);
         if (defaultAddr) {
           setSelectedAddressId(defaultAddr.id);
           setFullName(defaultAddr.full_name);
@@ -160,7 +161,7 @@ export default function CheckoutPage() {
           </div>
           <div className="flex justify-between text-sm font-bold text-white border-t border-white/[0.04] pt-2">
             <span>Total Debited</span>
-            <span className="text-primary font-black">${completedOrder.total_amount}</span>
+            <span className="text-primary font-black">₹{completedOrder.total_amount}</span>
           </div>
         </div>
 
@@ -194,7 +195,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow relative space-y-8">
+    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow relative space-y-8">
       {/* Loading Overlay */}
       {isProcessing && (
         <div className="fixed inset-0 z-50 bg-zinc-950/90 flex flex-col items-center justify-center text-center p-4 animate-in fade-in duration-300">
@@ -403,13 +404,13 @@ export default function CheckoutPage() {
               {cart.map((item) => (
                 <div key={item.variant.id} className="flex gap-4 items-center justify-between text-xs pt-3 first:pt-0">
                   <div className="flex gap-3 items-center">
-                    <img src={item.product.images[0]} alt="" className="h-9 w-9 object-contain bg-zinc-950/40 p-1 border border-white/[0.04] rounded-lg" />
+                    <ShimmerImage src={item.product.images[0]} alt="" className="h-9 w-9" />
                     <div>
                       <p className="font-bold text-white line-clamp-1 max-w-[120px]">{item.product.title}</p>
                       <p className="text-zinc-500 mt-0.5">Size {item.variant.size} • Qty {item.quantity}</p>
                     </div>
                   </div>
-                  <span className="font-bold text-white">${(item.product.sale_price || item.product.price) * item.quantity}</span>
+                  <span className="font-bold text-white">₹{(item.product.sale_price || item.product.price) * item.quantity}</span>
                 </div>
               ))}
             </div>
@@ -418,15 +419,15 @@ export default function CheckoutPage() {
             <div className="border-t border-white/[0.06] pt-4 text-xs space-y-2">
               <div className="flex justify-between text-zinc-400 font-semibold">
                 <span>Subtotal</span>
-                <span>${cartTotal}</span>
+                <span>₹{cartTotal}</span>
               </div>
               <div className="flex justify-between text-zinc-400 font-semibold">
                 <span>Shipping</span>
-                <span>{cartTotal >= 150 ? 'Free' : '$15'}</span>
+                <span>{cartTotal >= 1500 ? 'Free' : '₹150'}</span>
               </div>
               <div className="flex justify-between text-sm font-black text-white border-t border-white/[0.04] pt-3">
                 <span>Grand Total</span>
-                <span className="text-primary font-black">${finalTotal}</span>
+                <span className="text-primary font-black">₹{finalTotal}</span>
               </div>
             </div>
 

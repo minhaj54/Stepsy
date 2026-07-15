@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Plus, Edit, Trash2, X, Save, Eye, Layers } from 'lucide-react';
+import { ArrowLeft, Plus, Edit, Trash2, X, Save, Eye, Layers, Upload, Image as ImageIcon, Search, Filter, ChevronDown, Star, Sparkles, Trophy } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '../../../lib/supabase/client';
 import { Product, Brand, Category } from '../../../types';
 
@@ -10,16 +10,21 @@ interface AdminProductsClientProps {
   initialProducts: any[];
   brands: Brand[];
   categories: Category[];
+  storeId?: string;
 }
 
 export default function AdminProductsClient({
   initialProducts,
   brands,
   categories,
+  storeId,
 }: AdminProductsClientProps) {
   const [products, setProducts] = useState<any[]>(initialProducts);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'active' | 'draft' | 'archived'>('all');
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const configured = isSupabaseConfigured();
 
@@ -33,10 +38,23 @@ export default function AdminProductsClient({
   const [status, setStatus] = useState<'active' | 'draft' | 'archived'>('active');
   const [description, setDescription] = useState('');
   const [imageUrl, setImageUrl] = useState('');
+  const [uploadedImages, setUploadedImages] = useState<string[]>([]);
   const [featured, setFeatured] = useState(false);
   const [newArrival, setNewArrival] = useState(false);
   const [bestSeller, setBestSeller] = useState(false);
-  const [stock, setStock] = useState('25'); // Default stock quantity
+  const [stock, setStock] = useState('25');
+  const [variants, setVariants] = useState<Array<{ size: string; color: string; stock: number }>>([
+    { size: '8', color: 'Default', stock: 10 },
+    { size: '9', color: 'Default', stock: 10 },
+    { size: '10', color: 'Default', stock: 10 },
+  ]);
+
+  const filteredProducts = products.filter(product => {
+    const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         product.sku.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || product.status === statusFilter;
+    return matchesSearch && matchesStatus;
+  });
 
   const openAddModal = () => {
     setEditingProduct(null);
@@ -48,11 +66,17 @@ export default function AdminProductsClient({
     setSalePrice('');
     setStatus('active');
     setDescription('');
-    setImageUrl('https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=600');
+    setImageUrl('');
+    setUploadedImages([]);
     setFeatured(false);
     setNewArrival(true);
     setBestSeller(false);
     setStock('50');
+    setVariants([
+      { size: '8', color: 'Default', stock: 10 },
+      { size: '9', color: 'Default', stock: 10 },
+      { size: '10', color: 'Default', stock: 10 },
+    ]);
     setIsModalOpen(true);
   };
 
@@ -66,12 +90,67 @@ export default function AdminProductsClient({
     setSalePrice(product.sale_price ? product.sale_price.toString() : '');
     setStatus(product.status);
     setDescription(product.description || '');
-    setImageUrl(product.image_url || 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=600');
+    setImageUrl(product.image_url || '');
+    setUploadedImages(product.images || []);
     setFeatured(product.featured || false);
     setNewArrival(product.new_arrival || false);
     setBestSeller(product.best_seller || false);
     setStock(product.stock.toString());
+    setVariants(product.variants || [
+      { size: '8', color: 'Default', stock: 10 },
+      { size: '9', color: 'Default', stock: 10 },
+      { size: '10', color: 'Default', stock: 10 },
+    ]);
     setIsModalOpen(true);
+  };
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const files = e.target.files;
+    if (!files) return;
+
+    if (configured) {
+      const supabase = createClient();
+      const newImages: string[] = [];
+
+      for (const file of Array.from(files)) {
+        const fileName = `${Date.now()}-${file.name.replace(/[^a-zA-Z0-9.-]/g, '')}`;
+        const { data, error } = await supabase.storage
+          .from('product-images')
+          .upload(fileName, file);
+
+        if (error) {
+          console.error('Error uploading image:', error);
+          continue;
+        }
+
+        if (data) {
+          const { data: { publicUrl } } = supabase.storage
+            .from('product-images')
+            .getPublicUrl(fileName);
+          newImages.push(publicUrl);
+        }
+      }
+
+      setUploadedImages(prev => [...prev, ...newImages]);
+    } else {
+      // Fallback for non-configured Supabase
+      const newImages = Array.from(files).map(file => URL.createObjectURL(file));
+      setUploadedImages(prev => [...prev, ...newImages]);
+    }
+  };
+
+  const addVariant = () => {
+    setVariants([...variants, { size: '', color: 'Default', stock: 0 }]);
+  };
+
+  const updateVariant = (index: number, field: string, value: string | number) => {
+    const updated = [...variants];
+    updated[index] = { ...updated[index], [field]: value };
+    setVariants(updated);
+  };
+
+  const removeVariant = (index: number) => {
+    setVariants(variants.filter((_, i) => i !== index));
   };
 
   const handleSave = async (e: React.FormEvent) => {
@@ -80,7 +159,7 @@ export default function AdminProductsClient({
 
     const slug = title.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)+/g, '');
 
-    const pData = {
+    const pData: any = {
       title,
       slug,
       brand_id: brandId,
@@ -93,21 +172,33 @@ export default function AdminProductsClient({
       featured,
       new_arrival: newArrival,
       best_seller: bestSeller,
+      rating: 0,
+      reviews_count: 0,
     };
 
+    // Associate new products with the vendor's store (admins leave it null).
+    if (storeId) pData.store_id = storeId;
+
+    console.log('Saving product với data:', pData);
+    console.log('Supabase configured:', configured);
+    console.log('Environment URL:', process.env.NEXT_PUBLIC_SUPABASE_URL?.substring(0, 20) + '...');
+
     if (editingProduct) {
-      // 1. Update Locally
       setProducts(prev =>
         prev.map(p =>
           p.id === editingProduct.id
-            ? { ...p, ...pData, price: pData.price, sale_price: pData.sale_price, stock: parseInt(stock) }
+            ? { ...p, ...pData, price: pData.price, sale_price: pData.sale_price, stock: parseInt(stock), images: uploadedImages }
             : p
         )
       );
 
-      // 2. Update DB
       if (configured) {
         const supabase = createClient();
+        
+        // Check authentication
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log('Authenticated user:', user?.id);
+        
         const { error } = await supabase
           .from('products')
           .update(pData)
@@ -115,22 +206,64 @@ export default function AdminProductsClient({
 
         if (error) {
           console.error('Error updating product in Supabase:', error);
+          alert('Error updating product: ' + error.message);
+        } else {
+          console.log('Product updated successfully');
+        }
+
+        // Update images if changed
+        if (uploadedImages.length > 0) {
+          await supabase.from('product_images').delete().eq('product_id', editingProduct.id);
+          const imageInserts = uploadedImages.map((img, idx) => ({
+            product_id: editingProduct.id,
+            image_url: img,
+            sort_order: idx,
+          }));
+          await supabase.from('product_images').insert(imageInserts);
+        }
+
+        // Sync variants: replace the existing set with the edited one
+        const { error: delVarErr } = await supabase
+          .from('product_variants')
+          .delete()
+          .eq('product_id', editingProduct.id);
+
+        if (!delVarErr) {
+          const variantInserts = variants
+            .filter(v => v.size && v.size.trim() !== '')
+            .map(v => ({
+              product_id: editingProduct.id,
+              size: v.size,
+              color: v.color,
+              stock_quantity: v.stock || 0,
+            }));
+          if (variantInserts.length > 0) {
+            const { error: varError } = await supabase.from('product_variants').insert(variantInserts);
+            if (varError) console.error('Error inserting variants:', varError);
+          }
         }
       }
     } else {
-      // Create new product
-      const newId = editingProduct?.id || `prod_${Date.now()}`;
+      const newId = `prod_${Date.now()}`;
+      const finalImages = uploadedImages.length > 0 ? uploadedImages : ['https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=600'];
+      
       const localProduct = {
         id: newId,
         ...pData,
         stock: parseInt(stock),
-        image_url: imageUrl,
+        image_url: finalImages[0],
+        images: finalImages,
       };
 
       setProducts(prev => [localProduct, ...prev]);
 
       if (configured) {
         const supabase = createClient();
+        
+        // Check authentication
+        const { data: { user } } = await supabase.auth.getUser();
+        console.log('Authenticated user:', user?.id);
+        
         const { data, error } = await supabase
           .from('products')
           .insert(pData)
@@ -138,35 +271,87 @@ export default function AdminProductsClient({
           .single();
 
         if (!error && data) {
-          // Add default image
-          await supabase.from('product_images').insert({
+          console.log('Product inserted successfully with ID:', data.id);
+          
+          const imageInserts = finalImages.map((img, idx) => ({
             product_id: data.id,
-            image_url: imageUrl,
-            sort_order: 0,
-          });
-
-          // Add default variants
-          const sizes = ['8', '9', '10', '11', '12'];
-          const variants = sizes.map(sz => ({
-            product_id: data.id,
-            size: sz,
-            color: 'Default',
-            stock_quantity: Math.ceil(parseInt(stock) / 5),
+            image_url: img,
+            sort_order: idx,
           }));
+          const { error: imgError } = await supabase.from('product_images').insert(imageInserts);
+          if (imgError) console.error('Error inserting images:', imgError);
 
-          await supabase.from('product_variants').insert(variants);
+          const variantInserts = variants
+            .filter(v => v.size && v.size.trim() !== '')
+            .map(v => ({
+              product_id: data.id,
+              size: v.size,
+              color: v.color,
+              stock_quantity: v.stock || 0,
+            }));
+          
+          if (variantInserts.length > 0) {
+            const { error: varError } = await supabase.from('product_variants').insert(variantInserts);
+            if (varError) console.error('Error inserting variants:', varError);
+          }
 
-          // Update local state with real ID
           setProducts(prev =>
             prev.map(p => (p.sku === sku ? { ...p, id: data.id } : p))
           );
+          
+          alert('Product saved successfully to Supabase!');
         } else {
           console.error('Error inserting product in Supabase:', error);
+          alert('Error saving product: ' + (error?.message || 'Unknown error'));
         }
+      } else {
+        alert('ERROR: Supabase not configured. Products will NOT sync to database.');
       }
     }
 
     setIsModalOpen(false);
+  };
+
+  const handleToggleFeatured = async (productId: string, currentValue: boolean) => {
+    setProducts(prev =>
+      prev.map(p => (p.id === productId ? { ...p, featured: !currentValue } : p))
+    );
+
+    if (configured) {
+      const supabase = createClient();
+      await supabase
+        .from('products')
+        .update({ featured: !currentValue })
+        .eq('id', productId);
+    }
+  };
+
+  const handleToggleNewArrival = async (productId: string, currentValue: boolean) => {
+    setProducts(prev =>
+      prev.map(p => (p.id === productId ? { ...p, new_arrival: !currentValue } : p))
+    );
+
+    if (configured) {
+      const supabase = createClient();
+      await supabase
+        .from('products')
+        .update({ new_arrival: !currentValue })
+        .eq('id', productId);
+    }
+  };
+
+  const handleToggleBestSeller = async (productId: string, currentValue: boolean) => {
+    setProducts(prev =>
+      prev.map(p => (p.id === productId ? { ...p, best_seller: !currentValue } : p))
+    );
+
+    if (configured) {
+      const supabase = createClient();
+      await supabase
+        .from('products')
+        .update({ best_seller: !currentValue })
+        .eq('id', productId);
+    }
   };
 
   const handleDelete = async (id: string) => {
@@ -185,8 +370,8 @@ export default function AdminProductsClient({
   };
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 relative">
-      <div className="flex items-center justify-between mb-8">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 relative">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <Link
             href="/admin"
@@ -195,7 +380,7 @@ export default function AdminProductsClient({
             <ArrowLeft className="h-3 w-3" /> Dashboard
           </Link>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">Products</h1>
-          <p className="text-zinc-400 text-sm mt-1">{products.length} products in catalog</p>
+          <p className="text-zinc-400 text-sm mt-1">{filteredProducts.length} of {products.length} products in catalog</p>
         </div>
         <button
           onClick={openAddModal}
@@ -203,6 +388,33 @@ export default function AdminProductsClient({
         >
           <Plus className="h-4 w-4" /> Add Product
         </button>
+      </div>
+
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Search products by name or SKU..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-zinc-500" />
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value as any)}
+            className="bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+          >
+            <option value="all">All Status</option>
+            <option value="active">Active</option>
+            <option value="draft">Draft</option>
+            <option value="archived">Archived</option>
+          </select>
+        </div>
       </div>
 
       <div className="glass-card rounded-2xl overflow-hidden border border-white/[0.05]">
@@ -214,19 +426,22 @@ export default function AdminProductsClient({
                 <th className="text-left p-4 font-semibold">SKU</th>
                 <th className="text-left p-4 font-semibold">Price</th>
                 <th className="text-left p-4 font-semibold">Stock</th>
+                <th className="text-center p-4 font-semibold">Featured</th>
+                <th className="text-center p-4 font-semibold">New</th>
+                <th className="text-center p-4 font-semibold">Best</th>
                 <th className="text-left p-4 font-semibold">Status</th>
                 <th className="text-center p-4 font-semibold">Actions</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-white/[0.04]">
-              {products.length === 0 ? (
+              {filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center p-8 text-zinc-500 italic">
-                    No products found in the catalog.
+                    No products found matching your filters.
                   </td>
                 </tr>
               ) : (
-                products.map(product => (
+                filteredProducts.map(product => (
                   <tr
                     key={product.id}
                     className="hover:bg-white/[0.01] transition-colors"
@@ -234,7 +449,7 @@ export default function AdminProductsClient({
                     <td className="p-4">
                       <div className="flex items-center gap-3">
                         <img
-                          src={product.image_url || 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=60&h=60'}
+                          src={product.images?.[0] || product.image_url || 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=60&h=60'}
                           alt=""
                           className="w-10 h-10 object-contain bg-zinc-950/40 p-1 border border-white/[0.05] rounded-lg"
                         />
@@ -256,12 +471,12 @@ export default function AdminProductsClient({
                       {product.sale_price ? (
                         <span>
                           <span className="line-through text-zinc-500 mr-2">
-                            ${product.price}
+                            ₹{product.price}
                           </span>
-                          <span className="text-accent font-bold">${product.sale_price}</span>
+                          <span className="text-accent font-bold">₹{product.sale_price}</span>
                         </span>
                       ) : (
-                        `$${product.price}`
+                        `₹{product.price}`
                       )}
                     </td>
                     <td className="p-4">
@@ -272,6 +487,45 @@ export default function AdminProductsClient({
                       >
                         {product.stock} units
                       </span>
+                    </td>
+                    <td className="p-4 text-center">
+                      <button
+                        onClick={() => handleToggleFeatured(product.id, product.featured)}
+                        className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                          product.featured
+                            ? 'text-yellow-400 bg-yellow-500/10 border border-yellow-500/20'
+                            : 'text-zinc-500 bg-white/[0.02] border border-white/[0.06] hover:text-yellow-400'
+                        }`}
+                        title="Toggle Featured"
+                      >
+                        <Star className="h-4 w-4" />
+                      </button>
+                    </td>
+                    <td className="p-4 text-center">
+                      <button
+                        onClick={() => handleToggleNewArrival(product.id, product.new_arrival)}
+                        className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                          product.new_arrival
+                            ? 'text-green-400 bg-green-500/10 border border-green-500/20'
+                            : 'text-zinc-500 bg-white/[0.02] border border-white/[0.06] hover:text-green-400'
+                        }`}
+                        title="Toggle New Arrival"
+                      >
+                        <Sparkles className="h-4 w-4" />
+                      </button>
+                    </td>
+                    <td className="p-4 text-center">
+                      <button
+                        onClick={() => handleToggleBestSeller(product.id, product.best_seller)}
+                        className={`p-1.5 rounded-lg transition-all cursor-pointer ${
+                          product.best_seller
+                            ? 'text-accent bg-accent/10 border border-accent/20'
+                            : 'text-zinc-500 bg-white/[0.02] border border-white/[0.06] hover:text-accent'
+                        }`}
+                        title="Toggle Best Seller"
+                      >
+                        <Trophy className="h-4 w-4" />
+                      </button>
                     </td>
                     <td className="p-4">
                       <span
@@ -410,7 +664,7 @@ export default function AdminProductsClient({
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1">
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Regular Price ($)
+                      Regular Price (₹)
                     </label>
                     <input
                       type="number"
@@ -425,7 +679,7 @@ export default function AdminProductsClient({
                   </div>
                   <div className="space-y-1">
                     <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Sale Price ($) (Optional)
+                      Sale Price (₹) (Optional)
                     </label>
                     <input
                       type="number"
@@ -452,20 +706,99 @@ export default function AdminProductsClient({
                   </div>
                 </div>
 
-                {!editingProduct && (
-                  <div className="space-y-1">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
-                      Product Image URL
-                    </label>
+                {/* Image Upload */}
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    Product Images
+                  </label>
+                  <div className="border-2 border-dashed border-white/[0.1] rounded-xl p-6 text-center hover:border-primary/30 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                     <input
-                      type="url"
-                      placeholder="https://example.com/shoe.png"
-                      value={imageUrl}
-                      onChange={e => setImageUrl(e.target.value)}
-                      className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
+                      ref={fileInputRef}
+                      type="file"
+                      multiple
+                      accept="image/*"
+                      onChange={handleImageUpload}
+                      className="hidden"
                     />
+                    <Upload className="h-8 w-8 text-zinc-500 mx-auto mb-2" />
+                    <p className="text-sm text-zinc-400">Click to upload images</p>
+                    <p className="text-xs text-zinc-500 mt-1">PNG, JPG up to 10MB</p>
                   </div>
-                )}
+                  
+                  {uploadedImages.length > 0 && (
+                    <div className="grid grid-cols-4 gap-2 mt-3">
+                      {uploadedImages.map((img, idx) => (
+                        <div key={idx} className="relative group">
+                          <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-20 object-cover rounded-lg border border-white/[0.1]" />
+                          <button
+                            onClick={() => setUploadedImages(prev => prev.filter((_, i) => i !== idx))}
+                            className="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                          >
+                            <X className="h-3 w-3 text-white" />
+                          </button>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                  
+                  {imageUrl && uploadedImages.length === 0 && (
+                    <div className="mt-3">
+                      <img src={imageUrl} alt="Product" className="w-full h-32 object-cover rounded-lg border border-white/[0.1]" />
+                    </div>
+                  )}
+                </div>
+
+                {/* Variants */}
+                <div className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                      Size & Color Variants
+                    </label>
+                    <button
+                      type="button"
+                      onClick={addVariant}
+                      className="text-xs text-primary hover:text-primary-hover font-semibold"
+                    >
+                      + Add Variant
+                    </button>
+                  </div>
+                  <div className="space-y-2">
+                    {variants.map((variant, idx) => (
+                      <div key={idx} className="flex gap-2 items-center">
+                        <input
+                          type="text"
+                          placeholder="Size (e.g., 8, 9, 10)"
+                          value={variant.size}
+                          onChange={e => updateVariant(idx, 'size', e.target.value)}
+                          className="flex-1 bg-zinc-900 text-white border border-white/[0.06] rounded-lg px-3 py-2 text-xs outline-none focus:border-primary"
+                        />
+                        <input
+                          type="text"
+                          placeholder="Color"
+                          value={variant.color}
+                          onChange={e => updateVariant(idx, 'color', e.target.value)}
+                          className="flex-1 bg-zinc-900 text-white border border-white/[0.06] rounded-lg px-3 py-2 text-xs outline-none focus:border-primary"
+                        />
+                        <input
+                          type="number"
+                          placeholder="Stock"
+                          value={variant.stock}
+                          onChange={e => updateVariant(idx, 'stock', parseInt(e.target.value) || 0)}
+                          className="w-20 bg-zinc-900 text-white border border-white/[0.06] rounded-lg px-3 py-2 text-xs outline-none focus:border-primary"
+                        />
+                        {variants.length > 1 && (
+                          <button
+                            type="button"
+                            onClick={() => removeVariant(idx)}
+                            className="p-2 text-red-400 hover:text-red-300"
+                          >
+                            <X className="h-4 w-4" />
+                          </button>
+                        )}
+                      </div>
+                    ))}
+                  </div>
+                </div>
 
                 <div className="space-y-1">
                   <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">

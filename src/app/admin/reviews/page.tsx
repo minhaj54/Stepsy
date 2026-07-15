@@ -3,7 +3,7 @@ import { getAdminReviews } from '../../../lib/data/products';
 import AdminReviewsClient from './AdminReviewsClient';
 
 export const metadata = {
-  title: 'Review Moderation - Stepzy Admin',
+  title: 'Review Moderation - Whishkhu Admin',
 };
 
 export default async function AdminReviewsPage() {

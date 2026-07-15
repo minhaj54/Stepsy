@@ -47,6 +47,20 @@ export interface Category {
   image?: string;
 }
 
+export interface Store {
+  id: string;
+  owner_id: string;
+  name: string;
+  slug: string;
+  description: string;
+  banner_url: string;
+  logo_url: string;
+  social_handle: string;
+  status: 'pending' | 'active' | 'suspended';
+  created_at: string;
+  updated_at: string;
+}
+
 export interface Review {
   id: string;
   user_id: string;

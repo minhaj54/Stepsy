@@ -17,13 +17,13 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Stepzy - Premium Footwear & Sneaker Marketplace",
+  title: "Whishkhu - Premium Footwear & Sneaker Marketplace",
   description: "Discover the ultimate marketplace for elite athletic runners, custom leather boots, designer sneakers, and comfort footwear.",
   openGraph: {
-    title: "Stepzy - Premium Footwear Marketplace",
+    title: "Whishkhu - Premium Footwear Marketplace",
     description: "Discover the ultimate marketplace for elite athletic runners, custom leather boots, designer sneakers, and comfort footwear.",
-    url: "https://stepzy-footwear.vercel.app",
-    siteName: "Stepzy",
+    url: "https://whishkhu-footwear.vercel.app",
+    siteName: "Whishkhu",
     type: "website"
   }
 };

@@ -46,7 +46,7 @@ interface DbProduct {
   product_variants: { id: string; product_id: string; size: string; color: string; stock_quantity: number }[];
 }
 
-function mapDbProduct(row: DbProduct): Product {
+export function mapDbProduct(row: DbProduct): Product {
   return {
     id: row.id,
     brand_id: row.brand_id,
@@ -80,7 +80,7 @@ function mapDbProduct(row: DbProduct): Product {
   };
 }
 
-const PRODUCT_SELECT = `
+export const PRODUCT_SELECT = `
   *,
   brands(name, slug),
   categories(slug),
@@ -89,7 +89,10 @@ const PRODUCT_SELECT = `
 `;
 
 export async function getProducts(): Promise<Product[]> {
-  if (!isSupabaseConfigured()) return mockProducts;
+  if (!isSupabaseConfigured()) {
+    console.log('Supabase not configured, returning mock products');
+    return mockProducts;
+  }
 
   try {
     const { createClient } = await import('../supabase/server');
@@ -103,9 +106,25 @@ export async function getProducts(): Promise<Product[]> {
 
     const result = await withTimeout(query, 4000);
 
-    if (!result || result.error || !result.data?.length) return mockProducts;
+    if (!result) {
+      console.log('Product query timed out, returning mock products');
+      return mockProducts;
+    }
+    
+    if (result.error) {
+      console.error('Error fetching products:', result.error);
+      return mockProducts;
+    }
+    
+    if (!result.data?.length) {
+      console.log('No products found in Supabase, returning mock products');
+      return mockProducts;
+    }
+    
+    console.log(`Fetched ${result.data.length} products from Supabase`);
     return (result.data as DbProduct[]).map(mapDbProduct);
-  } catch {
+  } catch (error) {
+    console.error('Exception in getProducts:', error);
     return mockProducts;
   }
 }
@@ -134,6 +153,40 @@ export async function getProductBySlug(slug: string): Promise<Product | null> {
     return mapDbProduct(result.data as DbProduct);
   } catch {
     return mockProducts.find(p => p.slug === slug) ?? null;
+  }
+}
+
+export async function getRelatedProducts(current: Product, limit = 4): Promise<Product[]> {
+  if (!isSupabaseConfigured()) {
+    return mockProducts
+      .filter(p => p.category_id === current.category_id && p.id !== current.id)
+      .slice(0, limit);
+  }
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const query = supabase
+      .from('products')
+      .select(PRODUCT_SELECT)
+      .eq('category_id', current.category_id)
+      .eq('status', 'active')
+      .neq('id', current.id)
+      .limit(limit);
+
+    const result = await withTimeout(query, 4000);
+
+    if (!result || result.error || !result.data?.length) {
+      return mockProducts
+        .filter(p => p.category_id === current.category_id && p.id !== current.id)
+        .slice(0, limit);
+    }
+    return (result.data as DbProduct[]).map(mapDbProduct);
+  } catch {
+    return mockProducts
+      .filter(p => p.category_id === current.category_id && p.id !== current.id)
+      .slice(0, limit);
   }
 }
 
@@ -204,7 +257,7 @@ export async function getBlogPosts(): Promise<BlogPost[]> {
 
     if (!result || result.error || !result.data?.length) return mockBlogPosts;
 
-    return result.data.map((p: { id: string; title: string; slug: string; summary: string; content: string; featured_image: string; published_at: string; read_time: number; category: string; tags: string[] }) => ({
+    return result.data.map((p: { id: string; title: string; slug: string; summary: string; content: string; featured_image: string; published_at: string; read_time: string; category: string; tags: string[] }) => ({
       id: p.id,
       title: p.title,
       slug: p.slug,
@@ -242,7 +295,7 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
       return mockBlogPosts.find(p => p.slug === slug) ?? null;
     }
 
-    const data = result.data as { id: string; title: string; slug: string; summary: string; content: string; featured_image: string; published_at: string; read_time: number; category: string; tags: string[] };
+    const data = result.data as { id: string; title: string; slug: string; summary: string; content: string; featured_image: string; published_at: string; read_time: string; category: string; tags: string[] };
     return {
       id: data.id,
       title: data.title,
@@ -353,7 +406,7 @@ export async function getAdminOrders() {
   }
 }
 
-export async function getAdminProducts() {
+export async function getAdminProducts(storeId?: string) {
   if (!isSupabaseConfigured()) {
     return mockProducts.map(p => ({
       id: p.id,
@@ -363,6 +416,14 @@ export async function getAdminProducts() {
       sale_price: p.sale_price,
       status: p.status,
       sku: p.sku,
+      description: p.description,
+      featured: p.featured,
+      new_arrival: p.newArrival,
+      best_seller: p.bestSeller,
+      brand_id: p.brand_id,
+      category_id: p.category_id,
+      images: p.images,
+      variants: p.variants.map(v => ({ size: v.size, color: v.color, stock: v.stock_quantity })),
       stock: p.variants.reduce((sum, v) => sum + v.stock_quantity, 0),
     }));
   }
@@ -371,12 +432,31 @@ export async function getAdminProducts() {
     const { createClient } = await import('../supabase/server');
     const supabase = await createClient();
 
-    const { data } = await supabase
+    const query = supabase
       .from('products')
-      .select('id, title, slug, price, sale_price, status, sku, product_variants(stock_quantity)')
+      .select('id, title, slug, price, sale_price, status, sku, description, featured, new_arrival, best_seller, brand_id, category_id, product_images(image_url, sort_order), product_variants(id, size, color, stock_quantity)')
       .order('created_at', { ascending: false });
+    if (storeId) query.eq('store_id', storeId);
 
-    return (data ?? []).map((p: { id: string; title: string; slug: string; price: number; sale_price?: number; status: string; sku: string; product_variants: { stock_quantity: number }[] }) => ({
+    const { data } = await query;
+
+    return (data ?? []).map((p: {
+      id: string;
+      title: string;
+      slug: string;
+      price: number;
+      sale_price?: number;
+      status: string;
+      sku: string;
+      description: string | null;
+      featured: boolean;
+      new_arrival: boolean;
+      best_seller: boolean;
+      brand_id: string;
+      category_id: string;
+      product_images: { image_url: string; sort_order: number }[] | null;
+      product_variants: { id: string; size: string; color: string; stock_quantity: number }[] | null;
+    }) => ({
       id: p.id,
       title: p.title,
       slug: p.slug,
@@ -384,7 +464,22 @@ export async function getAdminProducts() {
       sale_price: p.sale_price ? Number(p.sale_price) : undefined,
       status: p.status,
       sku: p.sku,
-      stock: (p.product_variants ?? []).reduce((sum, v) => sum + v.stock_quantity, 0),
+      description: p.description ?? '',
+      featured: p.featured,
+      new_arrival: p.new_arrival,
+      best_seller: p.best_seller,
+      brand_id: p.brand_id,
+      category_id: p.category_id,
+      images: (p.product_images ?? [])
+        .sort((a, b) => a.sort_order - b.sort_order)
+        .map(img => img.image_url),
+      variants: (p.product_variants ?? []).map(v => ({
+        id: v.id,
+        size: v.size,
+        color: v.color,
+        stock: v.stock_quantity,
+      })),
+      stock: (p.product_variants ?? []).reduce((sum, v) => sum + (v.stock_quantity || 0), 0),
     }));
   } catch {
     return mockProducts.map(p => ({
@@ -395,6 +490,14 @@ export async function getAdminProducts() {
       sale_price: p.sale_price,
       status: p.status,
       sku: p.sku,
+      description: p.description,
+      featured: p.featured,
+      new_arrival: p.newArrival,
+      best_seller: p.bestSeller,
+      brand_id: p.brand_id,
+      category_id: p.category_id,
+      images: p.images,
+      variants: p.variants.map(v => ({ size: v.size, color: v.color, stock: v.stock_quantity })),
       stock: p.variants.reduce((sum, v) => sum + v.stock_quantity, 0),
     }));
   }
@@ -424,6 +527,7 @@ export async function validateCoupon(code: string) {
     const normalized = code.toUpperCase().trim();
     const mockCoupons: Record<string, { type: 'percentage' | 'fixed'; value: number }> = {
       STEPZY20: { type: 'percentage', value: 20 },
+      WHISHKHU20: { type: 'percentage', value: 20 },
       WELCOME10: { type: 'percentage', value: 10 },
       SHOEHEAVEN: { type: 'fixed', value: 30 },
     };
@@ -496,5 +600,365 @@ export async function getAdminReviews() {
     }));
   } catch {
     return [];
+  }
+}
+
+export async function getStoreStats(storeId: string) {
+  if (!isSupabaseConfigured()) {
+    return {
+      revenue: 12450,
+      orders: 87,
+      customers: 234,
+      products: mockProducts.length,
+    };
+  }
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    // Get all product IDs for this store
+    const { data: storeProducts } = await supabase
+      .from('products')
+      .select('id')
+      .eq('store_id', storeId);
+
+    const productIds = (storeProducts ?? []).map((p: { id: string }) => p.id);
+
+    if (productIds.length === 0) {
+      return { revenue: 0, orders: 0, customers: 0, products: 0 };
+    }
+
+    // Get order items for these products
+    const { data: orderItems } = await supabase
+      .from('order_items')
+      .select('order_id, quantity, products!inner(price, sale_price)')
+      .in('product_id', productIds);
+
+    const orderIds = [...new Set((orderItems ?? []).map((oi: { order_id: string }) => oi.order_id))];
+
+    // Get orders
+    const { data: orders } = await supabase
+      .from('orders')
+      .select('total_amount, payment_status, user_id')
+      .in('id', orderIds);
+
+    const ordersList = orders ?? [];
+    const revenue = ordersList
+      .filter(o => o.payment_status === 'paid')
+      .reduce((sum, o) => sum + Number(o.total_amount), 0);
+
+    const uniqueCustomers = new Set(ordersList.map(o => o.user_id));
+
+    return {
+      revenue,
+      orders: ordersList.length,
+      customers: uniqueCustomers.size,
+      products: productIds.length,
+    };
+  } catch {
+    return { revenue: 0, orders: 0, customers: 0, products: 0 };
+  }
+}
+
+export async function getStoreOrders(storeId: string) {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    // Get all product IDs for this store
+    const { data: storeProducts } = await supabase
+      .from('products')
+      .select('id')
+      .eq('store_id', storeId);
+
+    const productIds = (storeProducts ?? []).map((p: { id: string }) => p.id);
+
+    if (productIds.length === 0) return [];
+
+    // Get order items for these products
+    const { data: orderItems } = await supabase
+      .from('order_items')
+      .select('order_id, quantity, products(title, price, sale_price)')
+      .in('product_id', productIds);
+
+    const orderIds = [...new Set((orderItems ?? []).map((oi: { order_id: string }) => oi.order_id))];
+
+    if (orderIds.length === 0) return [];
+
+    // Get orders with user info
+    const { data } = await supabase
+      .from('orders')
+      .select('*, users(full_name, email), order_items(*, products(title))')
+      .in('id', orderIds)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function getStoreReviews(storeId: string) {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    // Get all product IDs for this store
+    const { data: storeProducts } = await supabase
+      .from('products')
+      .select('id')
+      .eq('store_id', storeId);
+
+    const productIds = (storeProducts ?? []).map((p: { id: string }) => p.id);
+
+    if (productIds.length === 0) return [];
+
+    // Get reviews for these products
+    const { data } = await supabase
+      .from('reviews')
+      .select('*, users(full_name, email), products(title)')
+      .in('product_id', productIds)
+      .order('created_at', { ascending: false })
+      .limit(50);
+
+    return (data ?? []).map((r: { id: string; user_id: string; users?: { full_name: string; email: string } | null; product_id: string; products?: { title: string } | null; rating: number; review_text: string; approved: boolean; created_at: string }) => ({
+      id: r.id,
+      user_id: r.user_id,
+      user_name: r.users?.full_name ?? 'Anonymous',
+      user_email: r.users?.email ?? '',
+      product_id: r.product_id,
+      product_title: r.products?.title ?? 'Product',
+      rating: r.rating,
+      review_text: r.review_text,
+      approved: r.approved,
+      created_at: r.created_at,
+    }));
+  } catch {
+    return [];
+  }
+}
+
+export async function getAllUsers() {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const { data } = await supabase
+      .from('users')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    return data ?? [];
+  } catch {
+    return [];
+  }
+}
+
+export async function updateUserRole(userId: string, role: 'customer' | 'admin' | 'vendor') {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('users')
+      .update({ role })
+      .eq('id', userId)
+      .select()
+      .single();
+
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function toggleProductFeatured(productId: string, featured: boolean) {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('products')
+      .update({ featured })
+      .eq('id', productId)
+      .select()
+      .single();
+
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function toggleProductNewArrival(productId: string, newArrival: boolean) {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('products')
+      .update({ new_arrival: newArrival })
+      .eq('id', productId)
+      .select()
+      .single();
+
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function toggleProductBestSeller(productId: string, bestSeller: boolean) {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const { data, error } = await supabase
+      .from('products')
+      .update({ best_seller: bestSeller })
+      .eq('id', productId)
+      .select()
+      .single();
+
+    if (error || !data) return null;
+    return data;
+  } catch {
+    return null;
+  }
+}
+
+export async function createCategory(data: { name: string; slug: string; parent_id?: string; image?: string }) {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const { data: result, error } = await supabase
+      .from('categories')
+      .insert(data)
+      .select()
+      .single();
+
+    if (error || !result) return null;
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+export async function updateCategory(id: string, data: { name?: string; slug?: string; parent_id?: string; image?: string }) {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const { data: result, error } = await supabase
+      .from('categories')
+      .update(data)
+      .eq('id', id)
+      .select()
+      .single();
+
+    if (error || !result) return null;
+    return result;
+  } catch {
+    return null;
+  }
+}
+
+export async function deleteCategory(id: string) {
+  if (!isSupabaseConfigured()) return false;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const { error } = await supabase
+      .from('categories')
+      .delete()
+      .eq('id', id);
+
+    return !error;
+  } catch {
+    return false;
+  }
+}
+
+export async function updateHomeBanner(bannerData: { image_url: string; title?: string; subtitle?: string; link?: string }) {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    // Check if banner exists
+    const { data: existing } = await supabase
+      .from('home_banners')
+      .select('id')
+      .limit(1)
+      .maybeSingle();
+
+    if (existing) {
+      const { data, error } = await supabase
+        .from('home_banners')
+        .update(bannerData)
+        .eq('id', existing.id)
+        .select()
+        .single();
+
+      if (error || !data) return null;
+      return data;
+    } else {
+      const { data, error } = await supabase
+        .from('home_banners')
+        .insert(bannerData)
+        .select()
+        .single();
+
+      if (error || !data) return null;
+      return data;
+    }
+  } catch {
+    return null;
+  }
+}
+
+export async function getHomeBanner() {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const { data } = await supabase
+      .from('home_banners')
+      .select('*')
+      .limit(1)
+      .maybeSingle();
+
+    return data;
+  } catch {
+    return null;
   }
 }

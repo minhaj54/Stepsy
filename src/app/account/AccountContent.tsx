@@ -6,10 +6,11 @@ import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../lib/supabase/client';
-import { mockProducts } from '../../data/mockShoes';
-import { User, ShoppingBag, Heart, MapPin, Check, Plus, Edit3, LogOut, ArrowRight, Star } from 'lucide-react';
+import { Product } from '../../types';
+import { User, ShoppingBag, Heart, MapPin, Check, Plus, Edit3, LogOut, ArrowRight, Star, Store } from 'lucide-react';
+import ShimmerImage from '../../components/ShimmerImage';
 
-export default function AccountContent() {
+export default function AccountContent({ products }: { products: Product[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { wishlist, toggleWishlist, orders } = useCart();
@@ -33,6 +34,9 @@ export default function AccountContent() {
 
   // Address book state
   const [addresses, setAddresses] = useState<any[]>([]);
+
+  // Current user's store (if they are a vendor)
+  const [myStore, setMyStore] = useState<any>(null);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [addrError, setAddrError] = useState<string | null>(null);
   const [newAddrName, setNewAddrName] = useState('');
@@ -71,7 +75,7 @@ export default function AccountContent() {
         .order('created_at', { ascending: true });
 
       if (!error && data) {
-        setAddresses(data.map(addr => ({
+        setAddresses(data.map((addr: any) => ({
           id: addr.id,
           fullName: addr.full_name,
           phone: addr.phone,
@@ -85,6 +89,22 @@ export default function AccountContent() {
     };
 
     fetchAddresses();
+  }, [configured, user]);
+
+  // Fetch the current user's store (vendor storefront)
+  useEffect(() => {
+    if (!user || !configured) return;
+    const fetchStore = async () => {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('stores')
+        .select('id, slug, name, logo_url')
+        .eq('owner_id', user.id)
+        .eq('status', 'active')
+        .maybeSingle();
+      setMyStore(data);
+    };
+    fetchStore();
   }, [configured, user]);
 
   // Sync tab with URL parameter changes
@@ -227,10 +247,10 @@ export default function AccountContent() {
   };
 
   // Get wishlisted products
-  const wishlistedProducts = mockProducts.filter(p => wishlist.includes(p.id));
+  const wishlistedProducts = products.filter(p => wishlist.includes(p.id));
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
       {/* Sidebar Controls */}
       <aside className="lg:col-span-3 space-y-4">
         {/* User Card */}
@@ -299,6 +319,25 @@ export default function AccountContent() {
             <MapPin className="h-4 w-4" />
             Saved Addresses
           </button>
+
+          {myStore ? (
+            <Link
+              href={`/store/${myStore.slug}`}
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-primary hover:text-primary-hover hover:bg-primary/10 transition-all"
+            >
+              <Store className="h-4 w-4" />
+              My Store
+            </Link>
+          ) : (
+            <Link
+              href="/open-store"
+              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-primary hover:text-primary-hover hover:bg-primary/10 transition-all"
+            >
+              <Store className="h-4 w-4" />
+              Open Your Store
+            </Link>
+          )}
+
           <button
             onClick={handleSignOut}
             className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-red-400 hover:text-red-300 hover:bg-red-500/10 transition-all cursor-pointer mt-2 border-t border-white/[0.06] pt-4"
@@ -384,7 +423,7 @@ export default function AccountContent() {
                       </div>
                       <div>
                         <p className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">Total Debited</p>
-                        <p className="text-sm font-black text-primary mt-0.5">${order.total_amount}</p>
+                        <p className="text-sm font-black text-primary mt-0.5">₹{order.total_amount}</p>
                       </div>
                       <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-500 rounded-lg text-xs font-bold uppercase tracking-wide">
                         {order.status}
@@ -396,13 +435,13 @@ export default function AccountContent() {
                       {order.items.map((item, idx) => (
                         <div key={idx} className="flex justify-between items-center gap-4">
                           <div className="flex items-center gap-3">
-                            <img src={item.product_image} alt="" className="h-10 w-10 object-contain bg-zinc-950/50 p-1 border border-white/[0.04] rounded-lg" />
+                            <ShimmerImage src={item.product_image} alt="" className="h-10 w-10" />
                             <div>
                               <p className="font-bold text-white text-xs">{item.product_title}</p>
                               <p className="text-[10px] text-zinc-500 mt-0.5">Size {item.size} • Color {item.color} • Qty {item.quantity}</p>
                             </div>
                           </div>
-                          <span className="font-bold text-white text-xs">${item.price * item.quantity}</span>
+                          <span className="font-bold text-white text-xs">₹{item.price * item.quantity}</span>
                         </div>
                       ))}
                     </div>
@@ -443,12 +482,12 @@ export default function AccountContent() {
                 {wishlistedProducts.map((p) => (
                   <div key={p.id} className="bg-zinc-950/30 border border-white/[0.05] p-4 rounded-2xl flex items-center justify-between gap-4 group">
                     <div className="flex items-center gap-3">
-                      <img src={p.images[0]} alt="" className="h-12 w-12 object-contain bg-zinc-950 p-1 border border-white/[0.04] rounded-xl" />
+                      <ShimmerImage src={p.images[0]} alt="" className="h-12 w-12" />
                       <div>
                         <Link href={`/product/${p.slug}`}>
                           <h4 className="font-bold text-white text-xs hover:text-primary transition-colors line-clamp-1">{p.title}</h4>
                         </Link>
-                        <p className="text-[10px] text-zinc-500 mt-0.5">{p.brand_name} • ${p.sale_price || p.price}</p>
+                        <p className="text-[10px] text-zinc-500 mt-0.5">{p.brand_name} • ₹{p.sale_price || p.price}</p>
                       </div>
                     </div>
 

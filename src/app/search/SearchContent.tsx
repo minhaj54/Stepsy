@@ -1,13 +1,19 @@
 'use client';
 
+import ShimmerImage from '../../components/ShimmerImage';
+
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Search, Star, Heart, ArrowRight } from 'lucide-react';
-import { mockProducts } from '../../data/mockShoes';
+import { Product } from '../../types';
 import { useCart } from '../../context/CartContext';
 import Link from 'next/link';
 
-export default function SearchContent() {
+interface SearchContentProps {
+  products: Product[];
+}
+
+export default function SearchContent({ products }: SearchContentProps) {
   const searchParams = useSearchParams();
   const router = useRouter();
   const { wishlist, toggleWishlist } = useCart();
@@ -41,7 +47,7 @@ export default function SearchContent() {
 
   // Search filter logic
   const matchedProducts = query
-    ? mockProducts.filter((product) => {
+    ? products.filter((product) => {
         const queryLower = query.toLowerCase();
         return (
           product.title.toLowerCase().includes(queryLower) ||
@@ -56,13 +62,13 @@ export default function SearchContent() {
       })
     : [];
 
-  const recommendations = mockProducts.slice(0, 3);
+  const recommendations = products.slice(0, 3);
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow">
       {/* Search Bar Block */}
       <div className="max-w-2xl mx-auto text-center space-y-6 mb-12">
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Explore Stepzy Marketplace</h1>
+        <h1 className="text-3xl font-extrabold text-white tracking-tight">Explore Whishkhu Marketplace</h1>
         
         <form onSubmit={handleSearchSubmit} className="relative group">
           <input
@@ -139,11 +145,11 @@ export default function SearchContent() {
                       </span>
                     )}
 
-                    <Link href={`/product/${product.slug}`} className="block aspect-square w-full p-6 bg-zinc-950/40 relative overflow-hidden flex items-center justify-center">
-                      <img 
-                        src={product.images[0]} 
-                        alt={product.title} 
-                        className="max-h-[140px] w-auto object-contain transform -rotate-6 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300 drop-shadow-[0_10px_15px_rgba(0,0,0,0.4)]"
+                    <Link href={`/product/${product.slug}`} className="block aspect-square w-full bg-zinc-950/40 relative overflow-hidden">
+                      <ShimmerImage
+                        src={product.images[0]}
+                        alt={product.title}
+                        className="w-full h-full"
                       />
                     </Link>
 
@@ -168,11 +174,11 @@ export default function SearchContent() {
                         <div>
                           {salePrice ? (
                             <div className="flex items-center gap-1.5">
-                              <span className="text-xs line-through text-zinc-500">${price}</span>
-                              <span className="text-sm font-black text-white">${salePrice}</span>
+                              <span className="text-xs line-through text-zinc-500">₹{price}</span>
+                              <span className="text-sm font-black text-white">₹{salePrice}</span>
                             </div>
                           ) : (
-                            <span className="text-sm font-black text-white">${price}</span>
+                            <span className="text-sm font-black text-white">₹{price}</span>
                           )}
                         </div>
                         <Link 
@@ -196,11 +202,11 @@ export default function SearchContent() {
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {recommendations.map((product) => (
               <div key={product.id} className="glass-card rounded-2xl overflow-hidden flex flex-col border border-white/[0.04] p-4 group">
-                <Link href={`/product/${product.slug}`} className="block aspect-[4/3] bg-zinc-950/20 rounded-xl p-4 flex items-center justify-center overflow-hidden">
-                  <img
+                <Link href={`/product/${product.slug}`} className="block aspect-[4/3] bg-zinc-950/20 rounded-xl overflow-hidden">
+                  <ShimmerImage
                     src={product.images[0]}
                     alt={product.title}
-                    className="max-h-[100px] w-auto object-contain transform -rotate-6 group-hover:rotate-0 group-hover:scale-105 transition-all duration-300"
+                    className="w-full h-full"
                   />
                 </Link>
                 <div className="mt-3 flex justify-between items-start gap-2">
@@ -208,7 +214,7 @@ export default function SearchContent() {
                     <h3 className="font-bold text-white text-sm line-clamp-1">{product.title}</h3>
                     <p className="text-[10px] text-zinc-500 mt-0.5">{product.brand_name}</p>
                   </div>
-                  <span className="text-sm font-black text-primary">${product.sale_price || product.price}</span>
+                  <span className="text-sm font-black text-primary">₹{product.sale_price || product.price}</span>
                 </div>
                 <Link
                   href={`/product/${product.slug}`}

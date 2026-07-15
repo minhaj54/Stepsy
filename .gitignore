@@ -42,3 +42,17 @@ next-env.d.ts
 
 # npm cache
 npm-cache
+
+# IDE
+.idea/
+.vscode/
+
+# Flutter
+mobile/stepzy_app/.dart_tool/
+mobile/stepzy_app/build/
+mobile/stepzy_app/.flutter-plugins
+mobile/stepzy_app/.flutter-plugins-dependencies
+
+# temp files
+diag-temp.mjs
+supabase/.temp/

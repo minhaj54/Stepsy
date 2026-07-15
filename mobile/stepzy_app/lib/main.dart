@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/constants.dart';
 import 'core/theme.dart';
-import 'providers/stepzy_store.dart';
+import 'providers/whishkhu_store.dart';
 import 'screens/shell.dart';
 
 Future<void> main() async {
@@ -18,36 +18,36 @@ Future<void> main() async {
   }
 
   final prefs = await SharedPreferences.getInstance();
-  runApp(StepzyApp(prefs: prefs));
+  runApp(WhishkhuApp(prefs: prefs));
 }
 
-class StepzyApp extends StatefulWidget {
-  const StepzyApp({super.key, required this.prefs});
+class WhishkhuApp extends StatefulWidget {
+  const WhishkhuApp({super.key, required this.prefs});
 
   final SharedPreferences prefs;
 
   @override
-  State<StepzyApp> createState() => _StepzyAppState();
+  State<WhishkhuApp> createState() => _WhishkhuAppState();
 }
 
-class _StepzyAppState extends State<StepzyApp> {
-  late final StepzyStore store;
+class _WhishkhuAppState extends State<WhishkhuApp> {
+  late final WhishkhuStore store;
 
   @override
   void initState() {
     super.initState();
-    store = StepzyStore(widget.prefs)..bootstrap();
+    store = WhishkhuStore(widget.prefs)..bootstrap();
   }
 
   @override
   Widget build(BuildContext context) {
-    return StepzyScope(
+    return WhishkhuScope(
       store: store,
       child: MaterialApp(
-        title: 'Stepzy',
+        title: 'Whishkhu',
         debugShowCheckedModeBanner: false,
-        theme: StepzyTheme.dark,
-        home: const StepzyShell(),
+        theme: WhishkhuTheme.dark,
+        home: const WhishkhuShell(),
       ),
     );
   }

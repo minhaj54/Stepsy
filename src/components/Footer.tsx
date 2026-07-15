@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Send, MapPin, Phone, Mail, Globe, MessageSquare, Hash } from 'lucide-react';
+import { Send, MapPin, Phone, Mail, Globe, MessageSquare, Hash, Store } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -21,7 +21,7 @@ export const Footer: React.FC = () => {
     <footer className="w-full bg-zinc-950 border-t border-white/[0.04] text-zinc-400 mt-auto">
       {/* Newsletter Banner */}
       <div className="border-b border-white/[0.04] py-10 bg-gradient-to-r from-zinc-950 via-primary/5 to-zinc-950">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
               <h3 className="text-xl font-bold text-white tracking-tight sm:text-2xl">
@@ -51,7 +51,7 @@ export const Footer: React.FC = () => {
               </form>
               {subscribed && (
                 <p className="mt-2 text-xs text-primary font-medium animate-pulse">
-                  Welcome to Stepzy! Check your inbox for 10% off your first order.
+                  Welcome to Whishkhu! Check your inbox for 10% off your first order.
                 </p>
               )}
             </div>
@@ -60,7 +60,7 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* Directory Columns */}
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
+      <div className="px-4 sm:px-6 lg:px-8 py-16">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
           {/* Brand Info */}
           <div className="space-y-4">
@@ -68,7 +68,7 @@ export const Footer: React.FC = () => {
               STEP<span className="text-primary">ZY</span>
             </Link>
             <p className="text-sm text-zinc-400 leading-relaxed">
-              Stepzy is a state-of-the-art premium footwear marketplace offering elite performance shoes, luxury craft sneakers, and all-weather boots.
+              Whishkhu is a state-of-the-art premium footwear marketplace offering elite performance shoes, luxury craft sneakers, and all-weather boots.
             </p>
             <div className="flex gap-4">
               <a href="#" className="p-2 bg-white/[0.03] hover:bg-primary/20 hover:text-white rounded-lg transition-colors" aria-label="Instagram">
@@ -147,7 +147,7 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex gap-2.5 items-center">
                 <Mail className="h-5 w-5 text-primary flex-shrink-0" />
-                <a href="mailto:support@stepzy.com" className="hover:text-white transition-colors">support@stepzy.com</a>
+                <a href="mailto:support@whishkhu.com" className="hover:text-white transition-colors">support@whishkhu.com</a>
               </li>
             </ul>
           </div>
@@ -155,8 +155,12 @@ export const Footer: React.FC = () => {
 
         {/* Lower Banner */}
         <div className="border-t border-white/[0.04] mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-          <p>© {new Date().getFullYear()} Stepzy Inc. All rights reserved.</p>
-          <div className="flex gap-6">
+          <p>© {new Date().getFullYear()} Whishkhu Inc. All rights reserved.</p>
+          <div className="flex items-center gap-6">
+            <Link href="/open-store" className="inline-flex items-center gap-1.5 text-primary hover:text-primary-hover font-semibold transition-colors">
+              <Store className="h-4 w-4" />
+              Open Your Store
+            </Link>
             <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
             <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
             <Link href="#" className="hover:text-white transition-colors">Sitemap</Link>

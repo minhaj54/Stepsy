@@ -151,7 +151,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
-            {isSignup ? 'Join Stepzy' : 'Welcome Back'}
+            {isSignup ? 'Join Whishkhu' : 'Welcome Back'}
           </h1>
           <p className="text-zinc-400 text-sm mt-2">
             {step === 'phone'
@@ -314,7 +314,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
               </>
             ) : (
               <>
-                New to Stepzy?{' '}
+                New to Whishkhu?{' '}
                 <Link href="/auth/signup" className="text-primary hover:text-primary-hover font-semibold">
                   Create account
                 </Link>

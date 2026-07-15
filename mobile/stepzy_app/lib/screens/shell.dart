@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
-import '../providers/stepzy_store.dart';
+import '../providers/whishkhu_store.dart';
 import 'home_tab.dart';
 import 'shop_tab.dart';
 import 'cart_tab.dart';
 import 'account_tab.dart';
 
-class StepzyShell extends StatefulWidget {
-  const StepzyShell({super.key});
+class WhishkhuShell extends StatefulWidget {
+  const WhishkhuShell({super.key});
 
   @override
-  State<StepzyShell> createState() => _StepzyShellState();
+  State<WhishkhuShell> createState() => _WhishkhuShellState();
 }
 
-class _StepzyShellState extends State<StepzyShell> {
+class _WhishkhuShellState extends State<WhishkhuShell> {
   int index = 0;
 
   @override
   Widget build(BuildContext context) {
-    final store = StepzyScope.of(context);
+    final store = WhishkhuScope.of(context);
     final tabs = [
       const HomeTab(),
       const ShopTab(),

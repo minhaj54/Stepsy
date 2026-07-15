@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../core/theme.dart';
 import '../models/cart_item.dart';
-import '../providers/stepzy_store.dart';
+import '../providers/whishkhu_store.dart';
 import 'common.dart';
 
 class CartRow extends StatelessWidget {
@@ -12,7 +12,7 @@ class CartRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = StepzyScope.of(context);
+    final store = WhishkhuScope.of(context);
     final money = NumberFormat.simpleCurrency();
 
     return Card(
@@ -25,7 +25,7 @@ class CartRow extends StatelessWidget {
               child: SizedBox(
                 width: 76,
                 height: 76,
-                child: StepzyRemoteImage(
+                child: WhishkhuRemoteImage(
                   url: item.product.images.isNotEmpty ? item.product.images.first : '',
                   seed: 'cart_${item.variant.id}',
                 ),

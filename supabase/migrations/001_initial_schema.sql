@@ -1,4 +1,4 @@
--- Stepzy Phase 1 Database Schema
+-- Whishkhu Phase 1 Database Schema
 -- Run this in Supabase SQL Editor or via supabase db push
 
 -- Enable UUID extension
@@ -269,7 +269,7 @@ BEGIN
   IF NEW.email IS NOT NULL AND NEW.email != '' THEN
     v_email := NEW.email;
   ELSE
-    v_email := CONCAT(REPLACE(v_phone, '+', ''), '@phone.stepzy.app');
+    v_email := CONCAT(REPLACE(v_phone, '+', ''), '@phone.whishkhu.app');
   END IF;
 
   INSERT INTO public.users (id, full_name, email, phone, role)
@@ -529,7 +529,7 @@ ON CONFLICT (slug) DO NOTHING;
 
 -- Seed: Coupons
 INSERT INTO coupons (code, type, value, start_date, end_date) VALUES
-  ('STEPZY20', 'percentage', 20, NOW(), NOW() + INTERVAL '1 year'),
+  ('WHISHKHU20', 'percentage', 20, NOW(), NOW() + INTERVAL '1 year'),
   ('WELCOME10', 'percentage', 10, NOW(), NOW() + INTERVAL '1 year'),
   ('SHOEHEAVEN', 'fixed', 30, NOW(), NOW() + INTERVAL '1 year')
 ON CONFLICT (code) DO NOTHING;

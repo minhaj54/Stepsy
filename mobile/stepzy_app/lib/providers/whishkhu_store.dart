@@ -9,30 +9,30 @@ import '../models/cart_item.dart';
 import '../models/product_variant.dart';
 import '../models/user_profile.dart';
 import '../models/shipping_address.dart';
-import '../repositories/stepzy_repository.dart';
+import '../repositories/whishkhu_repository.dart';
 import '../data/mock_data.dart';
 import '../core/constants.dart';
 
-class StepzyScope extends InheritedNotifier<StepzyStore> {
-  const StepzyScope({
+class WhishkhuScope extends InheritedNotifier<WhishkhuStore> {
+  const WhishkhuScope({
     super.key,
-    required StepzyStore store,
+    required WhishkhuStore store,
     required super.child,
   }) : super(notifier: store);
 
-  static StepzyStore of(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<StepzyScope>();
-    assert(scope != null, 'StepzyScope not found');
+  static WhishkhuStore of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<WhishkhuScope>();
+    assert(scope != null, 'WhishkhuScope not found');
     return scope!.notifier!;
   }
 }
 
-class StepzyStore extends ChangeNotifier {
-  StepzyStore(this.prefs)
-    : repository = StepzyRepository(_configuredSupabaseClient());
+class WhishkhuStore extends ChangeNotifier {
+  WhishkhuStore(this.prefs)
+    : repository = WhishkhuRepository(_configuredSupabaseClient());
 
   final SharedPreferences prefs;
-  final StepzyRepository repository;
+  final WhishkhuRepository repository;
 
   bool loading = true;
   String? error;
@@ -169,7 +169,7 @@ class StepzyStore extends ChangeNotifier {
   }
 
   void _loadCart() {
-    final raw = prefs.getString('stepzy_mobile_cart');
+    final raw = prefs.getString('whishkhu_mobile_cart');
     if (raw == null) return;
     final decoded = jsonDecode(raw) as List<dynamic>;
     cart = decoded
@@ -179,7 +179,7 @@ class StepzyStore extends ChangeNotifier {
 
   void _saveCart() {
     final encoded = jsonEncode(cart.map((item) => item.toJson()).toList());
-    prefs.setString('stepzy_mobile_cart', encoded);
+    prefs.setString('whishkhu_mobile_cart', encoded);
   }
 }
 

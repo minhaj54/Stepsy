@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/theme.dart';
 
-class StepzyHeader extends StatelessWidget {
-  const StepzyHeader({super.key, this.title = 'Stepzy'});
+class WhishkhuHeader extends StatelessWidget {
+  const WhishkhuHeader({super.key, this.title = 'Whishkhu'});
 
   final String title;
 
@@ -14,13 +14,13 @@ class StepzyHeader extends StatelessWidget {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: StepzyColors.primary.withValues(alpha: .18),
+            color: WhishkhuColors.primary.withValues(alpha: .18),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: StepzyColors.primary.withValues(alpha: .25),
+              color: WhishkhuColors.primary.withValues(alpha: .25),
             ),
           ),
-          child: const Icon(Icons.bolt_rounded, color: StepzyColors.accent),
+          child: const Icon(Icons.bolt_rounded, color: WhishkhuColors.accent),
         ),
         const SizedBox(width: 12),
         Column(
@@ -32,7 +32,7 @@ class StepzyHeader extends StatelessWidget {
             ),
             const Text(
               'World of shoes',
-              style: TextStyle(color: StepzyColors.muted),
+              style: TextStyle(color: WhishkhuColors.muted),
             ),
           ],
         ),
@@ -74,8 +74,8 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-class StepzyRemoteImage extends StatelessWidget {
-  const StepzyRemoteImage({super.key, required this.url, this.seed});
+class WhishkhuRemoteImage extends StatelessWidget {
+  const WhishkhuRemoteImage({super.key, required this.url, this.seed});
 
   final String url;
   final String? seed;

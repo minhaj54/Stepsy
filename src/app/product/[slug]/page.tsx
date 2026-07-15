@@ -1,6 +1,6 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import { getProductBySlug, getReviewsByProductId } from '../../../lib/data/products';
+import { getProductBySlug, getReviewsByProductId, getRelatedProducts } from '../../../lib/data/products';
 import ProductDetailClient from './ProductDetailClient';
 
 interface PageProps {
@@ -13,15 +13,15 @@ export async function generateMetadata({ params }: PageProps) {
   
   if (!product) {
     return {
-      title: "Footwear Product Not Found - Stepzy"
+      title: "Footwear Product Not Found - Whishkhu"
     };
   }
 
   return {
-    title: `${product.title} | ${product.brand_name} - Stepzy`,
+    title: `${product.title} | ${product.brand_name} - Whishkhu`,
     description: product.description.substring(0, 160),
     openGraph: {
-      title: `${product.title} | ${product.brand_name} - Stepzy`,
+      title: `${product.title} | ${product.brand_name} - Whishkhu`,
       description: product.description.substring(0, 160),
       images: [
         {
@@ -43,7 +43,10 @@ export default async function ProductPage({ params }: PageProps) {
     notFound();
   }
 
-  const reviews = await getReviewsByProductId(product.id);
+  const [reviews, relatedProducts] = await Promise.all([
+    getReviewsByProductId(product.id),
+    getRelatedProducts(product),
+  ]);
 
-  return <ProductDetailClient product={product} initialReviews={reviews} />;
+  return <ProductDetailClient product={product} initialReviews={reviews} relatedProducts={relatedProducts} />;
 }

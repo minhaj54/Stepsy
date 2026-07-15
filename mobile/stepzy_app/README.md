@@ -1,4 +1,4 @@
-# stepzy_app
+# whishkhu_app
 
 A new Flutter project.
 

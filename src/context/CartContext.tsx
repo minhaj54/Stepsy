@@ -42,9 +42,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load cart, wishlist, and orders from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('stepzy_cart');
-    const savedWishlist = localStorage.getItem('stepzy_wishlist');
-    const savedOrders = localStorage.getItem('stepzy_orders');
+    const savedCart = localStorage.getItem('whishkhu_cart');
+    const savedWishlist = localStorage.getItem('whishkhu_wishlist');
+    const savedOrders = localStorage.getItem('whishkhu_orders');
 
     if (savedCart) setCart(JSON.parse(savedCart));
     if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
@@ -65,9 +65,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         .eq('user_id', user.id);
       
       if (!wlError && wlData) {
-        const dbWishlist = wlData.map(item => item.product_id);
+        const dbWishlist = wlData.map((item: any) => item.product_id);
         setWishlist(dbWishlist);
-        localStorage.setItem('stepzy_wishlist', JSON.stringify(dbWishlist));
+        localStorage.setItem('whishkhu_wishlist', JSON.stringify(dbWishlist));
       }
 
       // Sync Orders
@@ -86,6 +86,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
+
+      console.log('[CartContext] Fetched orders from Supabase:', { ordData, ordError, userId: user.id });
 
       if (!ordError && ordData) {
         const dbOrders: Order[] = ordData.map((o: any) => {
@@ -118,8 +120,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             })
           };
         });
+
+        console.log('[CartContext] Synced orders from Supabase:', dbOrders.length);
         setOrders(dbOrders);
-        localStorage.setItem('stepzy_orders', JSON.stringify(dbOrders));
+        localStorage.setItem('whishkhu_orders', JSON.stringify(dbOrders));
+      } else if (ordError) {
+        console.error('[CartContext] Error fetching orders from Supabase:', ordError);
       }
     };
 
@@ -129,7 +135,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Save cart to localStorage
   const saveCart = (newCart: CartItem[]) => {
     setCart(newCart);
-    localStorage.setItem('stepzy_cart', JSON.stringify(newCart));
+    localStorage.setItem('whishkhu_cart', JSON.stringify(newCart));
   };
 
   const addToCart = (product: Product, variant: ProductVariant, quantity = 1) => {
@@ -175,7 +181,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Coupon handling
   const applyCouponCode = (code: string): boolean => {
     const normalized = code.toUpperCase().trim();
-    if (normalized === 'STEPZY20') {
+    if (normalized === 'STEPZY20' || normalized === 'WHISHKHU20') {
       setAppliedCoupon({ code: 'STEPZY20', type: 'percentage', value: 20 });
       return true;
     }
@@ -212,7 +218,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       newWishlist = [...wishlist, productId];
     }
     setWishlist(newWishlist);
-    localStorage.setItem('stepzy_wishlist', JSON.stringify(newWishlist));
+    localStorage.setItem('whishkhu_wishlist', JSON.stringify(newWishlist));
 
     if (configured && user) {
       const supabase = createClient();
@@ -232,6 +238,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Place order
   const placeOrder = async (address: ShippingAddress): Promise<Order | null> => {
+    console.log('[CartContext] placeOrder called with address:', address, 'cart items:', cart.length);
+
     if (cart.length === 0 || !user) return null;
 
     const orderId = `ord_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -256,16 +264,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       created_at: new Date().toISOString()
     };
 
-    const newOrders = [newOrder, ...orders];
-    setOrders(newOrders);
-    localStorage.setItem('stepzy_orders', JSON.stringify(newOrders));
+    let dbOrderCreated = false;
 
     if (configured) {
       const supabase = createClient();
-      
+      console.log('[CartContext] Inserting order into Supabase for user:', user.id);
+
       // Save address to addresses table first
       try {
-        // Check if address already exists (simplified check)
         const { data: existingAddresses } = await supabase
           .from('addresses')
           .select('*')
@@ -274,15 +280,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           .eq('address_line1', address.addressLine1)
           .eq('city', address.city)
           .eq('pincode', address.pincode);
-        
-        // If no existing address found, insert new one
+
         if (!existingAddresses || existingAddresses.length === 0) {
-          // Check if this is the first address to make it default
           const { count: existingCount } = await supabase
             .from('addresses')
             .select('*', { count: 'exact', head: true })
             .eq('user_id', user.id);
-          
+
           await supabase.from('addresses').insert({
             user_id: user.id,
             full_name: address.fullName,
@@ -297,8 +301,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } catch (addrError) {
         console.error('Error saving address:', addrError);
       }
-      
-      const { error: orderError } = await supabase
+
+      const { error: orderError, data: orderData } = await supabase
         .from('orders')
         .insert({
           id: orderId,
@@ -309,9 +313,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           shipping_address: address,
           coupon_code: appliedCoupon?.code ?? null,
           discount_amount: discountAmount
-        });
+        })
+        .select();
+
+      console.log('[CartContext] Order insert result:', { orderError, orderData });
 
       if (!orderError) {
+        dbOrderCreated = true;
+
         const itemsToInsert = cart.map(item => ({
           order_id: orderId,
           product_id: item.product.id,
@@ -320,7 +329,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           price: item.product.sale_price || item.product.price
         }));
 
-        await supabase.from('order_items').insert(itemsToInsert);
+        const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
+        if (itemsError) {
+          console.error('Error creating order items in database:', itemsError);
+        }
 
         // Update variant stocks
         for (const item of cart) {
@@ -339,10 +351,21 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } else {
         console.error('Error creating order in database:', orderError);
+        alert('Order placed locally but failed to sync with database. Please contact support if the order does not appear in your history.');
       }
     }
 
-    clearCart();
+    // Only add to local state and clear cart if DB insert succeeded (or if Supabase is not configured)
+    if (!configured || dbOrderCreated) {
+      const newOrders = [newOrder, ...orders];
+      setOrders(newOrders);
+      localStorage.setItem('whishkhu_orders', JSON.stringify(newOrders));
+      clearCart();
+      console.log('[CartContext] Order added to local state and cart cleared');
+    } else {
+      console.log('[CartContext] Order NOT added to local state because DB insert failed');
+    }
+
     return newOrder;
   };
 

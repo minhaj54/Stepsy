@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Star, Check, Trash2, MessageSquare, AlertCircle } from 'lucide-react';
+import { ArrowLeft, Star, Check, Trash2, MessageSquare, AlertCircle, Search, Filter, Package } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '../../../lib/supabase/client';
 
 interface AdminReviewsClientProps {
@@ -12,18 +12,19 @@ interface AdminReviewsClientProps {
 export default function AdminReviewsClient({ initialReviews }: AdminReviewsClientProps) {
   const [reviews, setReviews] = useState<any[]>(initialReviews);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'pending'>('all');
+  const [ratingFilter, setRatingFilter] = useState<'all' | '5' | '4' | '3' | '2' | '1'>('all');
 
   const configured = isSupabaseConfigured();
 
   const handleApprove = async (id: string) => {
     setUpdatingId(id);
 
-    // 1. Update Locally
     setReviews(prev =>
       prev.map(r => (r.id === id ? { ...r, approved: true } : r))
     );
 
-    // 2. Update DB
     if (configured) {
       const supabase = createClient();
       const { error } = await supabase
@@ -39,8 +40,8 @@ export default function AdminReviewsClient({ initialReviews }: AdminReviewsClien
     setUpdatingId(null);
   };
 
-  const handleDelete = async (id: string) => {
-    if (!confirm('Are you sure you want to delete this review?')) return;
+  const handleReject = async (id: string) => {
+    if (!confirm('Are you sure you want to reject this review?')) return;
 
     setReviews(prev => prev.filter(r => r.id !== id));
 
@@ -54,9 +55,22 @@ export default function AdminReviewsClient({ initialReviews }: AdminReviewsClien
     }
   };
 
+  const filteredReviews = reviews.filter(review => {
+    const matchesSearch = review.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         review.product_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                         review.review_text?.toLowerCase().includes(searchQuery.toLowerCase());
+    const matchesStatus = statusFilter === 'all' || 
+                         (statusFilter === 'approved' && review.approved) ||
+                         (statusFilter === 'pending' && !review.approved);
+    const matchesRating = ratingFilter === 'all' || review.rating === parseInt(ratingFilter);
+    return matchesSearch && matchesStatus && matchesRating;
+  });
+
+  const pendingCount = reviews.filter(r => !r.approved).length;
+
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-      <div className="mb-8 flex justify-between items-center">
+    <div className="px-4 sm:px-6 lg:px-8 py-8">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-8">
         <div>
           <Link
             href="/admin"
@@ -65,18 +79,56 @@ export default function AdminReviewsClient({ initialReviews }: AdminReviewsClien
             <ArrowLeft className="h-3 w-3" /> Dashboard
           </Link>
           <h1 className="text-3xl font-extrabold text-white tracking-tight">Review Moderation</h1>
-          <p className="text-zinc-400 text-sm mt-1">{reviews.length} total customer reviews</p>
+          <p className="text-zinc-400 text-sm mt-1">{filteredReviews.length} of {reviews.length} reviews • {pendingCount} pending approval</p>
         </div>
       </div>
 
-      {reviews.length === 0 ? (
+      {/* Search and Filter */}
+      <div className="flex flex-col sm:flex-row gap-4 mb-6">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <input
+            type="text"
+            placeholder="Search by customer, product, or review text..."
+            value={searchQuery}
+            onChange={e => setSearchQuery(e.target.value)}
+            className="w-full bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          <Filter className="h-4 w-4 text-zinc-500" />
+          <select
+            value={statusFilter}
+            onChange={e => setStatusFilter(e.target.value as any)}
+            className="bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+          >
+            <option value="all">All Status</option>
+            <option value="pending">Pending</option>
+            <option value="approved">Approved</option>
+          </select>
+          <select
+            value={ratingFilter}
+            onChange={e => setRatingFilter(e.target.value as any)}
+            className="bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+          >
+            <option value="all">All Ratings</option>
+            <option value="5">5 Stars</option>
+            <option value="4">4 Stars</option>
+            <option value="3">3 Stars</option>
+            <option value="2">2 Stars</option>
+            <option value="1">1 Star</option>
+          </select>
+        </div>
+      </div>
+
+      {filteredReviews.length === 0 ? (
         <div className="glass-card rounded-2xl p-12 text-center border border-white/[0.05]">
           <MessageSquare className="h-12 w-12 text-zinc-600 mx-auto mb-4" />
-          <p className="text-zinc-400">No customer reviews to show.</p>
+          <p className="text-zinc-400">No reviews found matching your filters.</p>
         </div>
       ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {reviews.map(review => (
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredReviews.map(review => (
             <div
               key={review.id}
               className={`glass-card rounded-2xl p-5 border transition-all ${
@@ -86,7 +138,7 @@ export default function AdminReviewsClient({ initialReviews }: AdminReviewsClien
               }`}
             >
               <div className="flex justify-between items-start gap-4 mb-3">
-                <div>
+                <div className="flex-1">
                   <h4 className="font-bold text-white text-sm">
                     {review.user_name || 'Anonymous'}
                   </h4>
@@ -104,17 +156,17 @@ export default function AdminReviewsClient({ initialReviews }: AdminReviewsClien
                 </div>
               </div>
 
-              <div className="mb-4">
-                <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider">
-                  Product
+              <div className="mb-3">
+                <span className="text-[10px] text-zinc-500 uppercase font-bold tracking-wider flex items-center gap-1">
+                  <Package className="h-3 w-3" /> Product
                 </span>
-                <p className="font-bold text-primary text-xs mt-0.5 leading-snug">
+                <p className="font-bold text-primary text-xs mt-0.5 leading-snug line-clamp-1">
                   {review.product_title}
                 </p>
               </div>
 
-              <div className="mb-5 bg-zinc-950/40 p-3 rounded-xl border border-white/[0.03]">
-                <p className="text-zinc-300 text-xs italic leading-relaxed">
+              <div className="mb-4 bg-zinc-950/40 p-3 rounded-xl border border-white/[0.03]">
+                <p className="text-zinc-300 text-xs italic leading-relaxed line-clamp-3">
                   "{review.review_text}"
                 </p>
               </div>
@@ -126,10 +178,13 @@ export default function AdminReviewsClient({ initialReviews }: AdminReviewsClien
                       <Check className="h-3 w-3" /> Approved
                     </span>
                   ) : (
-                    <span className="flex items-center gap-1 text-[10px] font-bold text-yellow-400 uppercase tracking-wider bg-yellow-500/10 border border-yellow-500/15 px-2 py-0.5 rounded animate-pulse">
-                      <AlertCircle className="h-3 w-3" /> Pending Review
+                    <span className="flex items-center gap-1 text-[10px] font-bold text-yellow-400 uppercase tracking-wider bg-yellow-500/10 border border-yellow-500/15 px-2 py-0.5 rounded">
+                      <AlertCircle className="h-3 w-3" /> Pending
                     </span>
                   )}
+                  <span className="text-zinc-500 text-[10px]">
+                    {new Date(review.created_at).toLocaleDateString()}
+                  </span>
                 </div>
 
                 <div className="flex gap-2">
@@ -143,7 +198,7 @@ export default function AdminReviewsClient({ initialReviews }: AdminReviewsClien
                     </button>
                   )}
                   <button
-                    onClick={() => handleDelete(review.id)}
+                    onClick={() => handleReject(review.id)}
                     className="px-3 py-1.5 bg-red-500/10 hover:bg-red-500/20 text-red-400 border border-red-500/10 rounded-lg font-bold text-[10px] uppercase tracking-wider flex items-center gap-1 cursor-pointer transition-all"
                   >
                     <Trash2 className="h-3 w-3" /> Delete

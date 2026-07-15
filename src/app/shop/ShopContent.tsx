@@ -3,11 +3,18 @@
 import React, { useState, useEffect } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Star, Heart, SlidersHorizontal, ArrowUpDown, ChevronDown, Check, X, ArrowRight } from 'lucide-react';
-import { mockProducts, mockCategories, mockBrands } from '../../data/mockShoes';
+import { Product, Brand, Category } from '../../types';
 import { useCart } from '../../context/CartContext';
 import Link from 'next/link';
+import ShimmerImage from '../../components/ShimmerImage';
 
-export default function ShopContent() {
+interface ShopContentProps {
+  products: Product[];
+  brands: Brand[];
+  categories: Category[];
+}
+
+export default function ShopContent({ products, brands, categories }: ShopContentProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { wishlist, toggleWishlist } = useCart();
@@ -21,7 +28,16 @@ export default function ShopContent() {
   const [selectedBrand, setSelectedBrand] = useState(initialBrand);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
-  const [maxPrice, setMaxPrice] = useState(300);
+
+  // Derive the real price ceiling from the catalog so premium products are
+  // never hidden behind a hard-coded ₹3000 default on the shop page. This keeps
+  // the shop in sync with the home/featured sections.
+  const catalogPrices = products.map(p => p.sale_price || p.price);
+  const priceCeiling = catalogPrices.length
+    ? Math.max(3000, Math.ceil(Math.max(...catalogPrices) / 50) * 50)
+    : 3000;
+
+  const [maxPrice, setMaxPrice] = useState(priceCeiling);
   const [sortBy, setSortBy] = useState('newest');
   
   // Mobile Filter Drawer
@@ -66,18 +82,18 @@ export default function ShopContent() {
     setSelectedBrand('');
     setSelectedSizes([]);
     setSelectedColors([]);
-    setMaxPrice(300);
+    setMaxPrice(priceCeiling);
     setSortBy('newest');
     router.push('/shop');
   };
 
   // Filtering Logic
-  const filteredProducts = mockProducts.filter(product => {
+  const filteredProducts = products.filter(product => {
     // Category match
     if (selectedCategory && product.category_slug !== selectedCategory) return false;
 
     // Brand match
-    if (selectedBrand && product.brand_id !== selectedBrand && mockBrands.find(b => b.slug === selectedBrand)?.id !== product.brand_id) return false;
+    if (selectedBrand && product.brand_id !== selectedBrand && brands.find(b => b.slug === selectedBrand)?.id !== product.brand_id) return false;
 
     // Price match
     const currentPrice = product.sale_price || product.price;
@@ -114,11 +130,11 @@ export default function ShopContent() {
   });
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow">
       {/* Top Title & Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Stepzy Footwear Catalog</h1>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">Whishkhu Footwear Catalog</h1>
           <p className="text-zinc-500 text-sm mt-1">Showing {sortedProducts.length} premium products</p>
         </div>
 
@@ -176,7 +192,7 @@ export default function ShopContent() {
               >
                 All Categories
               </button>
-              {mockCategories.map((cat) => (
+              {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.slug)}
@@ -203,7 +219,7 @@ export default function ShopContent() {
               >
                 All Brands
               </button>
-              {mockBrands.map((brand) => (
+              {brands.map((brand) => (
                 <button
                   key={brand.id}
                   onClick={() => setSelectedBrand(brand.slug)}
@@ -222,20 +238,20 @@ export default function ShopContent() {
           <div className="space-y-3 pt-4 border-t border-white/[0.06]">
             <div className="flex justify-between items-center">
               <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Max Price</h4>
-              <span className="text-sm font-bold text-white">${maxPrice}</span>
+              <span className="text-sm font-bold text-white">₹{maxPrice}</span>
             </div>
             <input
               type="range"
-              min="30"
-              max="300"
+              min="0"
+              max={priceCeiling}
               step="10"
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
               className="w-full accent-primary h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
             />
             <div className="flex justify-between text-[10px] text-zinc-500 font-semibold">
-              <span>$30</span>
-              <span>$300</span>
+              <span>₹0</span>
+              <span>₹{priceCeiling}</span>
             </div>
           </div>
 
@@ -307,7 +323,7 @@ export default function ShopContent() {
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
               {sortedProducts.map((product) => {
                 const isWishlisted = wishlist.includes(product.id);
                 const price = product.price;
@@ -332,11 +348,11 @@ export default function ShopContent() {
                     )}
 
                     {/* Product Image */}
-                    <Link href={`/product/${product.slug}`} className="block aspect-square w-full p-6 bg-zinc-950/40 relative overflow-hidden flex items-center justify-center">
-                      <img 
-                        src={product.images[0]} 
-                        alt={product.title} 
-                        className="max-h-[160px] w-auto object-contain transform -rotate-6 group-hover:rotate-0 group-hover:scale-110 transition-all duration-300 drop-shadow-[0_10px_20px_rgba(0,0,0,0.4)]"
+                    <Link href={`/product/${product.slug}`} className="block aspect-square w-full bg-zinc-950/40 relative overflow-hidden">
+                      <ShimmerImage
+                        src={product.images[0]}
+                        alt={product.title}
+                        className="w-full h-full"
                       />
                     </Link>
 
@@ -362,11 +378,11 @@ export default function ShopContent() {
                         <div>
                           {salePrice ? (
                             <div className="flex items-center gap-2">
-                              <span className="text-sm line-through text-zinc-500">${price}</span>
-                              <span className="text-base font-black text-white">${salePrice}</span>
+                              <span className="text-sm line-through text-zinc-500">₹{price}</span>
+                              <span className="text-base font-black text-white">₹{salePrice}</span>
                             </div>
                           ) : (
-                            <span className="text-base font-black text-white">${price}</span>
+                            <span className="text-base font-black text-white">₹{price}</span>
                           )}
                         </div>
                         <Link 
@@ -410,7 +426,7 @@ export default function ShopContent() {
                 >
                   All Categories
                 </button>
-                {mockCategories.map((cat) => (
+                {categories.map((cat) => (
                   <button
                     key={cat.id}
                     onClick={() => { setSelectedCategory(cat.slug); setIsFilterDrawerOpen(false); }}
@@ -433,7 +449,7 @@ export default function ShopContent() {
                 >
                   All Brands
                 </button>
-                {mockBrands.map((brand) => (
+                {brands.map((brand) => (
                   <button
                     key={brand.id}
                     onClick={() => { setSelectedBrand(brand.slug); setIsFilterDrawerOpen(false); }}
@@ -450,12 +466,12 @@ export default function ShopContent() {
             <div className="space-y-3 mb-6 pt-4 border-t border-white/[0.06]">
               <div className="flex justify-between items-center">
                 <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Max Price</h4>
-                <span className="text-sm font-bold text-white">${maxPrice}</span>
+                <span className="text-sm font-bold text-white">₹{maxPrice}</span>
               </div>
               <input
                 type="range"
-                min="30"
-                max="300"
+                min="0"
+                max={priceCeiling}
                 step="10"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}

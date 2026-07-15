@@ -16,7 +16,7 @@ class CategoryTile extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            StepzyRemoteImage(url: category.image, seed: 'cat_${category.id}'),
+            WhishkhuRemoteImage(url: category.image, seed: 'cat_${category.id}'),
             const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(

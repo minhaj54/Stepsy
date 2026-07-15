@@ -14,12 +14,12 @@ export async function generateMetadata({ params }: PageProps) {
 
   if (!post) {
     return {
-      title: "Article Not Found - Stepzy Magazine"
+      title: "Article Not Found - Whishkhu Magazine"
     };
   }
 
   return {
-    title: `${post.title} | Stepzy Magazine`,
+    title: `${post.title} | Whishkhu Magazine`,
     description: post.summary
   };
 }

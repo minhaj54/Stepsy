@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../providers/stepzy_store.dart';
+import '../providers/whishkhu_store.dart';
 import '../widgets/common.dart';
 import '../core/theme.dart';
 import '../core/constants.dart';
@@ -48,7 +48,7 @@ class _AccountTabState extends State<AccountTab> {
     });
   }
 
-  Future<void> handleSendOtp(StepzyStore store) async {
+  Future<void> handleSendOtp(WhishkhuStore store) async {
     setState(() => busy = true);
     final message = await store.sendOtp(phoneController.text.trim());
     setState(() => busy = false);
@@ -62,7 +62,7 @@ class _AccountTabState extends State<AccountTab> {
     }
   }
 
-  Future<void> handleVerifyOtp(StepzyStore store) async {
+  Future<void> handleVerifyOtp(WhishkhuStore store) async {
     setState(() => busy = true);
     final message = await store.verifyOtp(
       phoneController.text.trim(),
@@ -80,13 +80,13 @@ class _AccountTabState extends State<AccountTab> {
 
   @override
   Widget build(BuildContext context) {
-    final store = StepzyScope.of(context);
+    final store = WhishkhuScope.of(context);
     final profile = store.profile;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
       children: [
-        const StepzyHeader(title: 'Account'),
+        const WhishkhuHeader(title: 'Account'),
         const SizedBox(height: 18),
         if (!store.isSupabaseConfigured)
           const NoticeCard(
@@ -94,11 +94,11 @@ class _AccountTabState extends State<AccountTab> {
             body:
                 'Run with SUPABASE_URL and SUPABASE_ANON_KEY dart-defines to connect live data.',
           ),
-        if (stepzyApiBaseUrl.isEmpty)
+        if (whishkhuApiBaseUrl.isEmpty)
           const NoticeCard(
             title: 'API base URL not configured',
             body:
-                'Run with STEPZY_API_BASE_URL dart-define to enable phone OTP authentication.',
+                'Run with WHISHKHU_API_BASE_URL dart-define to enable phone OTP authentication.',
           ),
         if (profile != null)
           Card(
@@ -110,7 +110,7 @@ class _AccountTabState extends State<AccountTab> {
                     children: [
                       CircleAvatar(
                         radius: 30,
-                        backgroundColor: StepzyColors.panel,
+                        backgroundColor: WhishkhuColors.panel,
                         backgroundImage: NetworkImage(
                           'https://i.pravatar.cc/150?u=${profile.email}',
                         ),
@@ -122,7 +122,7 @@ class _AccountTabState extends State<AccountTab> {
                           children: [
                             Text(
                               profile.fullName.isEmpty
-                                  ? 'Stepzy member'
+                                  ? 'Whishkhu member'
                                   : profile.fullName,
                               style: titleStyle,
                             ),
@@ -158,7 +158,7 @@ class _AccountTabState extends State<AccountTab> {
                 children: [
                   Text(
                     step == AuthStep.phone
-                        ? (signup ? 'Create your Stepzy account' : 'Welcome back')
+                        ? (signup ? 'Create your Whishkhu account' : 'Welcome back')
                         : 'Enter verification code',
                     style: titleStyle,
                   ),

@@ -1,4 +1,4 @@
-# Stepzy — Premium Footwear Marketplace
+# Whishkhu — Premium Footwear Marketplace
 
 A multi-brand footwear e-commerce store built with Next.js 16, TypeScript, Tailwind CSS, and Supabase.
 
@@ -61,7 +61,7 @@ In Supabase **SQL Editor**, run these files in order:
 #### Step 4 — Set up Twilio Verify
 1. Go to [twilio.com/console](https://www.twilio.com/console)
 2. Navigate to **Verify → Services → Create new Service**
-3. Name it (e.g. `Stepzy OTP`) and copy the **Service SID** into `TWILIO_VERIFY_SERVICE_SID`
+3. Name it (e.g. `Whishkhu OTP`) and copy the **Service SID** into `TWILIO_VERIFY_SERVICE_SID`
 4. Copy your **Account SID** and **Auth Token** from the Twilio console dashboard
 5. For trial accounts: verify your test phone number under **Phone Numbers → Verified Caller IDs**
 
@@ -113,7 +113,7 @@ supabase/
 
 ## Blueprint
 
-See `Stepzy - world_of_shoes_marketplace_blueprint.md` for the full implementation plan covering Phase 1 (MVP store) through Phase 3 (marketplace ecosystem).
+See `Whishkhu - world_of_shoes_marketplace_blueprint.md` for the full implementation plan covering Phase 1 (MVP store) through Phase 3 (marketplace ecosystem).
 
 ## Tech Stack
 

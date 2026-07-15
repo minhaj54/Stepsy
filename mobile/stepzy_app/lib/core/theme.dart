@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class StepzyColors {
+class WhishkhuColors {
   static const background = Color(0xFF09090B);
   static const card = Color(0xFF151518);
   static const panel = Color(0xFF1F1F23);
@@ -13,55 +13,55 @@ class StepzyColors {
   static const danger = Color(0xFFEF4444);
 }
 
-class StepzyTheme {
+class WhishkhuTheme {
   static ThemeData get dark {
     const scheme = ColorScheme.dark(
-      surface: StepzyColors.background,
-      primary: StepzyColors.primary,
-      secondary: StepzyColors.accent,
-      error: StepzyColors.danger,
-      onSurface: StepzyColors.foreground,
+      surface: WhishkhuColors.background,
+      primary: WhishkhuColors.primary,
+      secondary: WhishkhuColors.accent,
+      error: WhishkhuColors.danger,
+      onSurface: WhishkhuColors.foreground,
     );
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: StepzyColors.background,
+      scaffoldBackgroundColor: WhishkhuColors.background,
       colorScheme: scheme,
       fontFamily: 'SF Pro Display',
       appBarTheme: const AppBarTheme(
-        backgroundColor: StepzyColors.background,
-        foregroundColor: StepzyColors.foreground,
+        backgroundColor: WhishkhuColors.background,
+        foregroundColor: WhishkhuColors.foreground,
         elevation: 0,
         centerTitle: false,
       ),
       cardTheme: CardThemeData(
-        color: StepzyColors.card,
+        color: WhishkhuColors.card,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: StepzyColors.border),
+          side: const BorderSide(color: WhishkhuColors.border),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: StepzyColors.panel,
+        fillColor: WhishkhuColors.panel,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: StepzyColors.border),
+          borderSide: const BorderSide(color: WhishkhuColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: StepzyColors.border),
+          borderSide: const BorderSide(color: WhishkhuColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: StepzyColors.primary, width: 1.4),
+          borderSide: const BorderSide(color: WhishkhuColors.primary, width: 1.4),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: StepzyColors.primary,
+          backgroundColor: WhishkhuColors.primary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           shape: RoundedRectangleBorder(
@@ -71,16 +71,16 @@ class StepzyTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: StepzyColors.panel,
-        selectedColor: StepzyColors.primary.withValues(alpha: .22),
-        side: const BorderSide(color: StepzyColors.border),
+        backgroundColor: WhishkhuColors.panel,
+        selectedColor: WhishkhuColors.primary.withValues(alpha: .22),
+        side: const BorderSide(color: WhishkhuColors.border),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         labelStyle: const TextStyle(fontWeight: FontWeight.w700),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: StepzyColors.card,
-        selectedItemColor: StepzyColors.primary,
-        unselectedItemColor: StepzyColors.muted,
+        backgroundColor: WhishkhuColors.card,
+        selectedItemColor: WhishkhuColors.primary,
+        unselectedItemColor: WhishkhuColors.muted,
         type: BottomNavigationBarType.fixed,
       ),
     );
@@ -88,4 +88,4 @@ class StepzyTheme {
 }
 
 const titleStyle = TextStyle(fontSize: 20, fontWeight: FontWeight.w900);
-const mutedStyle = TextStyle(color: StepzyColors.muted);
+const mutedStyle = TextStyle(color: WhishkhuColors.muted);

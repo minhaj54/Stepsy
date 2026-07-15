@@ -19,7 +19,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isConfigured: boolean;
-  sendOtp: (phone: string) => Promise<{ error: string | null }>;
+  sendOtp: (phone: string, fullName?: string) => Promise<{ error: string | null }>;
   verifyOtp: (phone: string, code: string, fullName?: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<Pick<UserProfile, 'full_name'>>) => Promise<{ error: string | null }>;
@@ -28,134 +28,94 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const MOCK_USER: UserProfile = {
-  id: 'usr_stepzy_99',
+  id: 'usr_whishkhu_99',
   full_name: 'Minhaj Raza',
-  email: '9876543210@phone.stepzy.app',
+  email: '9876543210@phone.whishkhu.app',
   phone: '+919876543210',
   role: 'customer',
   created_at: new Date().toISOString(),
 };
 
+// Build a profile purely from the auth user (no DB call). Used so the app can
+// treat the user as signed-in immediately, even if the DB query is slow or
+// unreachable.
+function buildBaseProfile(authUser: SupabaseUser): UserProfile {
+  let phoneFromAuth = authUser.phone ?? authUser.user_metadata?.phone ?? '';
+  if (phoneFromAuth && !phoneFromAuth.startsWith('+')) {
+    phoneFromAuth = '+' + phoneFromAuth;
+  }
+
+  let emailFromAuth = authUser.email ?? '';
+  if (!emailFromAuth && phoneFromAuth) {
+    // Use whishkhu.app for synthetic emails
+    emailFromAuth = `${phoneFromAuth.replace('+', '')}@phone.whishkhu.app`;
+  }
+
+  return {
+    id: authUser.id,
+    full_name: authUser.user_metadata?.full_name ?? '',
+    email: emailFromAuth,
+    phone: phoneFromAuth,
+    role: 'customer',
+    created_at: authUser.created_at,
+  };
+}
+
 async function fetchProfile(supabase: ReturnType<typeof createClient>, authUser: SupabaseUser): Promise<UserProfile> {
+  const base = buildBaseProfile(authUser);
   try {
     console.log('[AuthContext] fetchProfile starting for user:', authUser.id);
-    console.log('[AuthContext] fetchProfile authUser details:', authUser);
-    
-    let data = null;
-    let error = null;
-    
-    try {
-      // Add a timeout to prevent hanging
-      const result = await Promise.race([
-        supabase
-          .from('users')
-          .select('*')
-          .eq('id', authUser.id)
-          .maybeSingle(),
-        new Promise<null>((resolve) => setTimeout(() => resolve(null), 3000)) // 3 second timeout
-      ]);
-      
-      if (result) {
-        data = result.data;
-        error = result.error;
-      }
-    } catch (queryErr) {
-      console.error('[AuthContext] fetchProfile query error:', queryErr);
-    }
+
+    // We attempt to fetch the profile from public.users
+    // This table is automatically populated by a Supabase trigger 'on_auth_user_created'
+    const { data, error } = await supabase
+      .from('users')
+      .select('*')
+      .eq('id', authUser.id)
+      .maybeSingle();
 
     if (error) {
-      console.error('[AuthContext] fetchProfile error from supabase:', error);
+      console.error('[AuthContext] fetchProfile error from supabase:', {
+        message: error.message,
+        details: error.details,
+        hint: error.hint,
+        code: error.code,
+        fullError: JSON.stringify(error),
+      });
+      return base;
     }
-    
+
     if (data) {
       console.log('[AuthContext] fetchProfile found existing profile:', data);
-      // Fix phone number to have leading "+" if needed
       const profile = { ...data } as UserProfile;
       if (profile.phone && !profile.phone.startsWith('+')) {
         profile.phone = '+' + profile.phone;
       }
-      console.log('[AuthContext] fetchProfile fixed profile:', profile);
       return profile;
     }
 
-    // If profile doesn't exist, create it in public.users first!
-    console.log('[AuthContext] fetchProfile profile does NOT exist, creating it now');
-    
-    // Fix phone number to have leading "+"
-    let phoneFromAuth = authUser.phone ?? authUser.user_metadata?.phone ?? '';
-    if (phoneFromAuth && !phoneFromAuth.startsWith('+')) {
-      phoneFromAuth = '+' + phoneFromAuth;
-    }
-
-    // Create synthetic email if needed
-    let emailFromAuth = authUser.email ?? '';
-    if (!emailFromAuth && phoneFromAuth) {
-      emailFromAuth = `${phoneFromAuth.replace('+', '')}@phone.stepzy.app`;
-    }
-
-    // Insert into public.users
-    try {
-      const { data: insertedData, error: insertError } = await supabase
-        .from('users')
-        .insert({
-          id: authUser.id,
-          full_name: authUser.user_metadata?.full_name ?? '',
-          email: emailFromAuth,
-          phone: phoneFromAuth,
-          role: 'customer'
-        })
-        .select()
-        .single();
-
-      if (!insertError && insertedData) {
-        console.log('[AuthContext] fetchProfile created new profile in DB:', insertedData);
-        // Fix phone number to have leading "+"
-        const profile = { ...insertedData } as UserProfile;
-        if (profile.phone && !profile.phone.startsWith('+')) {
-          profile.phone = '+' + profile.phone;
-        }
-        return profile;
-      } else {
-        console.error('[AuthContext] fetchProfile error inserting new profile:', insertError);
-      }
-    } catch (insertErr) {
-      console.error('[AuthContext] fetchProfile insert error:', insertErr);
-    }
-
-    // Fallback profile even if insert fails
-    const fallbackProfile = {
-      id: authUser.id,
-      full_name: authUser.user_metadata?.full_name ?? '',
-      email: emailFromAuth,
-      phone: phoneFromAuth,
-      role: 'customer',
-      created_at: authUser.created_at,
-    };
-    console.log('[AuthContext] fetchProfile returning fallback:', fallbackProfile);
-    return fallbackProfile;
+    // If profile doesn't exist yet, it's likely the trigger hasn't finished
+    // or RLS is restricting access. Fall back to auth data.
+    console.log('[AuthContext] fetchProfile profile not found in DB, using fallback');
+    return base;
   } catch (err) {
     console.error('[AuthContext] fetchProfile unexpected error:', err);
-    // Fallback profile even if everything fails
-    // Fix phone number to have leading "+"
-    let phoneFromAuth = authUser.phone ?? authUser.user_metadata?.phone ?? '';
-    if (phoneFromAuth && !phoneFromAuth.startsWith('+')) {
-      phoneFromAuth = '+' + phoneFromAuth;
-    }
-    let emailFromAuth = authUser.email ?? '';
-    if (!emailFromAuth && phoneFromAuth) {
-      emailFromAuth = `${phoneFromAuth.replace('+', '')}@phone.stepzy.app`;
-    }
-    const fallbackProfile = {
-      id: authUser.id,
-      full_name: authUser.user_metadata?.full_name ?? '',
-      email: emailFromAuth,
-      phone: phoneFromAuth,
-      role: 'customer',
-      created_at: authUser.created_at,
-    };
-    console.log('[AuthContext] fetchProfile returning fallback from catch:', fallbackProfile);
-    return fallbackProfile;
+    return base;
   }
+}
+
+// Set the user from auth data right away, then enrich with the DB profile in the
+// background. This guarantees the user is considered signed-in (and the
+// redirect fires) without waiting on a potentially slow/hanging DB query.
+function applySession(
+  setUser: React.Dispatch<React.SetStateAction<UserProfile | null>>,
+  supabase: ReturnType<typeof createClient>,
+  authUser: SupabaseUser
+) {
+  setUser(buildBaseProfile(authUser));
+  fetchProfile(supabase, authUser)
+    .then((profile) => setUser((prev) => (prev?.id === profile.id ? profile : prev)))
+    .catch(() => {});
 }
 
 export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
@@ -178,36 +138,25 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         const { data: { session: currentSession } } = await supabase.auth.getSession();
         setSession(currentSession);
         if (currentSession?.user) {
-          const profile = await fetchProfile(supabase, currentSession.user);
-          setUser(profile);
+          applySession(setUser, supabase, currentSession.user);
         }
       } catch {
-        // Supabase unreachable — remain unauthenticated
+        // Supabase unreachable
       } finally {
         setLoading(false);
       }
     };
     init();
 
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event, newSession) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(async (event: string, newSession: Session | null) => {
       try {
-        console.log('[AuthContext] onAuthStateChange event:', event, 'newSession:', !!newSession);
-        console.log('[AuthContext] onAuthStateChange full newSession:', newSession);
         setSession(newSession);
         if (newSession?.user) {
-          console.log('[AuthContext] onAuthStateChange: user is present, fetching profile');
-          const profile = await fetchProfile(supabase, newSession.user);
-          console.log('[AuthContext] onAuthStateChange: fetchProfile returned:', profile);
-          console.log('[AuthContext] onAuthStateChange: setting user');
-          setUser(profile);
-          console.log('[AuthContext] onAuthStateChange: user set successfully');
+          applySession(setUser, supabase, newSession.user);
         } else {
-          console.log('[AuthContext] onAuthStateChange: no user, clearing user');
           setUser(null);
         }
-        console.log('[AuthContext] onAuthStateChange: setting loading to false');
         setLoading(false);
-        console.log('[AuthContext] onAuthStateChange: done');
       } catch (err) {
         console.error('[AuthContext] onAuthStateChange error:', err);
       }
@@ -217,18 +166,10 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [configured]);
 
   const sendOtp = useCallback(async (phone: string, fullName?: string) => {
-    if (!configured) {
-      return { error: 'Supabase is not configured. Add env variables to enable auth.' };
-    }
+    if (!configured) return { error: 'Supabase is not configured.' };
 
     try {
       const normalizedPhone = normalizePhone(phone);
-      console.log('[AuthContext] sendOtp starting with:', {
-        originalPhone: phone,
-        normalizedPhone,
-        fullName
-      });
-      
       const supabase = createClient();
       const { error } = await supabase.auth.signInWithOtp({
         phone: normalizedPhone,
@@ -238,33 +179,18 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      if (error) {
-        console.error('[AuthContext] sendOtp full error:', error);
-        return { error: error.message };
-      }
-
-      console.log('[AuthContext] sendOtp successful!');
+      if (error) return { error: error.message };
       return { error: null };
     } catch (err) {
-      console.error('[AuthContext] sendOtp network error:', err);
-      return { error: err instanceof Error ? err.message : 'Network error. Please try again.' };
+      return { error: err instanceof Error ? err.message : 'Network error.' };
     }
   }, [configured]);
 
   const verifyOtp = useCallback(async (phone: string, code: string, fullName?: string) => {
-    if (!configured) {
-      return { error: 'Supabase is not configured. Add env variables to enable auth.' };
-    }
+    if (!configured) return { error: 'Supabase is not configured.' };
 
     try {
       const normalizedPhone = normalizePhone(phone);
-      console.log('[AuthContext] verifyOtp starting with:', {
-        originalPhone: phone,
-        normalizedPhone,
-        code,
-        fullName
-      });
-      
       const supabase = createClient();
       
       const { error, data } = await supabase.auth.verifyOtp({
@@ -276,42 +202,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      if (error) {
-        console.error('[AuthContext] verifyOtp full error:', error);
-        return { error: error.message };
-      }
-
-      console.log('[AuthContext] verifyOtp success! Full data:', data);
+      if (error) return { error: error.message };
       
-      // Now update the public.users table with full_name if we have it — do this in the background so UI isn't blocked!
+      // Background update for full_name if provided
       if (fullName && data.session?.user?.id) {
         (async () => {
           try {
-            console.log('[AuthContext] verifyOtp (background): updating public.users table with full_name:', fullName.trim());
-            const { error: updateError } = await supabase
+            await supabase
               .from('users')
               .update({ full_name: fullName.trim() })
               .eq('id', data.session.user.id);
-          
-            if (updateError) {
-              console.error('[AuthContext] verifyOtp (background) error updating public.users:', updateError);
-            } else {
-              console.log('[AuthContext] verifyOtp (background): successfully updated public.users');
-              // Also update the auth user's metadata just in case
-              await supabase.auth.updateUser({
-                data: { full_name: fullName.trim() }
-              });
-            }
+            await supabase.auth.updateUser({
+              data: { full_name: fullName.trim() }
+            });
           } catch (bgErr) {
-            console.error('[AuthContext] verifyOtp (background) unexpected error:', bgErr);
+            console.error('[AuthContext] verifyOtp bg update error:', bgErr);
           }
         })();
       }
       
       return { error: null };
     } catch (err) {
-      console.error('[AuthContext] verifyOtp network error:', err);
-      return { error: err instanceof Error ? err.message : 'Network error. Please try again.' };
+      return { error: err instanceof Error ? err.message : 'Network error.' };
     }
   }, [configured]);
 
@@ -323,9 +235,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const supabase = createClient();
       await supabase.auth.signOut();
-    } catch {
-      // ignore
-    }
+    } catch { /* ignore */ }
     setUser(null);
     setSession(null);
   }, [configured]);
@@ -335,17 +245,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     
     try {
       const supabase = createClient();
-
-      const { error } = await supabase
-        .from('users')
-        .update(data)
-        .eq('id', user.id);
+      const { error } = await supabase.from('users').update(data).eq('id', user.id);
 
       if (!error) {
         await supabase.auth.updateUser({ data: { full_name: data.full_name } });
         setUser((prev) => (prev ? { ...prev, ...data } : null));
-      } else {
-        console.error('[AuthContext] updateProfile error:', error.message);
       }
       return { error: error?.message ?? null };
     } catch (err) {
