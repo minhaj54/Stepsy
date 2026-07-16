@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-class WhishkhuColors {
+class ZarwintoColors {
   static const background = Color(0xFF09090B);
   static const card = Color(0xFF151518);
   static const panel = Color(0xFF1F1F23);
@@ -13,55 +13,55 @@ class WhishkhuColors {
   static const danger = Color(0xFFEF4444);
 }
 
-class WhishkhuTheme {
+class ZarwintoTheme {
   static ThemeData get dark {
     const scheme = ColorScheme.dark(
-      surface: WhishkhuColors.background,
-      primary: WhishkhuColors.primary,
-      secondary: WhishkhuColors.accent,
-      error: WhishkhuColors.danger,
-      onSurface: WhishkhuColors.foreground,
+      surface: ZarwintoColors.background,
+      primary: ZarwintoColors.primary,
+      secondary: ZarwintoColors.accent,
+      error: ZarwintoColors.danger,
+      onSurface: ZarwintoColors.foreground,
     );
 
     return ThemeData(
       useMaterial3: true,
       brightness: Brightness.dark,
-      scaffoldBackgroundColor: WhishkhuColors.background,
+      scaffoldBackgroundColor: ZarwintoColors.background,
       colorScheme: scheme,
       fontFamily: 'SF Pro Display',
       appBarTheme: const AppBarTheme(
-        backgroundColor: WhishkhuColors.background,
-        foregroundColor: WhishkhuColors.foreground,
+        backgroundColor: ZarwintoColors.background,
+        foregroundColor: ZarwintoColors.foreground,
         elevation: 0,
         centerTitle: false,
       ),
       cardTheme: CardThemeData(
-        color: WhishkhuColors.card,
+        color: ZarwintoColors.card,
         elevation: 0,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(18),
-          side: const BorderSide(color: WhishkhuColors.border),
+          side: const BorderSide(color: ZarwintoColors.border),
         ),
       ),
       inputDecorationTheme: InputDecorationTheme(
         filled: true,
-        fillColor: WhishkhuColors.panel,
+        fillColor: ZarwintoColors.panel,
         border: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: WhishkhuColors.border),
+          borderSide: const BorderSide(color: ZarwintoColors.border),
         ),
         enabledBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: WhishkhuColors.border),
+          borderSide: const BorderSide(color: ZarwintoColors.border),
         ),
         focusedBorder: OutlineInputBorder(
           borderRadius: BorderRadius.circular(14),
-          borderSide: const BorderSide(color: WhishkhuColors.primary, width: 1.4),
+          borderSide: const BorderSide(color: ZarwintoColors.primary, width: 1.4),
         ),
       ),
       filledButtonTheme: FilledButtonThemeData(
         style: FilledButton.styleFrom(
-          backgroundColor: WhishkhuColors.primary,
+          backgroundColor: ZarwintoColors.primary,
           foregroundColor: Colors.white,
           padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 14),
           shape: RoundedRectangleBorder(
@@ -71,16 +71,16 @@ class WhishkhuTheme {
         ),
       ),
       chipTheme: ChipThemeData(
-        backgroundColor: WhishkhuColors.panel,
-        selectedColor: WhishkhuColors.primary.withValues(alpha: .22),
-        side: const BorderSide(color: WhishkhuColors.border),
+        backgroundColor: ZarwintoColors.panel,
+        selectedColor: ZarwintoColors.primary.withValues(alpha: .22),
+        side: const BorderSide(color: ZarwintoColors.border),
         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(22)),
         labelStyle: const TextStyle(fontWeight: FontWeight.w700),
       ),
       bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-        backgroundColor: WhishkhuColors.card,
-        selectedItemColor: WhishkhuColors.primary,
-        unselectedItemColor: WhishkhuColors.muted,
+        backgroundColor: ZarwintoColors.card,
+        selectedItemColor: ZarwintoColors.primary,
+        unselectedItemColor: ZarwintoColors.muted,
         type: BottomNavigationBarType.fixed,
       ),
     );
@@ -88,4 +88,4 @@ class WhishkhuTheme {
 }
 
 const titleStyle = TextStyle(fontSize: 20, fontWeight: FontWeight.w900);
-const mutedStyle = TextStyle(color: WhishkhuColors.muted);
+const mutedStyle = TextStyle(color: ZarwintoColors.muted);

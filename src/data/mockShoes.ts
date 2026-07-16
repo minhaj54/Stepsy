@@ -1,4 +1,4 @@
-import { Product, Brand, Category, BlogPost, Review } from '../types';
+import { Product, Brand, Category, BlogPost, Review, Store } from '../types';
 
 export const mockBrands: Brand[] = [
   {
@@ -72,6 +72,7 @@ export const mockProducts: Product[] = [
   {
     id: 'p1',
     brand_id: 'b1',
+    store_id: 's1',
     brand_name: 'AeroStride',
     category_id: 'c1',
     category_slug: 'sneakers',
@@ -112,6 +113,7 @@ export const mockProducts: Product[] = [
   {
     id: 'p2',
     brand_id: 'b2',
+    store_id: 's1',
     brand_name: 'ApexCraft',
     category_id: 'c2',
     category_slug: 'casual',
@@ -149,6 +151,7 @@ export const mockProducts: Product[] = [
   {
     id: 'p3',
     brand_id: 'b1',
+    store_id: 's1',
     brand_name: 'AeroStride',
     category_id: 'c1',
     category_slug: 'sneakers',
@@ -361,6 +364,22 @@ export const mockProducts: Product[] = [
       { id: 'v8_3', product_id: 'p8', size: '10', color: 'Copper Rough & Tough', stock_quantity: 20 },
       { id: 'v8_4', product_id: 'p8', size: '11', color: 'Copper Rough & Tough', stock_quantity: 9 }
     ]
+  }
+];
+
+export const mockStores: Store[] = [
+  {
+    id: 's1',
+    owner_id: 'usr_demo',
+    name: 'Zarwinto Flagship',
+    slug: 'zarwinto-flagship',
+    description: 'The official Zarwinto flagship store for premium footwear and sneakers.',
+    banner_url: '',
+    logo_url: 'https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=200',
+    social_handle: '@zarwinto',
+    status: 'active',
+    created_at: '2026-01-01T00:00:00Z',
+    updated_at: '2026-01-01T00:00:00Z'
   }
 ];
 

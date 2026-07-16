@@ -2,7 +2,7 @@ import React from 'react';
 import AdminSettingsClient from './AdminSettingsClient';
 
 export const metadata = {
-  title: 'Settings - Whishkhu Admin',
+  title: 'Settings - Zarwinto Admin',
 };
 
 export default async function AdminSettingsPage() {

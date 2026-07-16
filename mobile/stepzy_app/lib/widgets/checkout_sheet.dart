@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import '../core/theme.dart';
 import '../models/shipping_address.dart';
-import '../providers/whishkhu_store.dart';
+import '../providers/zarwinto_store.dart';
 
 class CheckoutSheet extends StatefulWidget {
   const CheckoutSheet({super.key});
@@ -21,7 +21,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
 
   @override
   Widget build(BuildContext context) {
-    final store = WhishkhuScope.of(context);
+    final store = ZarwintoScope.of(context);
 
     return Padding(
       padding: EdgeInsets.only(

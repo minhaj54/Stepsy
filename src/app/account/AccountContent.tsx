@@ -142,15 +142,6 @@ export default function AccountContent({ products }: { products: Product[] }) {
       return;
     }
 
-    console.log('[AccountContent:handleAddAddress', {
-      newAddrName,
-      newAddrPhone,
-      newAddrLine1,
-      newAddrCity,
-      newAddrState,
-      newAddrPincode
-    });
-
     const localAddr = {
       id: `addr_${Date.now()}`,
       fullName: newAddrName,
@@ -173,8 +164,6 @@ export default function AccountContent({ products }: { products: Product[] }) {
           .eq('user_id', user.id);
         
         const isFirstAddress = !existingCount || existingCount === 0;
-
-        console.log('[AccountContent:handleAddAddress] isFirstAddress', isFirstAddress);
         
         const { data, error } = await supabase
           .from('addresses')
@@ -191,10 +180,7 @@ export default function AccountContent({ products }: { products: Product[] }) {
           .select()
           .single();
 
-        console.log('[AccountContent:handleAddAddress] supabase insert result', { data, error });
-
         if (!error && data) {
-          console.log('[AccountContent:handleAddAddress] inserting to state');
           setAddresses(prev => [...prev, {
             id: data.id,
             fullName: data.full_name,
@@ -250,7 +236,7 @@ export default function AccountContent({ products }: { products: Product[] }) {
   const wishlistedProducts = products.filter(p => wishlist.includes(p.id));
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
       {/* Sidebar Controls */}
       <aside className="lg:col-span-3 space-y-4">
         {/* User Card */}

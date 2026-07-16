@@ -147,11 +147,11 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
   };
 
   return (
-    <div className="min-h-[80vh] flex items-center justify-center px-4 py-12">
+    <div className="min-h-[80vh] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
           <h1 className="text-3xl font-extrabold text-white tracking-tight">
-            {isSignup ? 'Join Whishkhu' : 'Welcome Back'}
+            {isSignup ? 'Join Zarwinto' : 'Welcome Back'}
           </h1>
           <p className="text-zinc-400 text-sm mt-2">
             {step === 'phone'
@@ -160,7 +160,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
           </p>
         </div>
 
-        <div className="glass-card rounded-2xl p-8 space-y-6">
+        <div className="glass-card rounded-2xl p-6 sm:p-8 space-y-5">
           {!isConfigured && (
             <div className="flex items-start gap-3 p-3 bg-amber-500/10 border border-amber-500/20 rounded-xl text-amber-400 text-xs">
               <AlertCircle className="h-4 w-4 flex-shrink-0 mt-0.5" />
@@ -314,7 +314,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
               </>
             ) : (
               <>
-                New to Whishkhu?{' '}
+                New to Zarwinto?{' '}
                 <Link href="/auth/signup" className="text-primary hover:text-primary-hover font-semibold">
                   Create account
                 </Link>

@@ -2,7 +2,7 @@
 
 import React, { createContext, useContext, useEffect, useState, useCallback } from 'react';
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
-import { createClient, isSupabaseConfigured } from '../lib/supabase/client';
+import { createClient, isSupabaseConfigured, checkSupabaseConnectivity } from '../lib/supabase/client';
 import { normalizePhone } from '../lib/phone';
 
 export interface UserProfile {
@@ -19,6 +19,7 @@ interface AuthContextType {
   session: Session | null;
   loading: boolean;
   isConfigured: boolean;
+  supabaseReachable: boolean;
   sendOtp: (phone: string, fullName?: string) => Promise<{ error: string | null }>;
   verifyOtp: (phone: string, code: string, fullName?: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
@@ -28,9 +29,9 @@ interface AuthContextType {
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 const MOCK_USER: UserProfile = {
-  id: 'usr_whishkhu_99',
+  id: 'usr_zarwinto_99',
   full_name: 'Minhaj Raza',
-  email: '9876543210@phone.whishkhu.app',
+  email: '9876543210@phone.zarwinto.app',
   phone: '+919876543210',
   role: 'customer',
   created_at: new Date().toISOString(),
@@ -47,8 +48,8 @@ function buildBaseProfile(authUser: SupabaseUser): UserProfile {
 
   let emailFromAuth = authUser.email ?? '';
   if (!emailFromAuth && phoneFromAuth) {
-    // Use whishkhu.app for synthetic emails
-    emailFromAuth = `${phoneFromAuth.replace('+', '')}@phone.whishkhu.app`;
+    // Use zarwinto.app for synthetic emails
+    emailFromAuth = `${phoneFromAuth.replace('+', '')}@phone.zarwinto.app`;
   }
 
   return {
@@ -64,8 +65,6 @@ function buildBaseProfile(authUser: SupabaseUser): UserProfile {
 async function fetchProfile(supabase: ReturnType<typeof createClient>, authUser: SupabaseUser): Promise<UserProfile> {
   const base = buildBaseProfile(authUser);
   try {
-    console.log('[AuthContext] fetchProfile starting for user:', authUser.id);
-
     // We attempt to fetch the profile from public.users
     // This table is automatically populated by a Supabase trigger 'on_auth_user_created'
     const { data, error } = await supabase
@@ -75,18 +74,25 @@ async function fetchProfile(supabase: ReturnType<typeof createClient>, authUser:
       .maybeSingle();
 
     if (error) {
-      console.error('[AuthContext] fetchProfile error from supabase:', {
-        message: error.message,
-        details: error.details,
-        hint: error.hint,
-        code: error.code,
-        fullError: JSON.stringify(error),
-      });
+      // Check if this is a network-level "Failed to fetch" error
+      const isNetworkError = error.message === 'Failed to fetch' || error.details?.includes('Failed to fetch');
+      if (isNetworkError) {
+        console.error('[AuthContext] fetchProfile network error - Supabase may be unreachable:', {
+          message: error.message,
+          details: error.details,
+        });
+      } else {
+        console.error('[AuthContext] fetchProfile error from supabase:', {
+          message: error.message,
+          details: error.details,
+          hint: error.hint,
+          code: error.code,
+        });
+      }
       return base;
     }
 
     if (data) {
-      console.log('[AuthContext] fetchProfile found existing profile:', data);
       const profile = { ...data } as UserProfile;
       if (profile.phone && !profile.phone.startsWith('+')) {
         profile.phone = '+' + profile.phone;
@@ -96,10 +102,15 @@ async function fetchProfile(supabase: ReturnType<typeof createClient>, authUser:
 
     // If profile doesn't exist yet, it's likely the trigger hasn't finished
     // or RLS is restricting access. Fall back to auth data.
-    console.log('[AuthContext] fetchProfile profile not found in DB, using fallback');
     return base;
   } catch (err) {
-    console.error('[AuthContext] fetchProfile unexpected error:', err);
+    const errorMessage = err instanceof Error ? err.message : 'Unknown error';
+    const isNetworkError = errorMessage === 'Failed to fetch';
+    if (isNetworkError) {
+      console.error('[AuthContext] fetchProfile network error - Supabase may be unreachable:', err);
+    } else {
+      console.error('[AuthContext] fetchProfile unexpected error:', err);
+    }
     return base;
   }
 }
@@ -122,7 +133,24 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
+  const [supabaseReachable, setSupabaseReachable] = useState(false);
   const configured = isSupabaseConfigured();
+
+  // Check Supabase connectivity on mount
+  useEffect(() => {
+    if (!configured) return;
+
+    checkSupabaseConnectivity()
+      .then((reachable) => {
+        setSupabaseReachable(reachable);
+        if (!reachable) {
+          console.warn('[AuthContext] Supabase project appears to be unreachable. Check if the project is paused or the URL is correct.');
+        }
+      })
+      .catch(() => {
+        setSupabaseReachable(false);
+      });
+  }, [configured]);
 
   useEffect(() => {
     if (!configured) {
@@ -140,8 +168,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (currentSession?.user) {
           applySession(setUser, supabase, currentSession.user);
         }
-      } catch {
-        // Supabase unreachable
+      } catch (err) {
+        console.error('[AuthContext] init error:', err);
       } finally {
         setLoading(false);
       }
@@ -263,6 +291,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       session,
       loading,
       isConfigured: configured,
+      supabaseReachable,
       sendOtp,
       verifyOtp,
       signOut,

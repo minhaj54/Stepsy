@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
 import '../core/theme.dart';
 
-class WhishkhuHeader extends StatelessWidget {
-  const WhishkhuHeader({super.key, this.title = 'Whishkhu'});
+class ZarwintoHeader extends StatelessWidget {
+  const ZarwintoHeader({super.key, this.title = 'Zarwinto'});
 
   final String title;
 
@@ -14,13 +14,13 @@ class WhishkhuHeader extends StatelessWidget {
           width: 42,
           height: 42,
           decoration: BoxDecoration(
-            color: WhishkhuColors.primary.withValues(alpha: .18),
+            color: ZarwintoColors.primary.withValues(alpha: .18),
             borderRadius: BorderRadius.circular(14),
             border: Border.all(
-              color: WhishkhuColors.primary.withValues(alpha: .25),
+              color: ZarwintoColors.primary.withValues(alpha: .25),
             ),
           ),
-          child: const Icon(Icons.bolt_rounded, color: WhishkhuColors.accent),
+          child: const Icon(Icons.bolt_rounded, color: ZarwintoColors.accent),
         ),
         const SizedBox(width: 12),
         Column(
@@ -32,7 +32,7 @@ class WhishkhuHeader extends StatelessWidget {
             ),
             const Text(
               'World of shoes',
-              style: TextStyle(color: WhishkhuColors.muted),
+              style: TextStyle(color: ZarwintoColors.muted),
             ),
           ],
         ),
@@ -74,8 +74,8 @@ class SectionHeader extends StatelessWidget {
   }
 }
 
-class WhishkhuRemoteImage extends StatelessWidget {
-  const WhishkhuRemoteImage({super.key, required this.url, this.seed});
+class ZarwintoRemoteImage extends StatelessWidget {
+  const ZarwintoRemoteImage({super.key, required this.url, this.seed});
 
   final String url;
   final String? seed;

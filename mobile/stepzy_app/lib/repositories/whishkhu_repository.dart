@@ -10,8 +10,8 @@ import '../models/shipping_address.dart';
 import '../data/mock_data.dart';
 import '../core/constants.dart';
 
-class WhishkhuRepository {
-  WhishkhuRepository(this.client);
+class ZarwintoRepository {
+  ZarwintoRepository(this.client);
 
   final SupabaseClient? client;
 
@@ -118,12 +118,12 @@ class WhishkhuRepository {
   }
 
   Future<String?> sendOtp(String phone) async {
-    if (whishkhuApiBaseUrl.isEmpty) {
-      return 'WHISHKHU_API_BASE_URL is not configured for this build.';
+    if (zarwintoApiBaseUrl.isEmpty) {
+      return 'ZARWINTO_API_BASE_URL is not configured for this build.';
     }
     try {
       final response = await http.post(
-        Uri.parse('$whishkhuApiBaseUrl/api/auth/send-otp'),
+        Uri.parse('$zarwintoApiBaseUrl/api/auth/send-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({'phone': phone}),
       );
@@ -138,15 +138,15 @@ class WhishkhuRepository {
   }
 
   Future<String?> verifyOtp(String phone, String code, String? fullName) async {
-    if (whishkhuApiBaseUrl.isEmpty) {
-      return 'WHISHKHU_API_BASE_URL is not configured for this build.';
+    if (zarwintoApiBaseUrl.isEmpty) {
+      return 'ZARWINTO_API_BASE_URL is not configured for this build.';
     }
     if (client == null) {
       return 'Supabase is not configured for this build.';
     }
     try {
       final response = await http.post(
-        Uri.parse('$whishkhuApiBaseUrl/api/auth/verify-otp'),
+        Uri.parse('$zarwintoApiBaseUrl/api/auth/verify-otp'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'phone': phone,

@@ -3,7 +3,7 @@ import { getAdminOrders } from '../../../lib/data/products';
 import AdminOrdersClient from './AdminOrdersClient';
 
 export const metadata = {
-  title: 'Manage Orders - Whishkhu Admin',
+  title: 'Manage Orders - Zarwinto Admin',
 };
 
 export default async function AdminOrdersPage() {

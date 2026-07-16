@@ -4,7 +4,7 @@ import { Calendar, Clock, ArrowRight } from 'lucide-react';
 import { getBlogPosts } from '../../lib/data/products';
 
 export const metadata = {
-  title: "Whishkhu Magazine - Footwear Trends & Guides",
+  title: "Zarwinto Magazine - Footwear Trends & Guides",
   description: "Explore footwear styling tips, sneaker maintenance guides, and technical gear industry reviews."
 };
 
@@ -12,10 +12,10 @@ export default async function BlogIndexPage() {
   const blogPosts = await getBlogPosts();
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-10">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-8">
       <div className="text-center max-w-xl mx-auto space-y-3">
         <span className="text-xs font-bold text-primary uppercase tracking-widest bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
-          Whishkhu Editorial
+          Zarwinto Editorial
         </span>
         <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">The Footwear Magazine</h1>
         <p className="text-zinc-500 text-sm">Your primary source for sneaker trends, care guides, and industry logs.</p>
@@ -58,7 +58,7 @@ export default async function BlogIndexPage() {
         </div>
       )}
 
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 pt-6">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {blogPosts.slice(1).map((post) => (
           <div key={post.id} className="glass-card rounded-2xl overflow-hidden border border-white/[0.04] flex flex-col group">
             <div className="aspect-[16/10] overflow-hidden bg-zinc-950/20">

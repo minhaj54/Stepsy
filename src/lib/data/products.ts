@@ -25,6 +25,7 @@ function withTimeout<T>(thenable: PromiseLike<T>, ms: number): Promise<T | null>
 interface DbProduct {
   id: string;
   brand_id: string;
+  store_id: string | null;
   category_id: string;
   title: string;
   slug: string;
@@ -50,6 +51,7 @@ export function mapDbProduct(row: DbProduct): Product {
   return {
     id: row.id,
     brand_id: row.brand_id,
+    store_id: row.store_id ?? undefined,
     brand_name: row.brands?.name ?? '',
     category_id: row.category_id,
     category_slug: row.categories?.slug ?? '',
@@ -527,7 +529,7 @@ export async function validateCoupon(code: string) {
     const normalized = code.toUpperCase().trim();
     const mockCoupons: Record<string, { type: 'percentage' | 'fixed'; value: number }> = {
       STEPZY20: { type: 'percentage', value: 20 },
-      WHISHKHU20: { type: 'percentage', value: 20 },
+      ZARWINTO20: { type: 'percentage', value: 20 },
       WELCOME10: { type: 'percentage', value: 10 },
       SHOEHEAVEN: { type: 'fixed', value: 30 },
     };

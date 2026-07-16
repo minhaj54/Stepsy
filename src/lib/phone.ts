@@ -28,5 +28,5 @@ export function normalizePhone(input: string, defaultCountryCode = '91'): string
 
 export function phoneToSyntheticEmail(phone: string): string {
   const digits = phone.replace(/\D/g, '');
-  return `${digits}@phone.whishkhu.app`;
+  return `${digits}@phone.zarwinto.app`;
 }

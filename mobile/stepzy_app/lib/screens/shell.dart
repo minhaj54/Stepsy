@@ -1,23 +1,23 @@
 import 'package:flutter/material.dart';
-import '../providers/whishkhu_store.dart';
+import '../providers/zarwinto_store.dart';
 import 'home_tab.dart';
 import 'shop_tab.dart';
 import 'cart_tab.dart';
 import 'account_tab.dart';
 
-class WhishkhuShell extends StatefulWidget {
-  const WhishkhuShell({super.key});
+class ZarwintoShell extends StatefulWidget {
+  const ZarwintoShell({super.key});
 
   @override
-  State<WhishkhuShell> createState() => _WhishkhuShellState();
+  State<ZarwintoShell> createState() => _ZarwintoShellState();
 }
 
-class _WhishkhuShellState extends State<WhishkhuShell> {
+class _ZarwintoShellState extends State<ZarwintoShell> {
   int index = 0;
 
   @override
   Widget build(BuildContext context) {
-    final store = WhishkhuScope.of(context);
+    final store = ZarwintoScope.of(context);
     final tabs = [
       const HomeTab(),
       const ShopTab(),

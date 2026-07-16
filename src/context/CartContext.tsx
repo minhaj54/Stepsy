@@ -3,7 +3,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, ProductVariant, CartItem, Order, ShippingAddress } from '../types';
 import { useAuth } from './AuthContext';
-import { createClient, isSupabaseConfigured } from '../lib/supabase/client';
+import { createClient, isSupabaseConfigured, checkSupabaseConnectivity } from '../lib/supabase/client';
 
 interface Coupon {
   code: string;
@@ -33,7 +33,7 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const { user } = useAuth();
+  const { user, supabaseReachable } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
   const [orders, setOrders] = useState<Order[]>([]);
@@ -42,14 +42,29 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Load cart, wishlist, and orders from localStorage on mount
   useEffect(() => {
-    const savedCart = localStorage.getItem('whishkhu_cart');
-    const savedWishlist = localStorage.getItem('whishkhu_wishlist');
-    const savedOrders = localStorage.getItem('whishkhu_orders');
+    const savedCart = localStorage.getItem('zarwinto_cart');
+    const savedWishlist = localStorage.getItem('zarwinto_wishlist');
+    const savedOrders = localStorage.getItem('zarwinto_orders');
 
     if (savedCart) setCart(JSON.parse(savedCart));
     if (savedWishlist) setWishlist(JSON.parse(savedWishlist));
     if (savedOrders) setOrders(JSON.parse(savedOrders));
   }, []);
+
+  // Check Supabase connectivity on mount
+  useEffect(() => {
+    if (!configured) return;
+
+    checkSupabaseConnectivity()
+      .then((reachable) => {
+        if (!reachable) {
+          console.warn('[CartContext] Supabase project appears to be unreachable. Check if the project is paused or the URL is correct.');
+        }
+      })
+      .catch((err) => {
+        console.error('[CartContext] Connectivity check failed:', err);
+      });
+  }, [configured]);
 
   // Fetch from Supabase when user log in
   useEffect(() => {
@@ -57,6 +72,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     const syncWithSupabase = async () => {
       const supabase = createClient();
+
+      // If we already know Supabase is unreachable, skip the sync
+      if (!supabaseReachable) {
+        console.warn('[CartContext] Skipping Supabase sync - project appears unreachable');
+        return;
+      }
       
       // Sync Wishlist
       const { data: wlData, error: wlError } = await supabase
@@ -67,7 +88,14 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!wlError && wlData) {
         const dbWishlist = wlData.map((item: any) => item.product_id);
         setWishlist(dbWishlist);
-        localStorage.setItem('whishkhu_wishlist', JSON.stringify(dbWishlist));
+        localStorage.setItem('zarwinto_wishlist', JSON.stringify(dbWishlist));
+      } else if (wlError) {
+        const isNetworkError = wlError.message === 'Failed to fetch' || wlError.details?.includes('Failed to fetch');
+        if (isNetworkError) {
+          console.error('[CartContext] Network error syncing wishlist - Supabase may be unreachable:', wlError);
+        } else {
+          console.error('[CartContext] Error syncing wishlist:', wlError);
+        }
       }
 
       // Sync Orders
@@ -86,8 +114,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         `)
         .eq('user_id', user.id)
         .order('created_at', { ascending: false });
-
-      console.log('[CartContext] Fetched orders from Supabase:', { ordData, ordError, userId: user.id });
 
       if (!ordError && ordData) {
         const dbOrders: Order[] = ordData.map((o: any) => {
@@ -121,26 +147,30 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           };
         });
 
-        console.log('[CartContext] Synced orders from Supabase:', dbOrders.length);
         setOrders(dbOrders);
-        localStorage.setItem('whishkhu_orders', JSON.stringify(dbOrders));
+        localStorage.setItem('zarwinto_orders', JSON.stringify(dbOrders));
       } else if (ordError) {
-        console.error('[CartContext] Error fetching orders from Supabase:', ordError);
+        const isNetworkError = ordError.message === 'Failed to fetch' || ordError.details?.includes('Failed to fetch');
+        if (isNetworkError) {
+          console.error('[CartContext] Network error fetching orders - Supabase may be unreachable:', ordError);
+        } else {
+          console.error('[CartContext] Error fetching orders from Supabase:', ordError);
+        }
       }
     };
 
     syncWithSupabase();
-  }, [configured, user]);
+  }, [configured, user, supabaseReachable]);
 
   // Save cart to localStorage
   const saveCart = (newCart: CartItem[]) => {
     setCart(newCart);
-    localStorage.setItem('whishkhu_cart', JSON.stringify(newCart));
+    localStorage.setItem('zarwinto_cart', JSON.stringify(newCart));
   };
 
   const addToCart = (product: Product, variant: ProductVariant, quantity = 1) => {
     const existingIndex = cart.findIndex(item => item.variant.id === variant.id);
-    let newCart = [...cart];
+    const newCart = [...cart];
     
     if (existingIndex > -1) {
       newCart[existingIndex].quantity += quantity;
@@ -181,7 +211,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // Coupon handling
   const applyCouponCode = (code: string): boolean => {
     const normalized = code.toUpperCase().trim();
-    if (normalized === 'STEPZY20' || normalized === 'WHISHKHU20') {
+    if (normalized === 'STEPZY20' || normalized === 'ZARWINTO20') {
       setAppliedCoupon({ code: 'STEPZY20', type: 'percentage', value: 20 });
       return true;
     }
@@ -218,7 +248,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       newWishlist = [...wishlist, productId];
     }
     setWishlist(newWishlist);
-    localStorage.setItem('whishkhu_wishlist', JSON.stringify(newWishlist));
+    localStorage.setItem('zarwinto_wishlist', JSON.stringify(newWishlist));
 
     if (configured && user) {
       const supabase = createClient();
@@ -238,8 +268,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   // Place order
   const placeOrder = async (address: ShippingAddress): Promise<Order | null> => {
-    console.log('[CartContext] placeOrder called with address:', address, 'cart items:', cart.length);
-
     if (cart.length === 0 || !user) return null;
 
     const orderId = `ord_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -268,7 +296,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     if (configured) {
       const supabase = createClient();
-      console.log('[CartContext] Inserting order into Supabase for user:', user.id);
 
       // Save address to addresses table first
       try {
@@ -302,7 +329,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         console.error('Error saving address:', addrError);
       }
 
-      const { error: orderError, data: orderData } = await supabase
+      const { error: orderError } = await supabase
         .from('orders')
         .insert({
           id: orderId,
@@ -315,8 +342,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           discount_amount: discountAmount
         })
         .select();
-
-      console.log('[CartContext] Order insert result:', { orderError, orderData });
 
       if (!orderError) {
         dbOrderCreated = true;
@@ -359,11 +384,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!configured || dbOrderCreated) {
       const newOrders = [newOrder, ...orders];
       setOrders(newOrders);
-      localStorage.setItem('whishkhu_orders', JSON.stringify(newOrders));
+      localStorage.setItem('zarwinto_orders', JSON.stringify(newOrders));
       clearCart();
-      console.log('[CartContext] Order added to local state and cart cleared');
-    } else {
-      console.log('[CartContext] Order NOT added to local state because DB insert failed');
     }
 
     return newOrder;

@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Send, MapPin, Phone, Mail, Globe, MessageSquare, Hash, Store } from 'lucide-react';
+import { Send, MapPin, Phone, Mail, Store } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -20,7 +20,7 @@ export const Footer: React.FC = () => {
   return (
     <footer className="w-full bg-zinc-950 border-t border-white/[0.04] text-zinc-400 mt-auto">
       {/* Newsletter Banner */}
-      <div className="border-b border-white/[0.04] py-10 bg-gradient-to-r from-zinc-950 via-primary/5 to-zinc-950">
+      <div className="border-b border-white/[0.04] py-8 bg-gradient-to-r from-zinc-950 via-primary/5 to-zinc-950">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
@@ -51,7 +51,7 @@ export const Footer: React.FC = () => {
               </form>
               {subscribed && (
                 <p className="mt-2 text-xs text-primary font-medium animate-pulse">
-                  Welcome to Whishkhu! Check your inbox for 10% off your first order.
+                  Welcome to Zarwinto! Check your inbox for 10% off your first order.
                 </p>
               )}
             </div>
@@ -60,27 +60,39 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* Directory Columns */}
-      <div className="px-4 sm:px-6 lg:px-8 py-16">
+      <div className="px-4 sm:px-6 lg:px-8 py-12">
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
           {/* Brand Info */}
           <div className="space-y-4">
             <Link href="/" className="text-xl font-black tracking-tighter text-white">
-              STEP<span className="text-primary">ZY</span>
+              ZARW<span className="text-primary">INTO</span>
             </Link>
             <p className="text-sm text-zinc-400 leading-relaxed">
-              Whishkhu is a state-of-the-art premium footwear marketplace offering elite performance shoes, luxury craft sneakers, and all-weather boots.
+              Zarwinto is a state-of-the-art premium footwear marketplace offering elite performance shoes, luxury craft sneakers, and all-weather boots.
             </p>
-            <div className="flex gap-4">
-              <a href="#" className="p-2 bg-white/[0.03] hover:bg-primary/20 hover:text-white rounded-lg transition-colors" aria-label="Instagram">
-                <Globe className="h-5 w-5" />
-              </a>
-              <a href="#" className="p-2 bg-white/[0.03] hover:bg-primary/20 hover:text-white rounded-lg transition-colors" aria-label="Twitter">
-                <MessageSquare className="h-5 w-5" />
-              </a>
-              <a href="#" className="p-2 bg-white/[0.03] hover:bg-primary/20 hover:text-white rounded-lg transition-colors" aria-label="Facebook">
-                <Hash className="h-5 w-5" />
-              </a>
-            </div>
+            <a
+              href="https://www.instagram.com/zarwinto?igsh=MWl0MzIzOHkwaDVzbg=="
+              target="_blank"
+              rel="noopener noreferrer"
+              className="p-2 bg-white/[0.03] hover:bg-primary/20 hover:text-white rounded-lg transition-colors"
+              aria-label="Instagram"
+            >
+              <svg
+                xmlns="http://www.w3.org/2000/svg"
+                viewBox="0 0 24 24"
+                fill="none"
+                stroke="currentColor"
+                strokeWidth="2"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+                className="h-5 w-5"
+                aria-hidden="true"
+              >
+                <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                <path d="M16 11.37A4 4 0 1 1 12.63 8 4 4 0 0 1 16 11.37z" />
+                <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
+              </svg>
+            </a>
           </div>
 
           {/* Quick Links */}
@@ -117,7 +129,7 @@ export const Footer: React.FC = () => {
                 <Link href="#" className="hover:text-white transition-colors">Track Your Order</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">Returns & Exchanges</Link>
+                <Link href="/returns" className="hover:text-white transition-colors">Returns & Exchanges</Link>
               </li>
               <li>
                 <Link href="#" className="hover:text-white transition-colors">Shipping Information</Link>
@@ -139,7 +151,7 @@ export const Footer: React.FC = () => {
             <ul className="space-y-3 text-sm">
               <li className="flex gap-2.5 items-start">
                 <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>100 Sneaker Plaza, Hype District, NY 10001, USA</span>
+                <span>Block - 2 Sharda Launchpad - Sharda University, Greater Noida - UP, India</span>
               </li>
               <li className="flex gap-2.5 items-center">
                 <Phone className="h-5 w-5 text-primary flex-shrink-0" />
@@ -147,23 +159,22 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex gap-2.5 items-center">
                 <Mail className="h-5 w-5 text-primary flex-shrink-0" />
-                <a href="mailto:support@whishkhu.com" className="hover:text-white transition-colors">support@whishkhu.com</a>
+                <a href="mailto:support@zarwinto.com" className="hover:text-white transition-colors">support@zarwinto.com</a>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Lower Banner */}
-        <div className="border-t border-white/[0.04] mt-12 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-          <p>© {new Date().getFullYear()} Whishkhu Inc. All rights reserved.</p>
+        <div className="border-t border-white/[0.04] mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
+          <p>© {new Date().getFullYear()} Zarwinto Inc. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/open-store" className="inline-flex items-center gap-1.5 text-primary hover:text-primary-hover font-semibold transition-colors">
               <Store className="h-4 w-4" />
               Open Your Store
             </Link>
-            <Link href="#" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="#" className="hover:text-white transition-colors">Terms of Service</Link>
-            <Link href="#" className="hover:text-white transition-colors">Sitemap</Link>
+            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>

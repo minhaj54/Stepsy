@@ -1,4 +1,4 @@
-package com.example.whishkhu_app
+package com.example.zarwinto_app
 
 import io.flutter.embedding.android.FlutterActivity
 

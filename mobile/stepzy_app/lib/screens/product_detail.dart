@@ -5,7 +5,7 @@ import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 import '../models/product.dart';
 import '../models/product_variant.dart';
-import '../providers/whishkhu_store.dart';
+import '../providers/zarwinto_store.dart';
 import '../widgets/common.dart';
 
 class ProductDetailPage extends StatefulWidget {
@@ -48,7 +48,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Future<void> _shareProduct() async {
     final product = widget.product;
-    final url = 'https://whishkhu.com/product/${product.slug}';
+    final url = 'https://zarwinto.com/product/${product.slug}';
     await Share.share(
       'Check out ${product.title} by ${product.brandName} - ₹${product.currentPrice.toStringAsFixed(0)}\n\n$url',
       subject: product.title,
@@ -58,7 +58,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Future<void> _openWhatsApp() async {
     final product = widget.product;
     final message = Uri.encodeComponent(
-      'Hi! I\'m interested in ${product.title} by ${product.brandName}.\n\nPrice: ₹${product.currentPrice.toStringAsFixed(0)}\n\nProduct Link: https://whishkhu.com/product/${product.slug}',
+      'Hi! I\'m interested in ${product.title} by ${product.brandName}.\n\nPrice: ₹${product.currentPrice.toStringAsFixed(0)}\n\nProduct Link: https://zarwinto.com/product/${product.slug}',
     );
     final uri = Uri.parse('https://wa.me/?text=$message');
     if (await canLaunchUrl(uri)) {
@@ -73,7 +73,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       );
       return;
     }
-    final store = WhishkhuScope.of(context);
+    final store = ZarwintoScope.of(context);
     store.addToCart(widget.product, selected!);
     // Navigate to cart tab (index 1 in the shell)
     // The shell uses a bottom nav, so we need to find the cart tab
@@ -101,7 +101,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     showDialog(
       context: context,
       builder: (context) => AlertDialog(
-        backgroundColor: WhishkhuColors.card,
+        backgroundColor: ZarwintoColors.card,
         title: const Text('Proceed to Checkout?', style: titleStyle),
         content: const Text('Your item has been added to the bag. Would you like to checkout now?'),
         actions: [
@@ -128,7 +128,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   @override
   Widget build(BuildContext context) {
-    final store = WhishkhuScope.of(context);
+    final store = ZarwintoScope.of(context);
     final product = widget.product;
     final money = NumberFormat.simpleCurrency();
 
@@ -149,7 +149,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 child: InteractiveViewer(
                   minScale: 1.0,
                   maxScale: 3.0,
-                  child: WhishkhuRemoteImage(
+                  child: ZarwintoRemoteImage(
                     url: product.images.isNotEmpty ? product.images.first : '',
                     seed: 'prod_detail_${product.id}',
                   ),
@@ -165,7 +165,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           const SizedBox(height: 8),
           Row(
             children: [
-              const Icon(Icons.star, color: WhishkhuColors.accent, size: 18),
+              const Icon(Icons.star, color: ZarwintoColors.accent, size: 18),
               Text(
                 ' ${product.rating} (${product.reviewsCount} reviews)',
                 style: mutedStyle,
@@ -195,7 +195,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       child: Row(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('• ', style: TextStyle(color: WhishkhuColors.primary, fontWeight: FontWeight.w900)),
+                          const Text('• ', style: TextStyle(color: ZarwintoColors.primary, fontWeight: FontWeight.w900)),
                           Expanded(child: Text(trimmed.substring(1).trim(), style: mutedStyle.copyWith(height: 1.5))),
                         ],
                       ),
@@ -215,8 +215,8 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             icon: const Icon(Icons.straighten, size: 18),
             label: const Text('View Size Chart'),
             style: OutlinedButton.styleFrom(
-              foregroundColor: WhishkhuColors.primary,
-              side: const BorderSide(color: WhishkhuColors.primary),
+              foregroundColor: ZarwintoColors.primary,
+              side: const BorderSide(color: ZarwintoColors.primary),
             ),
           ),
           const SizedBox(height: 22),
@@ -288,7 +288,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   icon: const Icon(Icons.flash_on, size: 18),
                   label: const Text('Buy Now'),
                   style: FilledButton.styleFrom(
-                    backgroundColor: WhishkhuColors.accent,
+                    backgroundColor: ZarwintoColors.accent,
                   ),
                 ),
               ),
@@ -301,7 +301,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ? Container(
               height: MediaQuery.of(context).size.height * 0.7,
               decoration: const BoxDecoration(
-                color: WhishkhuColors.card,
+                color: ZarwintoColors.card,
                 borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
               ),
               child: Column(
@@ -312,7 +312,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                     width: 40,
                     height: 4,
                     decoration: BoxDecoration(
-                      color: WhishkhuColors.border,
+                      color: ZarwintoColors.border,
                       borderRadius: BorderRadius.circular(2),
                     ),
                   ),
@@ -324,10 +324,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         Container(
                           padding: const EdgeInsets.all(8),
                           decoration: BoxDecoration(
-                            color: WhishkhuColors.primary.withValues(alpha: 0.15),
+                            color: ZarwintoColors.primary.withValues(alpha: 0.15),
                             borderRadius: BorderRadius.circular(12),
                           ),
-                          child: const Icon(Icons.straighten, color: WhishkhuColors.primary, size: 20),
+                          child: const Icon(Icons.straighten, color: ZarwintoColors.primary, size: 20),
                         ),
                         const SizedBox(width: 12),
                         const Text('Size Chart', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
@@ -347,35 +347,35 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                         children: [
                           const Text(
                             'All measurements are in centimeters (CM). Please refer to this chart when selecting your size.',
-                            style: TextStyle(color: WhishkhuColors.muted, fontSize: 12),
+                            style: TextStyle(color: ZarwintoColors.muted, fontSize: 12),
                             textAlign: TextAlign.center,
                           ),
                           const SizedBox(height: 16),
                           Table(
                             border: TableBorder(
-                              horizontalInside: BorderSide(color: WhishkhuColors.border, width: 0.5),
-                              verticalInside: BorderSide(color: WhishkhuColors.border, width: 0.5),
+                              horizontalInside: BorderSide(color: ZarwintoColors.border, width: 0.5),
+                              verticalInside: BorderSide(color: ZarwintoColors.border, width: 0.5),
                             ),
                             children: [
                               // Header row
                               TableRow(
-                                decoration: BoxDecoration(color: WhishkhuColors.panel),
+                                decoration: BoxDecoration(color: ZarwintoColors.panel),
                                 children: const [
                                   Padding(
                                     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                    child: Text('US', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: WhishkhuColors.muted)),
+                                    child: Text('US', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: ZarwintoColors.muted)),
                                   ),
                                   Padding(
                                     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                    child: Text('UK', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: WhishkhuColors.muted)),
+                                    child: Text('UK', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: ZarwintoColors.muted)),
                                   ),
                                   Padding(
                                     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                    child: Text('EU', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: WhishkhuColors.muted)),
+                                    child: Text('EU', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: ZarwintoColors.muted)),
                                   ),
                                   Padding(
                                     padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                    child: Text('CM', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: WhishkhuColors.muted)),
+                                    child: Text('CM', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: ZarwintoColors.muted)),
                                   ),
                                 ],
                               ),
@@ -407,13 +407,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           Container(
                             padding: const EdgeInsets.all(16),
                             decoration: BoxDecoration(
-                              color: WhishkhuColors.primary.withValues(alpha: 0.08),
+                              color: ZarwintoColors.primary.withValues(alpha: 0.08),
                               borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: WhishkhuColors.primary.withValues(alpha: 0.2)),
+                              border: Border.all(color: ZarwintoColors.primary.withValues(alpha: 0.2)),
                             ),
                             child: Row(
                               children: [
-                                const Icon(Icons.lightbulb_outline, color: WhishkhuColors.primary, size: 20),
+                                const Icon(Icons.lightbulb_outline, color: ZarwintoColors.primary, size: 20),
                                 const SizedBox(width: 12),
                                 Expanded(
                                   child: Text(

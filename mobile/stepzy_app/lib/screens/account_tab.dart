@@ -1,6 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import '../providers/whishkhu_store.dart';
+import '../providers/zarwinto_store.dart';
 import '../widgets/common.dart';
 import '../core/theme.dart';
 import '../core/constants.dart';
@@ -48,7 +48,7 @@ class _AccountTabState extends State<AccountTab> {
     });
   }
 
-  Future<void> handleSendOtp(WhishkhuStore store) async {
+  Future<void> handleSendOtp(ZarwintoStore store) async {
     setState(() => busy = true);
     final message = await store.sendOtp(phoneController.text.trim());
     setState(() => busy = false);
@@ -62,7 +62,7 @@ class _AccountTabState extends State<AccountTab> {
     }
   }
 
-  Future<void> handleVerifyOtp(WhishkhuStore store) async {
+  Future<void> handleVerifyOtp(ZarwintoStore store) async {
     setState(() => busy = true);
     final message = await store.verifyOtp(
       phoneController.text.trim(),
@@ -80,13 +80,13 @@ class _AccountTabState extends State<AccountTab> {
 
   @override
   Widget build(BuildContext context) {
-    final store = WhishkhuScope.of(context);
+    final store = ZarwintoScope.of(context);
     final profile = store.profile;
 
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
       children: [
-        const WhishkhuHeader(title: 'Account'),
+        const ZarwintoHeader(title: 'Account'),
         const SizedBox(height: 18),
         if (!store.isSupabaseConfigured)
           const NoticeCard(
@@ -94,11 +94,11 @@ class _AccountTabState extends State<AccountTab> {
             body:
                 'Run with SUPABASE_URL and SUPABASE_ANON_KEY dart-defines to connect live data.',
           ),
-        if (whishkhuApiBaseUrl.isEmpty)
+        if (zarwintoApiBaseUrl.isEmpty)
           const NoticeCard(
             title: 'API base URL not configured',
             body:
-                'Run with WHISHKHU_API_BASE_URL dart-define to enable phone OTP authentication.',
+                'Run with ZARWINTO_API_BASE_URL dart-define to enable phone OTP authentication.',
           ),
         if (profile != null)
           Card(
@@ -110,7 +110,7 @@ class _AccountTabState extends State<AccountTab> {
                     children: [
                       CircleAvatar(
                         radius: 30,
-                        backgroundColor: WhishkhuColors.panel,
+                        backgroundColor: ZarwintoColors.panel,
                         backgroundImage: NetworkImage(
                           'https://i.pravatar.cc/150?u=${profile.email}',
                         ),
@@ -122,7 +122,7 @@ class _AccountTabState extends State<AccountTab> {
                           children: [
                             Text(
                               profile.fullName.isEmpty
-                                  ? 'Whishkhu member'
+                                  ? 'Zarwinto member'
                                   : profile.fullName,
                               style: titleStyle,
                             ),
@@ -158,7 +158,7 @@ class _AccountTabState extends State<AccountTab> {
                 children: [
                   Text(
                     step == AuthStep.phone
-                        ? (signup ? 'Create your Whishkhu account' : 'Welcome back')
+                        ? (signup ? 'Create your Zarwinto account' : 'Welcome back')
                         : 'Enter verification code',
                     style: titleStyle,
                   ),

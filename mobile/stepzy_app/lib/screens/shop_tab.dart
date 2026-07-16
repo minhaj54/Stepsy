@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../providers/whishkhu_store.dart';
+import '../providers/zarwinto_store.dart';
 import '../widgets/common.dart';
 import '../widgets/product_grid.dart';
 import '../core/theme.dart';
@@ -18,7 +18,7 @@ class _ShopTabState extends State<ShopTab> {
 
   @override
   Widget build(BuildContext context) {
-    final store = WhishkhuScope.of(context);
+    final store = ZarwintoScope.of(context);
     final products = store.products.where((product) {
       final matchesQuery =
           query.isEmpty ||
@@ -39,7 +39,7 @@ class _ShopTabState extends State<ShopTab> {
     return ListView(
       padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
       children: [
-        const WhishkhuHeader(title: 'Catalog'),
+        const ZarwintoHeader(title: 'Catalog'),
         const SizedBox(height: 18),
         TextField(
           onChanged: (value) => setState(() => query = value),

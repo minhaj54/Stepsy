@@ -3,9 +3,11 @@ import AccountContent from './AccountContent';
 import { getProducts } from '../../lib/data/products';
 
 export const metadata = {
-  title: "Your Account - Whishkhu Marketplace",
+  title: "Your Account - Zarwinto Marketplace",
   description: "Manage your profile details, address book, active orders and footwear wishlist."
 };
+
+export const dynamic = 'force-dynamic';
 
 export default async function AccountPage() {
   const products = await getProducts();

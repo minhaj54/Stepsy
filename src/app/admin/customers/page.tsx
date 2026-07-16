@@ -4,7 +4,7 @@ import { getAdminCustomers } from '../../../lib/data/products';
 import AdminCustomersClient from './AdminCustomersClient';
 
 export const metadata = {
-  title: 'Customers - Whishkhu Admin',
+  title: 'Customers - Zarwinto Admin',
 };
 
 export default async function AdminCustomersPage() {

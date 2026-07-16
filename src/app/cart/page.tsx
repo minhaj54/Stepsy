@@ -40,7 +40,7 @@ export default function CartPage() {
 
   if (cart.length === 0) {
     return (
-      <div className="px-4 sm:px-6 lg:px-8 py-20 flex-grow flex flex-col items-center justify-center text-center space-y-6">
+      <div className="px-4 sm:px-6 lg:px-8 py-16 flex-grow flex flex-col items-center justify-center text-center space-y-6">
         <div className="h-24 w-24 bg-zinc-900 border border-white/[0.04] rounded-full flex items-center justify-center text-4xl">
           🛒
         </div>
@@ -62,10 +62,10 @@ export default function CartPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-8">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-6">
       <h1 className="text-3xl font-extrabold text-white tracking-tight">Your Shopping Cart</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
         {/* Cart items list */}
         <div className="lg:col-span-8 space-y-4">
           {cart.map((item) => {

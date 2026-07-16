@@ -5,8 +5,8 @@ import { getStores, getProductsByStore } from '../../lib/data/stores';
 import ShimmerImage from '../../components/ShimmerImage';
 
 export const metadata = {
-  title: "Our Partners & Sellers - Whishkhu Marketplace",
-  description: "Discover our trusted partner stores and sellers on Whishkhu. Browse top footwear brands and independent sellers offering premium sneakers, boots, and more."
+  title: "Our Partners & Sellers - Zarwinto Marketplace",
+  description: "Discover our trusted partner stores and sellers on Zarwinto. Browse top footwear brands and independent sellers offering premium sneakers, boots, and more."
 };
 
 export default async function PartnersPage() {
@@ -23,7 +23,7 @@ export default async function PartnersPage() {
   return (
     <div className="min-h-screen">
       {/* Hero Section */}
-      <div className="relative py-16 sm:py-24 overflow-hidden">
+      <div className="relative py-12 sm:py-20 overflow-hidden">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
         <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[600px] bg-primary/5 rounded-full blur-3xl" />
         
@@ -69,7 +69,7 @@ export default async function PartnersPage() {
       </div>
 
       {/* Partners Grid */}
-      <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto py-12 sm:py-16">
+      <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto py-10 sm:py-14">
         {storesWithCounts.length === 0 ? (
           <div className="text-center py-20">
             <StoreIcon className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
@@ -153,7 +153,7 @@ export default async function PartnersPage() {
       </div>
 
       {/* CTA Section */}
-      <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-16">
+      <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-12">
         <div className="glass-card rounded-3xl p-8 sm:p-12 text-center relative overflow-hidden">
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-accent/10" />
           <div className="relative">

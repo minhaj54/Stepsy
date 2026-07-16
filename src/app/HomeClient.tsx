@@ -32,9 +32,9 @@ export default function HomeClient({ products, categories, brands }: HomeClientP
   const bestSellers = products.filter(p => p.bestSeller).slice(0, 4);
 
   return (
-    <div className="w-full flex flex-col pb-12">
+    <div className="w-full flex flex-col">
       {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-zinc-950 py-20 lg:py-32 flex items-center">
+      <section className="relative w-full overflow-hidden bg-zinc-950 py-16 lg:py-24 flex items-center">
         {/* Background glow effects */}
         <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[100px] pointer-events-none" />
@@ -118,7 +118,7 @@ export default function HomeClient({ products, categories, brands }: HomeClientP
       </section>
 
       {/* Selling Point Icons */}
-      <section className="bg-zinc-900 py-6 border-y border-white/[0.04]">
+      <section className="bg-zinc-900 py-8 border-y border-white/[0.04]">
         <div className="mx-auto max-w-2xl px-2 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div className="flex flex-col items-center gap-1">
             <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
@@ -152,7 +152,7 @@ export default function HomeClient({ products, categories, brands }: HomeClientP
       </section>
 
       {/* Categories Grid */}
-      <section className="px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+      <section className="px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         <div className="text-center mb-4 sm:mb-8 space-y-1">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Shop by Category</h2>
           <p className="text-zinc-500 text-xs sm:text-sm">Explore specialized shoes designed for every scenario</p>
@@ -183,7 +183,7 @@ export default function HomeClient({ products, categories, brands }: HomeClientP
       </section>
 
       {/* Featured Products */}
-      <section className="bg-zinc-900/40 py-20 border-y border-white/[0.04]">
+      <section className="bg-zinc-900/40 py-12 sm:py-16 border-y border-white/[0.04]">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-12">
             <div>
@@ -293,7 +293,7 @@ export default function HomeClient({ products, categories, brands }: HomeClientP
       </section>
 
       {/* Brand Partners Bar */}
-      <section className="px-4 sm:px-6 lg:px-8 py-16 text-center">
+      <section className="px-4 sm:px-6 lg:px-8 py-12 text-center">
         <h3 className="text-xs uppercase font-bold tracking-widest text-zinc-500 mb-8">Featured Footwear Brands</h3>
         <div className="mx-auto max-w-2xl grid grid-cols-2 md:grid-cols-4 gap-2 items-center justify-items-center">
           {brands.map((brand) => (
@@ -310,7 +310,7 @@ export default function HomeClient({ products, categories, brands }: HomeClientP
       </section>
 
       {/* Reviews Grid */}
-      <section className="bg-zinc-900 py-20 border-t border-white/[0.04]">
+      <section className="bg-zinc-900 py-12 sm:py-16 border-t border-white/[0.04]">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="text-center mb-12 space-y-2">
             <span className="text-xs font-bold text-primary uppercase tracking-wider">Social Proof</span>

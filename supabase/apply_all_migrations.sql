@@ -625,7 +625,7 @@ BEGIN
   IF NEW.email IS NOT NULL AND NEW.email != '' THEN
     v_email := NEW.email;
   ELSE
-    v_email := CONCAT(REPLACE(v_phone, '+', ''), '@phone.whishkhu.app');
+    v_email := CONCAT(REPLACE(v_phone, '+', ''), '@phone.zarwinto.app');
   END IF;
 
   INSERT INTO public.users (id, full_name, email, phone, role)

@@ -8,14 +8,14 @@ export default function AdminSettingsClient() {
   const [saving, setSaving] = useState(false);
   
   // Website Settings
-  const [siteName, setSiteName] = useState('Whishkhu');
+  const [siteName, setSiteName] = useState('Zarwinto');
   const [siteTagline, setSiteTagline] = useState('World of Shoes Marketplace');
   const [siteLogo, setSiteLogo] = useState('');
   const [siteBanner, setSiteBanner] = useState('');
   const [favicon, setFavicon] = useState('');
   
   // Contact Settings
-  const [contactEmail, setContactEmail] = useState('support@whishkhu.com');
+  const [contactEmail, setContactEmail] = useState('support@zarwinto.com');
   const [contactPhone, setContactPhone] = useState('+91 9876543210');
   const [contactAddress, setContactAddress] = useState('');
   

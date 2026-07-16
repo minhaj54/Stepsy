@@ -3,9 +3,11 @@ import SearchContent from './SearchContent';
 import { getProducts } from '../../lib/data/products';
 
 export const metadata = {
-  title: "Search Footwear - Whishkhu",
+  title: "Search Footwear - Zarwinto",
   description: "Search for premium running sneakers, leather boots, loafers and comfort shoes."
 };
+
+export const dynamic = 'force-dynamic';
 
 export default async function SearchPage() {
   const products = await getProducts();
@@ -14,7 +16,7 @@ export default async function SearchPage() {
     <Suspense fallback={
       <div className="min-h-[60vh] flex flex-col items-center justify-center text-zinc-400 gap-4">
         <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-        <span className="text-sm font-semibold tracking-wider animate-pulse">Searching Whishkhu...</span>
+        <span className="text-sm font-semibold tracking-wider animate-pulse">Searching Zarwinto...</span>
       </div>
     }>
       <SearchContent products={products} />

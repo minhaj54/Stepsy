@@ -6,7 +6,7 @@ import { getCurrentUser } from '../../../lib/supabase/server';
 import AdminProductsClient from './AdminProductsClient';
 
 export const metadata = {
-  title: 'Manage Products - Whishkhu Admin',
+  title: 'Manage Products - Zarwinto Admin',
 };
 
 export default async function AdminProductsPage() {

@@ -130,11 +130,11 @@ export default function ShopContent({ products, brands, categories }: ShopConten
   });
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow">
       {/* Top Title & Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-8">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Whishkhu Footwear Catalog</h1>
+          <h1 className="text-3xl font-extrabold text-white tracking-tight">Zarwinto Footwear Catalog</h1>
           <p className="text-zinc-500 text-sm mt-1">Showing {sortedProducts.length} premium products</p>
         </div>
 
@@ -167,7 +167,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-4 gap-8 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         {/* Desktop Sidebar Filters */}
         <aside className="hidden lg:block space-y-8 glass-card p-6 rounded-2xl border border-white/[0.05]">
           <div className="flex justify-between items-center pb-4 border-b border-white/[0.06]">

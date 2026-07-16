@@ -65,10 +65,10 @@ export default function SearchContent({ products }: SearchContentProps) {
   const recommendations = products.slice(0, 3);
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow">
       {/* Search Bar Block */}
-      <div className="max-w-2xl mx-auto text-center space-y-6 mb-12">
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Explore Whishkhu Marketplace</h1>
+      <div className="max-w-2xl mx-auto text-center space-y-6 mb-10">
+        <h1 className="text-3xl font-extrabold text-white tracking-tight">Explore Zarwinto Marketplace</h1>
         
         <form onSubmit={handleSearchSubmit} className="relative group">
           <input

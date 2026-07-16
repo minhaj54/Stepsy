@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import '../providers/whishkhu_store.dart';
+import '../providers/zarwinto_store.dart';
 import '../widgets/common.dart';
 import '../widgets/hero_panel.dart';
 import '../widgets/benefit_strip.dart';
@@ -11,14 +11,14 @@ class HomeTab extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = WhishkhuScope.of(context);
+    final store = ZarwintoScope.of(context);
 
     return RefreshIndicator(
       onRefresh: store.refresh,
       child: ListView(
         padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
         children: [
-          const WhishkhuHeader(),
+          const ZarwintoHeader(),
           const SizedBox(height: 20),
           const HeroPanel(),
           const SizedBox(height: 24),
@@ -43,7 +43,7 @@ class HomeTab extends StatelessWidget {
           const SizedBox(height: 26),
           const SectionHeader(
             title: 'Featured Footwear',
-            subtitle: 'Curated Whishkhu selections',
+            subtitle: 'Curated Zarwinto selections',
           ),
           const SizedBox(height: 14),
           ProductGrid(products: store.featuredProducts()),

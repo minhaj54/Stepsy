@@ -9,30 +9,30 @@ import '../models/cart_item.dart';
 import '../models/product_variant.dart';
 import '../models/user_profile.dart';
 import '../models/shipping_address.dart';
-import '../repositories/whishkhu_repository.dart';
+import '../repositories/zarwinto_repository.dart';
 import '../data/mock_data.dart';
 import '../core/constants.dart';
 
-class WhishkhuScope extends InheritedNotifier<WhishkhuStore> {
-  const WhishkhuScope({
+class ZarwintoScope extends InheritedNotifier<ZarwintoStore> {
+  const ZarwintoScope({
     super.key,
-    required WhishkhuStore store,
+    required ZarwintoStore store,
     required super.child,
   }) : super(notifier: store);
 
-  static WhishkhuStore of(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<WhishkhuScope>();
-    assert(scope != null, 'WhishkhuScope not found');
+  static ZarwintoStore of(BuildContext context) {
+    final scope = context.dependOnInheritedWidgetOfExactType<ZarwintoScope>();
+    assert(scope != null, 'ZarwintoScope not found');
     return scope!.notifier!;
   }
 }
 
-class WhishkhuStore extends ChangeNotifier {
-  WhishkhuStore(this.prefs)
-    : repository = WhishkhuRepository(_configuredSupabaseClient());
+class ZarwintoStore extends ChangeNotifier {
+  ZarwintoStore(this.prefs)
+    : repository = ZarwintoRepository(_configuredSupabaseClient());
 
   final SharedPreferences prefs;
-  final WhishkhuRepository repository;
+  final ZarwintoRepository repository;
 
   bool loading = true;
   String? error;
@@ -169,7 +169,7 @@ class WhishkhuStore extends ChangeNotifier {
   }
 
   void _loadCart() {
-    final raw = prefs.getString('whishkhu_mobile_cart');
+    final raw = prefs.getString('zarwinto_mobile_cart');
     if (raw == null) return;
     final decoded = jsonDecode(raw) as List<dynamic>;
     cart = decoded
@@ -179,7 +179,7 @@ class WhishkhuStore extends ChangeNotifier {
 
   void _saveCart() {
     final encoded = jsonEncode(cart.map((item) => item.toJson()).toList());
-    prefs.setString('whishkhu_mobile_cart', encoded);
+    prefs.setString('zarwinto_mobile_cart', encoded);
   }
 }
 

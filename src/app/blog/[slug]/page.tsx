@@ -14,12 +14,12 @@ export async function generateMetadata({ params }: PageProps) {
 
   if (!post) {
     return {
-      title: "Article Not Found - Whishkhu Magazine"
+      title: "Article Not Found - Zarwinto Magazine"
     };
   }
 
   return {
-    title: `${post.title} | Whishkhu Magazine`,
+    title: `${post.title} | Zarwinto Magazine`,
     description: post.summary
   };
 }

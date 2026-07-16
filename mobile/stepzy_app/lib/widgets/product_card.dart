@@ -2,7 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:intl/intl.dart';
 import '../core/theme.dart';
 import '../models/product.dart';
-import '../providers/whishkhu_store.dart';
+import '../providers/zarwinto_store.dart';
 import '../screens/product_detail.dart';
 import 'common.dart';
 
@@ -13,7 +13,7 @@ class ProductCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final store = WhishkhuScope.of(context);
+    final store = ZarwintoScope.of(context);
     final saved = store.wishlist.contains(product.id);
     final money = NumberFormat.simpleCurrency();
 
@@ -36,7 +36,7 @@ class ProductCard extends StatelessWidget {
                         borderRadius: BorderRadius.circular(14),
                         child: ColoredBox(
                           color: Colors.black26,
-                          child: WhishkhuRemoteImage(
+                          child: ZarwintoRemoteImage(
                             url: product.images.first,
                             seed: 'prod_${product.id}',
                           ),
@@ -52,8 +52,8 @@ class ProductCard extends StatelessWidget {
                           saved ? Icons.favorite : Icons.favorite_border,
                         ),
                         color: saved
-                            ? WhishkhuColors.accent
-                            : WhishkhuColors.foreground,
+                            ? ZarwintoColors.accent
+                            : ZarwintoColors.foreground,
                       ),
                     ),
                   ],
@@ -71,7 +71,7 @@ class ProductCard extends StatelessWidget {
               const SizedBox(height: 8),
               Row(
                 children: [
-                  const Icon(Icons.star, size: 15, color: WhishkhuColors.accent),
+                  const Icon(Icons.star, size: 15, color: ZarwintoColors.accent),
                   Text(
                     ' ${product.rating}',
                     style: const TextStyle(fontWeight: FontWeight.w700),

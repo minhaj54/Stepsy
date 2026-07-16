@@ -7,7 +7,7 @@ import { getCurrentUser } from '../../lib/supabase/server';
 import AdminDashboardClient from './AdminDashboardClient';
 
 export const metadata = {
-  title: 'Super Admin Dashboard - Whishkhu',
+  title: 'Super Admin Dashboard - Zarwinto',
 };
 
 export default async function AdminDashboardPage() {

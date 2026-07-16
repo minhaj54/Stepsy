@@ -1,5 +1,6 @@
 import { Store, Product } from '../../types';
 import { PRODUCT_SELECT, mapDbProduct } from './products';
+import { mockStores } from '../../data/mockShoes';
 
 interface DbStore {
   id: string;
@@ -69,6 +70,10 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
 }
 
 export async function getStoreById(id: string): Promise<Store | null> {
+  // Mock fallback when Supabase is not configured or id matches a mock store.
+  const mock = mockStores.find((s) => s.id === id);
+  if (mock) return mock;
+
   try {
     const { createClient } = await import('../supabase/server');
     const supabase = await createClient();

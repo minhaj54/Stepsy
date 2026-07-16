@@ -1,8 +1,8 @@
 'use client';
 
 import React, { useState } from 'react';
-import { Star, Heart, ShoppingBag, Shield, Truck, RefreshCw, Send, Check, ArrowRight, Share2, MessageCircle, Zap, X, ZoomIn, Ruler } from 'lucide-react';
-import { Product, ProductVariant, Review } from '../../../types';
+import { Star, Heart, ShoppingBag, Shield, Truck, RefreshCw, Send, Check, ArrowRight, Share2, MessageCircle, Zap, X, ZoomIn, Ruler, Store as StoreIcon } from 'lucide-react';
+import { Product, ProductVariant, Review, Store } from '../../../types';
 import { useCart } from '../../../context/CartContext';
 import { useAuth } from '../../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../../lib/supabase/client';
@@ -11,6 +11,7 @@ import ShimmerImage from '../../../components/ShimmerImage';
 
 interface ProductDetailClientProps {
   product: Product;
+  store: Store | null;
   initialReviews: Review[];
   relatedProducts: Product[];
 }
@@ -32,7 +33,7 @@ const SIZE_CHART = [
   { us: '12', uk: '11.5', eu: '46', cm: '30.0' },
 ];
 
-export default function ProductDetailClient({ product, initialReviews, relatedProducts }: ProductDetailClientProps) {
+export default function ProductDetailClient({ product, store, initialReviews, relatedProducts }: ProductDetailClientProps) {
   const { addToCart, wishlist, toggleWishlist } = useCart();
   const { user } = useAuth();
   const configured = isSupabaseConfigured();
@@ -174,9 +175,9 @@ export default function ProductDetailClient({ product, initialReviews, relatedPr
   };
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow">
       {/* Product Top Half */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-8 lg:gap-12 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
         {/* Left: Images */}
         <div className="lg:col-span-5 flex gap-3 sm:gap-4">
           {/* Thumbnails - vertical on desktop, horizontal on mobile */}
@@ -234,7 +235,7 @@ export default function ProductDetailClient({ product, initialReviews, relatedPr
         </div>
 
         {/* Right: Product Info */}
-        <div className="lg:col-span-7 space-y-4 sm:space-y-6">
+        <div className="lg:col-span-7 space-y-5 sm:space-y-6">
           {/* Brand & Actions */}
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
             <span className="text-sm font-bold text-primary uppercase tracking-wider">{product.brand_name}</span>
@@ -280,7 +281,7 @@ export default function ProductDetailClient({ product, initialReviews, relatedPr
           </div>
 
           {/* Pricing */}
-          <div className="p-4 bg-zinc-900/40 border border-white/[0.04] rounded-2xl">
+          <div className="p-5 bg-zinc-900/40 border border-white/[0.04] rounded-2xl">
             <div className="flex items-center justify-between">
               <div>
                 <span className="text-xs text-zinc-500 font-bold block mb-1 uppercase tracking-wider">Price</span>
@@ -389,7 +390,7 @@ export default function ProductDetailClient({ product, initialReviews, relatedPr
           </div>
 
           {/* Action Buttons */}
-          <div className="space-y-3 pt-2">
+          <div className="space-y-3 pt-4">
             <button
               onClick={handleAddToCart}
               className={`w-full py-4 px-6 rounded-xl font-bold text-sm text-center flex items-center justify-center gap-2 cursor-pointer transition-all duration-300 ${
@@ -444,8 +445,44 @@ export default function ProductDetailClient({ product, initialReviews, relatedPr
         </div>
       </div>
 
+      {/* Store badge — like a YouTube channel, below images / above description */}
+      {store && (
+        <div className="mt-8 flex items-center gap-4 rounded-2xl border border-white/[0.06] bg-zinc-900/40 p-4">
+          <Link
+            href={`/store/${store.slug}`}
+            className="flex-shrink-0 h-14 w-14 rounded-full overflow-hidden border border-white/[0.08] bg-zinc-950 flex items-center justify-center"
+            aria-label={store.name}
+          >
+            {store.logo_url ? (
+              <ShimmerImage src={store.logo_url} alt={store.name} className="w-full h-full" />
+            ) : (
+              <StoreIcon className="h-6 w-6 text-zinc-400" />
+            )}
+          </Link>
+          <div className="min-w-0 flex-1">
+            <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold">Sold by</p>
+            <Link
+              href={`/store/${store.slug}`}
+              className="text-base font-bold text-white hover:text-primary transition-colors truncate block"
+            >
+              {store.name}
+            </Link>
+            {store.description && (
+              <p className="text-xs text-zinc-500 truncate mt-0.5">{store.description}</p>
+            )}
+          </div>
+          <Link
+            href={`/store/${store.slug}`}
+            className="flex-shrink-0 hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-primary hover:text-white border border-white/[0.06] hover:border-primary text-sm font-semibold text-zinc-200 transition-all"
+          >
+            Visit Store
+            <ArrowRight className="h-4 w-4" />
+          </Link>
+        </div>
+      )}
+
       {/* Details Tabs */}
-      <section className="mt-20 border-t border-white/[0.06] pt-10">
+      <section className="mt-12 border-t border-white/[0.06] pt-8">
         <div className="flex gap-6 border-b border-white/[0.04] pb-2 text-sm">
           <button
             onClick={() => setActiveTab('description')}

@@ -4,7 +4,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/constants.dart';
 import 'core/theme.dart';
-import 'providers/whishkhu_store.dart';
+import 'providers/zarwinto_store.dart';
 import 'screens/shell.dart';
 
 Future<void> main() async {
@@ -18,36 +18,36 @@ Future<void> main() async {
   }
 
   final prefs = await SharedPreferences.getInstance();
-  runApp(WhishkhuApp(prefs: prefs));
+  runApp(ZarwintoApp(prefs: prefs));
 }
 
-class WhishkhuApp extends StatefulWidget {
-  const WhishkhuApp({super.key, required this.prefs});
+class ZarwintoApp extends StatefulWidget {
+  const ZarwintoApp({super.key, required this.prefs});
 
   final SharedPreferences prefs;
 
   @override
-  State<WhishkhuApp> createState() => _WhishkhuAppState();
+  State<ZarwintoApp> createState() => _ZarwintoAppState();
 }
 
-class _WhishkhuAppState extends State<WhishkhuApp> {
-  late final WhishkhuStore store;
+class _ZarwintoAppState extends State<ZarwintoApp> {
+  late final ZarwintoStore store;
 
   @override
   void initState() {
     super.initState();
-    store = WhishkhuStore(widget.prefs)..bootstrap();
+    store = ZarwintoStore(widget.prefs)..bootstrap();
   }
 
   @override
   Widget build(BuildContext context) {
-    return WhishkhuScope(
+    return ZarwintoScope(
       store: store,
       child: MaterialApp(
-        title: 'Whishkhu',
+        title: 'Zarwinto',
         debugShowCheckedModeBanner: false,
-        theme: WhishkhuTheme.dark,
-        home: const WhishkhuShell(),
+        theme: ZarwintoTheme.dark,
+        home: const ZarwintoShell(),
       ),
     );
   }
