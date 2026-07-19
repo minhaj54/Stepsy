@@ -4,17 +4,20 @@
 
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
-import { ArrowRight, Star, Heart, Sparkles, Zap, Truck, ShieldCheck, RefreshCw } from 'lucide-react';
+import { ArrowRight, Star, Heart, Zap, Truck, ShieldCheck, RefreshCw } from 'lucide-react';
 import { Product, Brand, Category } from '../types';
 import { useCart } from '../context/CartContext';
+import type { Testimonial } from '../lib/data/products';
 
 interface HomeClientProps {
   products: Product[];
   categories: Category[];
   brands: Brand[];
+  bannerProduct?: Product | null;
+  testimonials?: Testimonial[];
 }
 
-export default function HomeClient({ products, categories, brands }: HomeClientProps) {
+export default function HomeClient({ products, categories, brands, bannerProduct, testimonials = [] }: HomeClientProps) {
   const { wishlist, toggleWishlist } = useCart();
   const scrollRef = useRef<HTMLDivElement>(null);
   const [activeDot, setActiveDot] = useState(0);
@@ -41,11 +44,6 @@ export default function HomeClient({ products, categories, brands }: HomeClientP
 
         <div className="px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           <div className="lg:col-span-7 text-left space-y-6">
-            <div className="inline-flex items-center gap-2 px-3 py-1 bg-white/[0.04] border border-white/[0.08] rounded-full text-xs font-semibold text-primary uppercase tracking-wider">
-              <Sparkles className="h-3.5 w-3.5 text-accent animate-pulse" />
-              Next-Gen Footwear Hub
-            </div>
-            
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-none text-white">
               STEP INTO THE <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-primary via-indigo-400 to-accent bg-clip-text text-transparent">
@@ -92,27 +90,63 @@ export default function HomeClient({ products, categories, brands }: HomeClientP
 
           {/* Hero Image Container */}
           <div className="lg:col-span-5 flex justify-center relative">
-            <div className="relative w-full max-w-[400px] aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-tr from-zinc-900 to-white/5 border border-white/[0.06] group p-6 flex items-center justify-center">
-              {/* Spinning light ring */}
-              <div className="absolute inset-0 border border-primary/20 rounded-3xl scale-95 group-hover:scale-100 transition-transform duration-700 pointer-events-none" />
-              
-              <img
-                src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800"
-                alt="AeroStride Volt Runner"
-                className="w-full h-auto object-contain transform -rotate-12 group-hover:rotate-[-6deg] group-hover:scale-110 transition-all duration-500 drop-shadow-[0_15px_30px_rgba(99,102,241,0.4)]"
-              />
-              
-              <div className="absolute bottom-4 left-4 right-4 glass-card p-4 rounded-2xl flex justify-between items-center">
-                <div>
-                  <p className="text-xs font-bold text-primary uppercase tracking-wider">AeroStride Drop</p>
-                  <p className="text-sm font-bold text-white">Volt Velocity v4</p>
+            {bannerProduct ? (
+              <Link
+                href={`/product/${bannerProduct.slug}`}
+                className="relative w-full max-w-[400px] aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-tr from-zinc-900 to-white/5 border border-white/[0.06] group p-6 flex items-center justify-center cursor-pointer"
+              >
+                {/* Spinning light ring */}
+                <div className="absolute inset-0 border border-primary/20 rounded-3xl scale-95 group-hover:scale-100 transition-transform duration-700 pointer-events-none" />
+
+                <img
+                  src={bannerProduct.images[0]}
+                  alt={bannerProduct.title}
+                  className="w-full h-auto object-contain transform -rotate-12 group-hover:rotate-[-6deg] group-hover:scale-110 transition-all duration-500 drop-shadow-[0_15px_30px_rgba(99,102,241,0.4)]"
+                />
+
+                <div className="absolute bottom-4 left-4 right-4 glass-card p-4 rounded-2xl flex justify-between items-center">
+                  <div>
+                    <p className="text-xs font-bold text-primary uppercase tracking-wider">{bannerProduct.brand_name}</p>
+                    <p className="text-sm font-bold text-white">{bannerProduct.title}</p>
+                  </div>
+                  <div className="text-right">
+                    {bannerProduct.sale_price ? (
+                      <>
+                        <p className="text-xs line-through text-zinc-500">₹{bannerProduct.price}</p>
+                        <p className="text-sm font-black text-accent">₹{bannerProduct.sale_price}</p>
+                      </>
+                    ) : (
+                      <p className="text-sm font-black text-accent">₹{bannerProduct.price}</p>
+                    )}
+                  </div>
                 </div>
-                <div className="text-right">
-                  <p className="text-xs line-through text-zinc-500">₹1299</p>
-                  <p className="text-sm font-black text-accent">₹999</p>
+
+                <span className="absolute top-4 right-4 z-20 inline-flex items-center gap-1 bg-primary text-white text-[10px] font-bold uppercase px-2.5 py-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity">
+                  View Details <ArrowRight className="h-3 w-3" />
+                </span>
+              </Link>
+            ) : (
+              <div className="relative w-full max-w-[400px] aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-tr from-zinc-900 to-white/5 border border-white/[0.06] group p-6 flex items-center justify-center">
+                {/* Spinning light ring */}
+                <div className="absolute inset-0 border border-primary/20 rounded-3xl scale-95 group-hover:scale-100 transition-transform duration-700 pointer-events-none" />
+
+                <img
+                  src="https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&q=80&w=800"
+                  alt="Featured shoe"
+                  className="w-full h-auto object-contain transform -rotate-12 group-hover:rotate-[-6deg] group-hover:scale-110 transition-all duration-500 drop-shadow-[0_15px_30px_rgba(99,102,241,0.4)]"
+                />
+
+                <div className="absolute bottom-4 left-4 right-4 glass-card p-4 rounded-2xl flex justify-between items-center">
+                  <div>
+                    <p className="text-xs font-bold text-primary uppercase tracking-wider">AeroStride Drop</p>
+                    <p className="text-sm font-bold text-white">Volt Velocity v4</p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-sm font-black text-accent">₹999</p>
+                  </div>
                 </div>
               </div>
-            </div>
+            )}
           </div>
         </div>
       </section>
@@ -310,85 +344,41 @@ export default function HomeClient({ products, categories, brands }: HomeClientP
       </section>
 
       {/* Reviews Grid */}
-      <section className="bg-zinc-900 py-12 sm:py-16 border-t border-white/[0.04]">
-        <div className="px-4 sm:px-6 lg:px-8">
-          <div className="text-center mb-12 space-y-2">
-            <span className="text-xs font-bold text-primary uppercase tracking-wider">Social Proof</span>
-            <h2 className="text-3xl font-extrabold text-white tracking-tight">Verified Buyer Feedback</h2>
-          </div>
-
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="glass-card p-6 rounded-2xl space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center text-sm font-bold text-primary">MV</div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">Marcus Vance</h4>
-                    <p className="text-[10px] text-zinc-500">Verified Buyer</p>
-                  </div>
-                </div>
-                <div className="flex gap-0.5 text-accent">
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                </div>
-              </div>
-              <p className="text-sm text-zinc-400 leading-relaxed italic">
-                "Absolutely phenomenal! The NitroFoam midsole gives so much energy return. Shaved a full minute off my 10k time on my first run in these. Highly recommend."
-              </p>
-              <div className="text-xs text-primary font-semibold">Product: Volt Velocity Runner v4</div>
+      {testimonials.length > 0 && (
+        <section className="bg-zinc-900 py-12 sm:py-16 border-t border-white/[0.04]">
+          <div className="px-4 sm:px-6 lg:px-8">
+            <div className="text-center mb-12 space-y-2">
+              <span className="text-xs font-bold text-primary uppercase tracking-wider">Social Proof</span>
+              <h2 className="text-3xl font-extrabold text-white tracking-tight">Verified Buyer Feedback</h2>
             </div>
 
-            <div className="glass-card p-6 rounded-2xl space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center text-sm font-bold text-primary">DJ</div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">Derrick Jenkins</h4>
-                    <p className="text-[10px] text-zinc-500">Verified Buyer</p>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+              {testimonials.map((t) => (
+                <div key={t.id} className="glass-card p-6 rounded-2xl space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center text-sm font-bold text-primary">
+                        {t.initials || t.name.slice(0, 2).toUpperCase()}
+                      </div>
+                      <div>
+                        <h4 className="text-sm font-bold text-white">{t.name}</h4>
+                        <p className="text-[10px] text-zinc-500">Verified Buyer</p>
+                      </div>
+                    </div>
+                    <div className="flex gap-0.5 text-accent">
+                      {Array.from({ length: t.rating }).map((_, i) => (
+                        <Star key={i} className="h-3.5 w-3.5 fill-accent" />
+                      ))}
+                    </div>
                   </div>
+                  <p className="text-sm text-zinc-400 leading-relaxed italic">"{t.review}"</p>
+                  {t.product && <div className="text-xs text-primary font-semibold">Product: {t.product}</div>}
                 </div>
-                <div className="flex gap-0.5 text-accent">
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                </div>
-              </div>
-              <p className="text-sm text-zinc-400 leading-relaxed italic">
-                "Bought these for office casual days. Leather is incredibly supple, zero break-in period. Got several compliments on the matte black look."
-              </p>
-              <div className="text-xs text-primary font-semibold">Product: Midnight Stealth Leather</div>
-            </div>
-
-            <div className="glass-card p-6 rounded-2xl space-y-4">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center text-sm font-bold text-primary">KH</div>
-                  <div>
-                    <h4 className="text-sm font-bold text-white">Kevin Hart</h4>
-                    <p className="text-[10px] text-zinc-500">Verified Buyer</p>
-                  </div>
-                </div>
-                <div className="flex gap-0.5 text-accent">
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                  <Star className="h-3.5 w-3.5 fill-accent" />
-                </div>
-              </div>
-              <p className="text-sm text-zinc-400 leading-relaxed italic">
-                "True classic retro sneaker! The quality of the leather is surprisingly good for the price. The ankle collar support is super comfy."
-              </p>
-              <div className="text-xs text-primary font-semibold">Product: Retro Crimson Court High-Top</div>
+              ))}
             </div>
           </div>
-        </div>
-      </section>
+        </section>
+      )}
     </div>
   );
 }

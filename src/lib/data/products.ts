@@ -315,6 +315,101 @@ export async function getBlogPostBySlug(slug: string): Promise<BlogPost | null> 
   }
 }
 
+export interface AdminBlogPost {
+  id: string;
+  title: string;
+  slug: string;
+  summary: string;
+  content: string;
+  featured_image: string | null;
+  published_at: string | null;
+  read_time: string | null;
+  category: string;
+  tags: string[];
+  created_at: string;
+}
+
+export async function getAdminBlogPosts(): Promise<AdminBlogPost[]> {
+  if (!isSupabaseConfigured()) return mockBlogPosts as unknown as AdminBlogPost[];
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const query = supabase
+      .from('blog_posts')
+      .select('*')
+      .order('created_at', { ascending: false });
+
+    const result = await withTimeout(query, 4000);
+
+    if (!result || result.error || !result.data) return mockBlogPosts as unknown as AdminBlogPost[];
+
+    return result.data.map((p: any) => ({
+      id: p.id,
+      title: p.title,
+      slug: p.slug,
+      summary: p.summary,
+      content: p.content,
+      featured_image: p.featured_image ?? null,
+      published_at: p.published_at ?? null,
+      read_time: p.read_time ?? null,
+      category: p.category,
+      tags: p.tags ?? [],
+      created_at: p.created_at,
+    }));
+  } catch {
+    return mockBlogPosts as unknown as AdminBlogPost[];
+  }
+}
+
+export async function getHomeBannerProductId(): Promise<string | null> {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+    const { data } = await supabase
+      .from('home_banner_product')
+      .select('product_id')
+      .eq('id', 1)
+      .maybeSingle();
+    return data?.product_id ?? null;
+  } catch {
+    return null;
+  }
+}
+
+export interface Testimonial {
+  id: string;
+  name: string;
+  initials: string;
+  review: string;
+  product: string;
+  rating: number;
+  sort_order: number;
+  created_at: string;
+}
+
+export async function getTestimonials(): Promise<Testimonial[]> {
+  if (!isSupabaseConfigured()) return [];
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+    const { data, error } = await supabase
+      .from('testimonials')
+      .select('*')
+      .order('sort_order', { ascending: true })
+      .order('created_at', { ascending: false });
+
+    if (error || !data) return [];
+    return data as Testimonial[];
+  } catch {
+    return [];
+  }
+}
+
 export async function getReviewsByProductId(productId: string): Promise<Review[]> {
   if (!isSupabaseConfigured()) return mockReviews[productId] ?? [];
 

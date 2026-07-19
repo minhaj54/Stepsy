@@ -1,8 +1,8 @@
 import React from 'react';
 import { notFound } from 'next/navigation';
-import { getBlogPostBySlug } from '../../../lib/data/products';
+import { getBlogPostBySlug, getBlogPosts } from '../../../lib/data/products';
 import Link from 'next/link';
-import { ArrowLeft, Clock, Calendar, Tag } from 'lucide-react';
+import { ArrowLeft, Clock, Calendar, Tag, ArrowRight } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -31,6 +31,14 @@ export default async function BlogPostPage({ params }: PageProps) {
   if (!post) {
     notFound();
   }
+
+  const allPosts = await getBlogPosts();
+  const related = allPosts
+    .filter((p) => p.slug !== post.slug && p.category === post.category)
+    .slice(0, 3);
+  const fallbackRelated = related.length
+    ? related
+    : allPosts.filter((p) => p.slug !== post.slug).slice(0, 3);
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-8 animate-in fade-in duration-500">
@@ -84,6 +92,38 @@ export default async function BlogPostPage({ params }: PageProps) {
           </span>
         ))}
       </div>
+
+      {fallbackRelated.length > 0 && (
+        <div className="border-t border-white/[0.06] pt-10 mt-4">
+          <h2 className="text-xl font-extrabold text-white tracking-tight mb-6">More from the Magazine</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            {fallbackRelated.map((p) => (
+              <Link
+                key={p.id}
+                href={`/blog/${p.slug}`}
+                className="glass-card rounded-2xl overflow-hidden border border-white/[0.04] group"
+              >
+                <div className="aspect-[16/10] overflow-hidden bg-zinc-950/20">
+                  <img
+                    src={p.featured_image}
+                    alt=""
+                    className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                </div>
+                <div className="p-4 space-y-2">
+                  <span className="text-[10px] font-bold uppercase tracking-wider text-primary">{p.category}</span>
+                  <h3 className="font-bold text-white text-sm group-hover:text-primary transition-colors line-clamp-2">
+                    {p.title}
+                  </h3>
+                  <span className="text-xs font-bold text-primary flex items-center gap-0.5">
+                    Read <ArrowRight className="h-3 w-3" />
+                  </span>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

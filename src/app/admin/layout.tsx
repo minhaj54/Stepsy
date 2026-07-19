@@ -1,6 +1,6 @@
 import React from 'react';
 import Link from 'next/link';
-import { LayoutDashboard, Users, Store as StoreIcon, Package, Tags, Image as ImageIcon, ShoppingBag, MessageSquare, Settings, ArrowLeft, Shield } from 'lucide-react';
+import { LayoutDashboard, Users, Store as StoreIcon, Package, Tags, Image as ImageIcon, ShoppingBag, MessageSquare, Settings, ArrowLeft, Shield, Newspaper, Star } from 'lucide-react';
 import { getCurrentUser } from '../../lib/supabase/server';
 import { redirect } from 'next/navigation';
 
@@ -11,6 +11,9 @@ const adminNav = [
   { label: 'Products', href: '/admin/products', icon: Package },
   { label: 'Categories', href: '/admin/categories', icon: Tags },
   { label: 'Banners', href: '/admin/banners', icon: ImageIcon },
+  { label: 'Blog', href: '/admin/blog', icon: Newspaper },
+  { label: 'Hero Shoe', href: '/admin/hero-shoe', icon: Star },
+  { label: 'Testimonials', href: '/admin/testimonials', icon: MessageSquare },
   { label: 'Orders', href: '/admin/orders', icon: ShoppingBag },
   { label: 'Reviews', href: '/admin/reviews', icon: MessageSquare },
   { label: 'Settings', href: '/admin/settings', icon: Settings },

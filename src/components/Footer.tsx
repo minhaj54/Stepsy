@@ -135,7 +135,7 @@ export const Footer: React.FC = () => {
                 <Link href="#" className="hover:text-white transition-colors">Shipping Information</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">FAQs</Link>
+                <Link href="/faq" className="hover:text-white transition-colors">FAQs</Link>
               </li>
               <li>
                 <Link href="#" className="hover:text-white transition-colors">Size Guide</Link>
@@ -155,7 +155,7 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex gap-2.5 items-center">
                 <Phone className="h-5 w-5 text-primary flex-shrink-0" />
-                <span>+1 (555) 234-5678</span>
+                <a href="tel:+917982369183" className="hover:text-white transition-colors">+91 79823 69183</a>
               </li>
               <li className="flex gap-2.5 items-center">
                 <Mail className="h-5 w-5 text-primary flex-shrink-0" />
