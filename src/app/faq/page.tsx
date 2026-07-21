@@ -100,20 +100,20 @@ export default function FaqPage() {
           <span className="inline-flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-widest bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
             <HelpCircle className="h-3.5 w-3.5" /> Help Center
           </span>
-          <h1 className="text-3xl sm:text-5xl font-black text-white tracking-tight">Frequently Asked Questions</h1>
-          <p className="text-zinc-500 text-sm">Everything you need to know about ordering, shipping, and selling on Zarwinto.</p>
+          <h1 className="text-3xl sm:text-5xl font-black text-foreground tracking-tight">Frequently Asked Questions</h1>
+          <p className="text-muted-foreground text-sm">Everything you need to know about ordering, shipping, and selling on Zarwinto.</p>
         </div>
 
         {/* Search + category filter */}
         <div className="space-y-4">
           <div className="relative">
-            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+            <Search className="absolute left-4 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
               placeholder="Search questions..."
-              className="w-full bg-zinc-900/60 border border-white/[0.06] rounded-2xl pl-11 pr-4 py-3 text-sm text-white outline-none focus:border-primary transition-colors"
+              className="w-full bg-card/60 border border-border rounded-2xl pl-11 pr-4 py-3 text-sm text-foreground outline-none focus:border-primary transition-colors"
             />
           </div>
           <div className="flex flex-wrap justify-center gap-2">
@@ -124,7 +124,7 @@ export default function FaqPage() {
                 className={`px-4 py-1.5 rounded-full text-xs font-bold transition-all ${
                   activeCategory === cat
                     ? 'bg-primary text-white'
-                    : 'bg-white/[0.04] text-zinc-400 hover:text-white hover:bg-white/[0.08]'
+                    : 'bg-secondary text-muted-foreground hover:text-foreground hover:bg-muted'
                 }`}
               >
                 {cat}
@@ -135,7 +135,7 @@ export default function FaqPage() {
 
         {/* FAQ accordion */}
         {filtered.length === 0 ? (
-          <div className="text-center text-zinc-500 py-16">
+          <div className="text-center text-muted-foreground py-16">
             No questions match your search. Try a different keyword or{' '}
             <a href="mailto:support@zarwinto.com" className="text-primary hover:underline">
               contact support
@@ -149,7 +149,7 @@ export default function FaqPage() {
               return (
                 <div
                   key={faq.question}
-                  className="glass-card rounded-2xl border border-white/[0.04] overflow-hidden"
+                  className="glass-card rounded-2xl border border-border overflow-hidden"
                 >
                   <button
                     onClick={() => setOpenIndex(isOpen ? null : i)}
@@ -159,10 +159,10 @@ export default function FaqPage() {
                       <span className="text-[10px] font-bold uppercase tracking-wider text-primary bg-primary/10 px-2 py-0.5 rounded-full">
                         {faq.category}
                       </span>
-                      <span className="text-white font-semibold text-sm sm:text-base">{faq.question}</span>
+                      <span className="text-foreground font-semibold text-sm sm:text-base">{faq.question}</span>
                     </span>
                     <ChevronDown
-                      className={`h-5 w-5 text-zinc-400 flex-shrink-0 transition-transform duration-300 ${
+                      className={`h-5 w-5 text-muted-foreground flex-shrink-0 transition-transform duration-300 ${
                         isOpen ? 'rotate-180' : ''
                       }`}
                     />
@@ -173,7 +173,7 @@ export default function FaqPage() {
                     }`}
                   >
                     <div className="overflow-hidden">
-                      <p className="px-5 pb-5 text-sm text-zinc-400 leading-relaxed">{faq.answer}</p>
+                      <p className="px-5 pb-5 text-sm text-muted-foreground leading-relaxed">{faq.answer}</p>
                     </div>
                   </div>
                 </div>
@@ -183,10 +183,10 @@ export default function FaqPage() {
         )}
 
         {/* Contact CTA */}
-        <div className="glass-card rounded-2xl p-8 text-center border border-white/[0.04]">
+        <div className="glass-card rounded-2xl p-8 text-center border border-border">
           <MessageCircle className="h-10 w-10 text-primary mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-white">Still have questions?</h3>
-          <p className="text-sm text-zinc-400 mt-1 mb-4">
+          <h3 className="text-lg font-bold text-foreground">Still have questions?</h3>
+          <p className="text-sm text-muted-foreground mt-1 mb-4">
             Our support team is happy to help you with anything.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -198,7 +198,7 @@ export default function FaqPage() {
             </a>
             <Link
               href="/returns"
-              className="inline-flex items-center justify-center gap-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-zinc-200 px-6 py-2.5 rounded-xl font-bold text-sm transition-all"
+              className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted border border-border text-zinc-200 px-6 py-2.5 rounded-xl font-bold text-sm transition-all"
             >
               Returns & Exchanges
             </Link>

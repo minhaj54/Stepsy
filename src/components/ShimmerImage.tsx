@@ -43,7 +43,7 @@ export default function ShimmerImage({ src, alt, className = '', shimmerClassNam
         <div
           className={`absolute inset-0 ${shimmerClassName}`}
           style={{
-            background: 'linear-gradient(90deg, #27272a 0%, #3f3f46 50%, #27272a 100%)',
+            background: 'linear-gradient(90deg, #e4e4e7 0%, #f4f4f5 50%, #e4e4e7 100%)',
             backgroundSize: '200% 100%',
             animation: 'shimmer 1.5s infinite',
           }}

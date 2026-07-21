@@ -24,7 +24,7 @@ export default async function EditBlogPostPage({
     <div className="px-4 sm:px-6 lg:px-8 py-8">
       <Link
         href="/admin/blog"
-        className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+        className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
       >
         <ArrowLeft className="h-3 w-3" /> Blog
       </Link>

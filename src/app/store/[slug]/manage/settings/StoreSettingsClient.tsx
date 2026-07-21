@@ -84,12 +84,12 @@ export default function StoreSettingsClient({ store, storeSlug }: StoreSettingsC
       <div className="mb-8">
         <Link
           href={`/store/${storeSlug}/manage`}
-          className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
         >
           <ArrowLeft className="h-3 w-3" /> Dashboard
         </Link>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Store Settings</h1>
-        <p className="text-zinc-400 text-sm mt-1">Manage your store's appearance and information</p>
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Store Settings</h1>
+        <p className="text-muted-foreground text-sm mt-1">Manage your store's appearance and information</p>
       </div>
 
       {message && (
@@ -105,78 +105,78 @@ export default function StoreSettingsClient({ store, storeSlug }: StoreSettingsC
       <form onSubmit={handleSave} className="space-y-6">
         {/* Store Identity */}
         <div className="glass-card rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
             <StoreIcon className="h-5 w-5 text-primary" /> Store Identity
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Store Name
               </label>
               <input
                 type="text"
                 value={name}
                 onChange={e => setName(e.target.value)}
-                className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Social Handle
               </label>
               <div className="relative">
-                <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                <AtSign className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                 <input
                   type="text"
                   value={socialHandle}
                   onChange={e => setSocialHandle(e.target.value)}
                   placeholder="instagram_handle"
-                  className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+                  className="w-full bg-card text-foreground border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
                 />
               </div>
             </div>
           </div>
 
           <div className="mt-4 space-y-1">
-            <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
               Description
             </label>
             <textarea
               value={description}
               onChange={e => setDescription(e.target.value)}
               rows={3}
-              className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary resize-none"
+              className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary resize-none"
             />
           </div>
         </div>
 
         {/* Store Images */}
         <div className="glass-card rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
             <ImageIcon className="h-5 w-5 text-primary" /> Store Images
           </h2>
           
           <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
             {/* Logo Upload */}
             <div className="space-y-3">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Store Logo
               </label>
               <div className="flex items-center gap-4">
-                <div className="h-20 w-20 rounded-xl overflow-hidden bg-zinc-800 border border-white/[0.06] shrink-0">
+                <div className="h-20 w-20 rounded-xl overflow-hidden bg-zinc-800 border border-border shrink-0">
                   {logoUrl ? (
                     <img src={logoUrl} alt="Logo" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <StoreIcon className="h-8 w-8 text-zinc-500" />
+                      <StoreIcon className="h-8 w-8 text-muted-foreground" />
                     </div>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => handleImageUpload('logo')}
-                  className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] rounded-xl text-sm text-zinc-300 hover:text-white transition-colors"
+                  className="px-4 py-2 bg-secondary hover:bg-muted border border-border rounded-xl text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Upload Logo
                 </button>
@@ -185,23 +185,23 @@ export default function StoreSettingsClient({ store, storeSlug }: StoreSettingsC
 
             {/* Banner Upload */}
             <div className="space-y-3">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Store Banner
               </label>
               <div className="flex items-center gap-4">
-                <div className="h-20 w-32 rounded-xl overflow-hidden bg-zinc-800 border border-white/[0.06] shrink-0">
+                <div className="h-20 w-32 rounded-xl overflow-hidden bg-zinc-800 border border-border shrink-0">
                   {bannerUrl ? (
                     <img src={bannerUrl} alt="Banner" className="w-full h-full object-cover" />
                   ) : (
                     <div className="w-full h-full flex items-center justify-center">
-                      <ImageIcon className="h-8 w-8 text-zinc-500" />
+                      <ImageIcon className="h-8 w-8 text-muted-foreground" />
                     </div>
                   )}
                 </div>
                 <button
                   type="button"
                   onClick={() => handleImageUpload('banner')}
-                  className="px-4 py-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] rounded-xl text-sm text-zinc-300 hover:text-white transition-colors"
+                  className="px-4 py-2 bg-secondary hover:bg-muted border border-border rounded-xl text-sm text-muted-foreground hover:text-foreground transition-colors"
                 >
                   Upload Banner
                 </button>

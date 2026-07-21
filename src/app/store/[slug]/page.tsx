@@ -33,12 +33,12 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
           <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-8">
             <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
               {/* Store Logo */}
-              <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-2xl overflow-hidden border-4 border-zinc-950 bg-zinc-800 shrink-0 shadow-2xl -mt-16 sm:-mt-20">
+              <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-2xl overflow-hidden border-4 border-background bg-card shrink-0 shadow-2xl -mt-16 sm:-mt-20">
                 {store.logo_url ? (
                   <img src={store.logo_url} alt={`${store.name} logo`} className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center bg-zinc-800">
-                    <StoreIcon className="h-12 w-12 text-zinc-500" />
+                  <div className="w-full h-full flex items-center justify-center bg-card">
+                    <StoreIcon className="h-12 w-12 text-muted-foreground" />
                   </div>
                 )}
               </div>
@@ -46,7 +46,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
               {/* Store Details */}
               <div className="flex-1 min-w-0 pt-4 sm:pt-0">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight truncate">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight truncate">
                     {store.name}
                   </h1>
                   {isOwner && (
@@ -69,17 +69,17 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
 
                 {/* Stats */}
                 <div className="flex items-center gap-6 mt-3">
-                  <div className="flex items-center gap-1.5 text-sm text-zinc-400">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Package className="h-4 w-4 text-primary" />
-                    <span className="font-semibold text-white">{products.length}</span> Products
+                    <span className="font-semibold text-foreground">{products.length}</span> Products
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm text-zinc-400">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                    <span className="font-semibold text-white">4.8</span> Rating
+                    <span className="font-semibold text-foreground">4.8</span> Rating
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm text-zinc-400">
+                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <TrendingUp className="h-4 w-4 text-green-400" />
-                    <span className="font-semibold text-white">Active</span>
+                    <span className="font-semibold text-foreground">Active</span>
                   </div>
                 </div>
               </div>
@@ -97,7 +97,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
                 ) : (
                   <Link
                     href={`/store/${store.slug}/manage`}
-                    className="inline-flex items-center gap-2 bg-white/[0.05] hover:bg-white/[0.08] text-white px-5 py-2.5 rounded-xl font-semibold text-sm border border-white/[0.06] hover:border-primary transition-all"
+                    className="inline-flex items-center gap-2 bg-secondary hover:bg-muted text-foreground px-5 py-2.5 rounded-xl font-semibold text-sm border border-border hover:border-primary transition-all"
                   >
                     <ExternalLink className="h-4 w-4" />
                     Visit Store
@@ -113,8 +113,8 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
         {/* Description */}
         {store.description && (
           <div className="mt-8 mb-8">
-            <h2 className="text-lg font-bold text-white mb-3">About This Store</h2>
-            <p className="text-zinc-400 text-sm leading-relaxed max-w-3xl">{store.description}</p>
+            <h2 className="text-lg font-bold text-foreground mb-3">About This Store</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed max-w-3xl">{store.description}</p>
           </div>
         )}
 
@@ -122,15 +122,15 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
         <div className="flex items-center justify-between mb-6">
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold text-white">Products</h2>
-            <span className="text-sm text-zinc-500">({products.length})</span>
+            <h2 className="text-xl font-bold text-foreground">Products</h2>
+            <span className="text-sm text-muted-foreground">({products.length})</span>
           </div>
         </div>
 
         {products.length === 0 ? (
           <div className="glass-card rounded-2xl p-12 text-center">
-            <Package className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-            <p className="text-zinc-400 text-sm">No products listed yet.</p>
+            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+            <p className="text-muted-foreground text-sm">No products listed yet.</p>
             {isOwner && (
               <Link
                 href="/admin/products"
@@ -148,7 +148,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
                 href={`/product/${product.slug}`}
                 className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative group hover:border-primary/20 transition-all duration-300"
               >
-                <div className="aspect-square w-full bg-zinc-950/40 relative overflow-hidden">
+                <div className="aspect-square w-full bg-background/40 relative overflow-hidden">
                   <ShimmerImage
                     src={product.images[0]}
                     alt={product.title}
@@ -161,18 +161,18 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
                   )}
                 </div>
                 <div className="p-4 flex flex-col gap-1.5 flex-grow">
-                  <span className="text-[11px] text-zinc-500 uppercase tracking-wider">{product.brand_name}</span>
-                  <h3 className="font-bold text-white text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                  <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{product.brand_name}</span>
+                  <h3 className="font-bold text-foreground text-sm line-clamp-1 group-hover:text-primary transition-colors">
                     {product.title}
                   </h3>
                   <div className="mt-auto pt-2">
                     {product.sale_price ? (
                       <div className="flex items-center gap-2">
-                        <span className="text-xs line-through text-zinc-500">₹{product.price}</span>
-                        <span className="text-sm font-black text-white">₹{product.sale_price}</span>
+                        <span className="text-xs line-through text-muted-foreground">₹{product.price}</span>
+                        <span className="text-sm font-black text-foreground">₹{product.sale_price}</span>
                       </div>
                     ) : (
-                      <span className="text-sm font-black text-white">₹{product.price}</span>
+                      <span className="text-sm font-black text-foreground">₹{product.price}</span>
                     )}
                   </div>
                 </div>

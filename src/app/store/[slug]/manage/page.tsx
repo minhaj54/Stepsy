@@ -51,8 +51,8 @@ export default async function StoreManagePage({ params }: { params: Promise<{ sl
     <StoreAdminWrapper storeName={store.name} storeSlug={store.slug} storeLogo={store.logo_url}>
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="mb-8">
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Dashboard</h1>
-          <p className="text-zinc-400 text-sm mt-1">Welcome back! Here's what's happening with your store.</p>
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Dashboard</h1>
+          <p className="text-muted-foreground text-sm mt-1">Welcome back! Here's what's happening with your store.</p>
         </div>
 
         <StoreDashboardClient stats={stats} storeSlug={store.slug} />

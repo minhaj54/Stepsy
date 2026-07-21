@@ -1,6 +1,6 @@
- 'use client';
- 
- import ShimmerImage from '../components/ShimmerImage';
+'use client';
+
+import ShimmerImage from '../components/ShimmerImage';
 
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
@@ -37,53 +37,53 @@ export default function HomeClient({ products, categories, brands, bannerProduct
   return (
     <div className="w-full flex flex-col">
       {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-zinc-950 py-16 lg:py-24 flex items-center">
+      <section className="relative w-full overflow-hidden bg-background py-16 lg:py-24 flex items-center">
         {/* Background glow effects */}
         <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[100px] pointer-events-none" />
 
         <div className="px-4 sm:px-6 lg:px-8 w-full grid grid-cols-1 lg:grid-cols-12 gap-12 items-center relative z-10">
           <div className="lg:col-span-7 text-left space-y-6">
-            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-none text-white">
+            <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-none text-foreground">
               STEP INTO THE <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-primary via-indigo-400 to-accent bg-clip-text text-transparent">
                 FUTURE OF STYLE
               </span>
             </h1>
 
-            <p className="text-base sm:text-lg text-zinc-400 max-w-2xl leading-relaxed">
+            <p className="text-base sm:text-lg text-muted-foreground max-w-2xl leading-relaxed">
               Explore performance athletic sneakers, hand-burnished luxury dress shoes, and rugged outdoor boots. Crafted for comfort, curated for the streets.
             </p>
 
             <div className="flex flex-wrap gap-4 pt-2">
-              <Link 
+              <Link
                 href="/shop"
                 className="bg-primary hover:bg-primary-hover text-white px-8 py-3.5 rounded-xl font-bold tracking-wide transition-all duration-300 transform active:scale-95 flex items-center gap-2 glow-btn text-sm cursor-pointer"
               >
                 Shop Collection
                 <ArrowRight className="h-4 w-4" />
               </Link>
-              <Link 
+              <Link
                 href="/shop?category=sneakers"
-                className="bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/[0.08] hover:border-white/[0.15] px-8 py-3.5 rounded-xl font-semibold transition-all duration-300 text-sm"
+                className="bg-secondary hover:bg-muted text-foreground border border-border hover:border-muted-foreground/50 px-8 py-3.5 rounded-xl font-semibold transition-all duration-300 text-sm"
               >
                 Explore Sneakers
               </Link>
             </div>
 
             {/* Micro badges */}
-            <div className="grid grid-cols-3 gap-4 border-t border-white/[0.06] pt-8 max-w-lg">
+            <div className="grid grid-cols-3 gap-4 border-t border-border pt-8 max-w-lg">
               <div>
-                <p className="text-2xl font-black text-white">100%</p>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">Authentic Brands</p>
+                <p className="text-2xl font-black text-foreground">100%</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Authentic Brands</p>
               </div>
               <div>
-                <p className="text-2xl font-black text-white">10K+</p>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">Happy Customers</p>
+                <p className="text-2xl font-black text-foreground">10K+</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Happy Customers</p>
               </div>
               <div>
-                <p className="text-2xl font-black text-white">Fast</p>
-                <p className="text-xs text-zinc-500 uppercase tracking-wider font-semibold">Global Shipping</p>
+                <p className="text-2xl font-black text-foreground">Fast</p>
+                <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Global Shipping</p>
               </div>
             </div>
           </div>
@@ -93,7 +93,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
             {bannerProduct ? (
               <Link
                 href={`/product/${bannerProduct.slug}`}
-                className="relative w-full max-w-[400px] aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-tr from-zinc-900 to-white/5 border border-white/[0.06] group p-6 flex items-center justify-center cursor-pointer"
+                className="relative w-full max-w-[400px] aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-tr from-card to-secondary/50 border border-border group p-6 flex items-center justify-center cursor-pointer"
               >
                 {/* Spinning light ring */}
                 <div className="absolute inset-0 border border-primary/20 rounded-3xl scale-95 group-hover:scale-100 transition-transform duration-700 pointer-events-none" />
@@ -107,12 +107,12 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                 <div className="absolute bottom-4 left-4 right-4 glass-card p-4 rounded-2xl flex justify-between items-center">
                   <div>
                     <p className="text-xs font-bold text-primary uppercase tracking-wider">{bannerProduct.brand_name}</p>
-                    <p className="text-sm font-bold text-white">{bannerProduct.title}</p>
+                    <p className="text-sm font-bold text-foreground">{bannerProduct.title}</p>
                   </div>
                   <div className="text-right">
                     {bannerProduct.sale_price ? (
                       <>
-                        <p className="text-xs line-through text-zinc-500">₹{bannerProduct.price}</p>
+                        <p className="text-xs line-through text-muted-foreground">₹{bannerProduct.price}</p>
                         <p className="text-sm font-black text-accent">₹{bannerProduct.sale_price}</p>
                       </>
                     ) : (
@@ -126,7 +126,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                 </span>
               </Link>
             ) : (
-              <div className="relative w-full max-w-[400px] aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-tr from-zinc-900 to-white/5 border border-white/[0.06] group p-6 flex items-center justify-center">
+              <div className="relative w-full max-w-[400px] aspect-square rounded-3xl overflow-hidden shadow-2xl bg-gradient-to-tr from-card to-secondary/50 border border-border group p-6 flex items-center justify-center">
                 {/* Spinning light ring */}
                 <div className="absolute inset-0 border border-primary/20 rounded-3xl scale-95 group-hover:scale-100 transition-transform duration-700 pointer-events-none" />
 
@@ -139,7 +139,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                 <div className="absolute bottom-4 left-4 right-4 glass-card p-4 rounded-2xl flex justify-between items-center">
                   <div>
                     <p className="text-xs font-bold text-primary uppercase tracking-wider">AeroStride Drop</p>
-                    <p className="text-sm font-bold text-white">Volt Velocity v4</p>
+                    <p className="text-sm font-bold text-foreground">Volt Velocity v4</p>
                   </div>
                   <div className="text-right">
                     <p className="text-sm font-black text-accent">₹999</p>
@@ -152,35 +152,35 @@ export default function HomeClient({ products, categories, brands, bannerProduct
       </section>
 
       {/* Selling Point Icons */}
-      <section className="bg-zinc-900 py-8 border-y border-white/[0.04]">
+      <section className="bg-card py-8 border-y border-border">
         <div className="mx-auto max-w-2xl px-2 grid grid-cols-2 md:grid-cols-4 gap-6 text-center">
           <div className="flex flex-col items-center gap-1">
             <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
               <Truck className="h-6 w-6" />
             </div>
-            <h3 className="text-sm font-bold text-white">Express Delivery</h3>
-            <p className="text-xs text-zinc-500">Free shipping on orders over ₹1500</p>
+            <h3 className="text-sm font-bold text-foreground">Express Delivery</h3>
+            <p className="text-xs text-muted-foreground">Free shipping on orders over ₹1500</p>
           </div>
           <div className="flex flex-col items-center gap-1">
             <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
               <ShieldCheck className="h-6 w-6" />
             </div>
-            <h3 className="text-sm font-bold text-white">Secure Payments</h3>
-            <p className="text-xs text-zinc-500">Encrypted merchant checkout</p>
+            <h3 className="text-sm font-bold text-foreground">Secure Payments</h3>
+            <p className="text-xs text-muted-foreground">Encrypted merchant checkout</p>
           </div>
           <div className="flex flex-col items-center gap-1">
             <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
               <RefreshCw className="h-6 w-6" />
             </div>
-            <h3 className="text-sm font-bold text-white">30-Day Returns</h3>
-            <p className="text-xs text-zinc-500">Hassle-free size exchanges</p>
+            <h3 className="text-sm font-bold text-foreground">30-Day Returns</h3>
+            <p className="text-xs text-muted-foreground">Hassle-free size exchanges</p>
           </div>
           <div className="flex flex-col items-center gap-1">
             <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
               <Zap className="h-6 w-6" />
             </div>
-            <h3 className="text-sm font-bold text-white">Authentic Only</h3>
-            <p className="text-xs text-zinc-500">100% verified real shoes</p>
+            <h3 className="text-sm font-bold text-foreground">Authentic Only</h3>
+            <p className="text-xs text-muted-foreground">100% verified real shoes</p>
           </div>
         </div>
       </section>
@@ -188,8 +188,8 @@ export default function HomeClient({ products, categories, brands, bannerProduct
       {/* Categories Grid */}
       <section className="px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
         <div className="text-center mb-4 sm:mb-8 space-y-1">
-          <h2 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">Shop by Category</h2>
-          <p className="text-zinc-500 text-xs sm:text-sm">Explore specialized shoes designed for every scenario</p>
+          <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Shop by Category</h2>
+          <p className="text-muted-foreground text-xs sm:text-sm">Explore specialized shoes designed for every scenario</p>
         </div>
 
         <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
@@ -197,9 +197,9 @@ export default function HomeClient({ products, categories, brands, bannerProduct
             <Link
               key={cat.id}
               href={`/shop?category=${cat.slug}`}
-              className="group relative w-[40%] sm:w-[25%] lg:w-[16%] aspect-[3/4] rounded-md sm:rounded-lg overflow-hidden border border-white/[0.06] hover:border-primary/40 transition-all duration-300 cursor-pointer"
+              className="group relative w-[40%] sm:w-[25%] lg:w-[16%] aspect-[3/4] rounded-md sm:rounded-lg overflow-hidden border border-border hover:border-primary/40 transition-all duration-300 cursor-pointer"
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/40 to-transparent z-10 transition-opacity duration-300" />
+              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent z-10 transition-opacity duration-300" />
               <img
                 src={cat.image}
                 alt={cat.name}
@@ -207,7 +207,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
               />
               <div className="absolute bottom-2 left-2 right-2 sm:bottom-2.5 sm:left-2.5 sm:right-2.5 z-20">
                 <span className="text-[8px] sm:text-[9px] text-primary font-bold uppercase tracking-wider">Explore</span>
-                <h3 className="text-[10px] sm:text-xs font-extrabold text-white tracking-tight mt-0.5 group-hover:text-primary transition-colors">
+                <h3 className="text-[10px] sm:text-xs font-extrabold text-foreground tracking-tight mt-0.5 group-hover:text-primary transition-colors">
                   {cat.name}
                 </h3>
               </div>
@@ -217,16 +217,16 @@ export default function HomeClient({ products, categories, brands, bannerProduct
       </section>
 
       {/* Featured Products */}
-      <section className="bg-zinc-900/40 py-12 sm:py-16 border-y border-white/[0.04]">
+      <section className="bg-secondary/40 py-12 sm:py-16 border-y border-border">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="flex items-end justify-between mb-12">
             <div>
               <span className="text-xs font-bold text-primary uppercase tracking-wider">Curated Selections</span>
-              <h2 className="text-3xl font-extrabold text-white tracking-tight mt-1">Featured Footwear</h2>
+              <h2 className="text-3xl font-extrabold text-foreground tracking-tight mt-1">Featured Footwear</h2>
             </div>
             <Link
               href="/shop"
-              className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-white bg-white/[0.05] hover:bg-primary border border-white/[0.06] hover:border-primary rounded-xl px-4 py-2 transition-all duration-300"
+              className="shrink-0 inline-flex items-center gap-1.5 text-sm font-semibold text-foreground bg-secondary hover:bg-primary border border-border hover:border-primary rounded-xl px-4 py-2 transition-all duration-300"
             >
               View All
               <ArrowRight className="h-4 w-4" />
@@ -242,9 +242,9 @@ export default function HomeClient({ products, categories, brands, bannerProduct
               return (
                 <div key={product.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative group w-full sm:w-auto shrink-0 snap-center">
                   {/* Wishlist toggle */}
-                  <button 
+                  <button
                     onClick={() => toggleWishlist(product.id)}
-                    className="absolute top-4 right-4 z-20 p-2.5 bg-zinc-900/60 hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-full border border-white/[0.04] transition-colors"
+                    className="absolute top-4 right-4 z-20 p-2.5 bg-background/60 hover:bg-background text-muted-foreground hover:text-foreground rounded-full border border-border transition-colors"
                     aria-label="Toggle Wishlist"
                   >
                     <Heart className={`h-4.5 w-4.5 ${isWishlisted ? 'fill-accent text-accent' : ''}`} />
@@ -258,7 +258,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                   )}
 
                   {/* Product Image */}
-                  <Link href={`/product/${product.slug}`} className="block aspect-square w-full bg-zinc-950/40 relative overflow-hidden">
+                  <Link href={`/product/${product.slug}`} className="block aspect-square w-full bg-background/40 relative overflow-hidden">
                     <ShimmerImage
                       src={product.images[0]}
                       alt={product.title}
@@ -269,7 +269,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                   {/* Details */}
                   <div className="p-5 flex-grow flex flex-col justify-between">
                     <div>
-                      <div className="flex justify-between items-center text-xs text-zinc-500 mb-1">
+                      <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
                         <span>{product.brand_name}</span>
                         <div className="flex items-center gap-0.5 text-accent font-semibold">
                           <Star className="h-3 w-3 fill-accent" />
@@ -278,26 +278,26 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                       </div>
 
                       <Link href={`/product/${product.slug}`}>
-                        <h3 className="font-bold text-white text-base hover:text-primary transition-colors line-clamp-1">
+                        <h3 className="font-bold text-foreground text-base hover:text-primary transition-colors line-clamp-1">
                           {product.title}
                         </h3>
                       </Link>
                     </div>
 
-                    <div className="flex justify-between items-center mt-4 pt-3 border-t border-white/[0.04]">
+                    <div className="flex justify-between items-center mt-4 pt-3 border-t border-border">
                       <div>
                         {salePrice ? (
                           <div className="flex items-center gap-2">
-                            <span className="text-sm line-through text-zinc-500">₹{price}</span>
-                            <span className="text-base font-black text-white">₹{salePrice}</span>
+                            <span className="text-sm line-through text-muted-foreground">₹{price}</span>
+                            <span className="text-base font-black text-foreground">₹{salePrice}</span>
                           </div>
                         ) : (
-                          <span className="text-base font-black text-white">₹{price}</span>
+                          <span className="text-base font-black text-foreground">₹{price}</span>
                         )}
                       </div>
-                      <Link 
+                      <Link
                         href={`/product/${product.slug}`}
-                        className="bg-white/[0.05] hover:bg-primary text-white p-2 rounded-xl border border-white/[0.06] hover:border-primary transition-all duration-300"
+                        className="bg-secondary hover:bg-primary text-foreground p-2 rounded-xl border border-border hover:border-primary transition-all duration-300"
                         aria-label="View Details"
                       >
                         <ArrowRight className="h-4 w-4" />
@@ -319,7 +319,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                   const el = scrollRef.current;
                   if (el) el.scrollTo({ left: (el.scrollWidth / featuredProducts.length) * i, behavior: 'smooth' });
                 }}
-                className={`h-2 rounded-full transition-all duration-300 ${i === activeDot ? 'w-6 bg-primary' : 'w-2 bg-white/20'}`}
+                className={`h-2 rounded-full transition-all duration-300 ${i === activeDot ? 'w-6 bg-primary' : 'w-2 bg-muted'}`}
               />
             ))}
           </div>
@@ -328,16 +328,16 @@ export default function HomeClient({ products, categories, brands, bannerProduct
 
       {/* Brand Partners Bar */}
       <section className="px-4 sm:px-6 lg:px-8 py-12 text-center">
-        <h3 className="text-xs uppercase font-bold tracking-widest text-zinc-500 mb-8">Featured Footwear Brands</h3>
+        <h3 className="text-xs uppercase font-bold tracking-widest text-muted-foreground mb-8">Featured Footwear Brands</h3>
         <div className="mx-auto max-w-2xl grid grid-cols-2 md:grid-cols-4 gap-2 items-center justify-items-center">
           {brands.map((brand) => (
-            <Link 
+            <Link
               key={brand.id}
               href={`/shop?brand=${brand.slug}`}
-              className="w-full max-w-[200px] p-6 bg-white/[0.02] hover:bg-white/[0.04] border border-white/[0.04] hover:border-white/[0.08] rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-300 group cursor-pointer"
+              className="w-full max-w-[200px] p-6 bg-secondary hover:bg-muted border border-border hover:border-muted-foreground/50 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-300 group cursor-pointer"
             >
               <span className="text-3xl group-hover:scale-110 transition-transform">{brand.logo}</span>
-              <span className="text-sm font-extrabold text-white tracking-wide">{brand.name}</span>
+              <span className="text-sm font-extrabold text-foreground tracking-wide">{brand.name}</span>
             </Link>
           ))}
         </div>
@@ -345,11 +345,11 @@ export default function HomeClient({ products, categories, brands, bannerProduct
 
       {/* Reviews Grid */}
       {testimonials.length > 0 && (
-        <section className="bg-zinc-900 py-12 sm:py-16 border-t border-white/[0.04]">
+        <section className="bg-card py-12 sm:py-16 border-t border-border">
           <div className="px-4 sm:px-6 lg:px-8">
             <div className="text-center mb-12 space-y-2">
               <span className="text-xs font-bold text-primary uppercase tracking-wider">Social Proof</span>
-              <h2 className="text-3xl font-extrabold text-white tracking-tight">Verified Buyer Feedback</h2>
+              <h2 className="text-3xl font-extrabold text-foreground tracking-tight">Verified Buyer Feedback</h2>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -361,8 +361,8 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                         {t.initials || t.name.slice(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-white">{t.name}</h4>
-                        <p className="text-[10px] text-zinc-500">Verified Buyer</p>
+                        <h4 className="text-sm font-bold text-foreground">{t.name}</h4>
+                        <p className="text-[10px] text-muted-foreground">Verified Buyer</p>
                       </div>
                     </div>
                     <div className="flex gap-0.5 text-accent">
@@ -371,7 +371,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                       ))}
                     </div>
                   </div>
-                  <p className="text-sm text-zinc-400 leading-relaxed italic">"{t.review}"</p>
+                  <p className="text-sm text-muted-foreground leading-relaxed italic">"{t.review}"</p>
                   {t.product && <div className="text-xs text-primary font-semibold">Product: {t.product}</div>}
                 </div>
               ))}

@@ -36,13 +36,13 @@ export default function StoreDashboardClient({ stats, storeSlug }: StoreDashboar
         {cards.map((card) => (
           <div key={card.label} className="glass-card rounded-2xl p-6 hover:border-primary/20">
             <div className="flex items-center justify-between mb-4">
-              <span className="text-xs font-semibold text-zinc-400 uppercase tracking-wider">{card.label}</span>
+              <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">{card.label}</span>
               <div className={`p-2 rounded-xl ${card.bg}`}>
                 <card.icon className={`h-5 w-5 ${card.color}`} />
               </div>
             </div>
             <div className="flex items-end justify-between">
-              <p className="text-3xl font-black text-white">{card.value}</p>
+              <p className="text-3xl font-black text-foreground">{card.value}</p>
               <div className="flex items-center gap-1 text-green-400 text-xs font-semibold">
                 <TrendingUp className="h-3 w-3" />
                 {card.trend}
@@ -55,22 +55,22 @@ export default function StoreDashboardClient({ stats, storeSlug }: StoreDashboar
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Quick Actions */}
         <div className="lg:col-span-2 glass-card rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-white mb-6">Quick Actions</h2>
+          <h2 className="text-lg font-bold text-foreground mb-6">Quick Actions</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {quickLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="flex items-center gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/[0.04] hover:bg-white/[0.04] hover:border-primary/20 transition-all group"
+                className="flex items-center gap-3 p-4 bg-secondary rounded-xl border border-border hover:bg-secondary hover:border-primary/20 transition-all group"
               >
                 <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
                   <link.icon className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-white text-sm group-hover:text-primary transition-colors">{link.label}</h3>
-                  <p className="text-xs text-zinc-500 mt-0.5">{link.description}</p>
+                  <h3 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">{link.label}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{link.description}</p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-zinc-500 group-hover:text-primary transition-colors" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </Link>
             ))}
           </div>
@@ -78,30 +78,30 @@ export default function StoreDashboardClient({ stats, storeSlug }: StoreDashboar
 
         {/* Store Info */}
         <div className="glass-card rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-white mb-4">Your Store</h2>
-          <div className="flex items-center gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/[0.04]">
-            <div className="h-12 w-12 rounded-xl overflow-hidden bg-zinc-800 border border-white/[0.06] shrink-0">
-              <StoreIcon className="h-6 w-6 text-zinc-500 m-3" />
+          <h2 className="text-lg font-bold text-foreground mb-4">Your Store</h2>
+          <div className="flex items-center gap-3 p-4 bg-secondary rounded-xl border border-border">
+            <div className="h-12 w-12 rounded-xl overflow-hidden bg-zinc-800 border border-border shrink-0">
+              <StoreIcon className="h-6 w-6 text-muted-foreground m-3" />
             </div>
             <div className="min-w-0">
-              <p className="font-bold text-white text-sm truncate">Store Admin</p>
-              <p className="text-xs text-zinc-400">Manage your store</p>
+              <p className="font-bold text-foreground text-sm truncate">Store Admin</p>
+              <p className="text-xs text-muted-foreground">Manage your store</p>
             </div>
           </div>
           <div className="mt-4 space-y-2">
             <Link
               href={`/store/${storeSlug}`}
-              className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-white/[0.04] hover:bg-white/[0.04] transition-colors group"
+              className="flex items-center justify-between p-3 bg-secondary rounded-xl border border-border hover:bg-secondary transition-colors group"
             >
-              <span className="text-sm text-zinc-300 group-hover:text-white">View Storefront</span>
-              <ArrowRight className="h-4 w-4 text-zinc-500 group-hover:text-primary" />
+              <span className="text-sm text-muted-foreground group-hover:text-foreground">View Storefront</span>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
             </Link>
             <Link
               href={`/store/${storeSlug}/manage/settings`}
-              className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-white/[0.04] hover:bg-white/[0.04] transition-colors group"
+              className="flex items-center justify-between p-3 bg-secondary rounded-xl border border-border hover:bg-secondary transition-colors group"
             >
-              <span className="text-sm text-zinc-300 group-hover:text-white">Store Settings</span>
-              <ArrowRight className="h-4 w-4 text-zinc-500 group-hover:text-primary" />
+              <span className="text-sm text-muted-foreground group-hover:text-foreground">Store Settings</span>
+              <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary" />
             </Link>
           </div>
         </div>

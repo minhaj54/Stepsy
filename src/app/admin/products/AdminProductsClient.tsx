@@ -375,12 +375,12 @@ export default function AdminProductsClient({
         <div>
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
           >
             <ArrowLeft className="h-3 w-3" /> Dashboard
           </Link>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Products</h1>
-          <p className="text-zinc-400 text-sm mt-1">{filteredProducts.length} of {products.length} products in catalog</p>
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Products</h1>
+          <p className="text-muted-foreground text-sm mt-1">{filteredProducts.length} of {products.length} products in catalog</p>
         </div>
         <button
           onClick={openAddModal}
@@ -393,21 +393,21 @@ export default function AdminProductsClient({
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search products by name or SKU..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="w-full bg-card/50 text-foreground border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-zinc-500" />
+          <Filter className="h-4 w-4 text-muted-foreground" />
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as any)}
-            className="bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="bg-card/50 text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -417,11 +417,11 @@ export default function AdminProductsClient({
         </div>
       </div>
 
-      <div className="glass-card rounded-2xl overflow-hidden border border-white/[0.05]">
+      <div className="glass-card rounded-2xl overflow-hidden border border-border">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b border-white/[0.06] text-zinc-400 text-xs uppercase tracking-wider bg-white/[0.02]">
+              <tr className="border-b border-border text-muted-foreground text-xs uppercase tracking-wider bg-secondary">
                 <th className="text-left p-4 font-semibold">Product</th>
                 <th className="text-left p-4 font-semibold">SKU</th>
                 <th className="text-left p-4 font-semibold">Price</th>
@@ -436,7 +436,7 @@ export default function AdminProductsClient({
             <tbody className="divide-y divide-white/[0.04]">
               {filteredProducts.length === 0 ? (
                 <tr>
-                  <td colSpan={6} className="text-center p-8 text-zinc-500 italic">
+                  <td colSpan={6} className="text-center p-8 text-muted-foreground italic">
                     No products found matching your filters.
                   </td>
                 </tr>
@@ -451,26 +451,26 @@ export default function AdminProductsClient({
                         <img
                           src={product.images?.[0] || product.image_url || 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=60&h=60'}
                           alt=""
-                          className="w-10 h-10 object-contain bg-zinc-950/40 p-1 border border-white/[0.05] rounded-lg"
+                          className="w-10 h-10 object-contain bg-background/40 p-1 border border-border rounded-lg"
                         />
                         <div>
                           <Link
                             href={`/product/${product.slug}`}
-                            className="font-bold text-white hover:text-primary transition-colors line-clamp-1"
+                            className="font-bold text-foreground hover:text-primary transition-colors line-clamp-1"
                           >
                             {product.title}
                           </Link>
-                          <span className="text-[10px] text-zinc-500 font-medium">
+                          <span className="text-[10px] text-muted-foreground font-medium">
                             {brands.find(b => b.id === product.brand_id)?.name || 'Custom'}
                           </span>
                         </div>
                       </div>
                     </td>
-                    <td className="p-4 text-zinc-400 font-mono text-xs">{product.sku}</td>
+                    <td className="p-4 text-muted-foreground font-mono text-xs">{product.sku}</td>
                     <td className="p-4 text-white">
                       {product.sale_price ? (
                         <span>
-                          <span className="line-through text-zinc-500 mr-2">
+                          <span className="line-through text-muted-foreground mr-2">
                             ₹{product.price}
                           </span>
                           <span className="text-accent font-bold">₹{product.sale_price}</span>
@@ -494,7 +494,7 @@ export default function AdminProductsClient({
                         className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                           product.featured
                             ? 'text-yellow-400 bg-yellow-500/10 border border-yellow-500/20'
-                            : 'text-zinc-500 bg-white/[0.02] border border-white/[0.06] hover:text-yellow-400'
+                            : 'text-muted-foreground bg-secondary border border-border hover:text-yellow-400'
                         }`}
                         title="Toggle Featured"
                       >
@@ -507,7 +507,7 @@ export default function AdminProductsClient({
                         className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                           product.new_arrival
                             ? 'text-green-400 bg-green-500/10 border border-green-500/20'
-                            : 'text-zinc-500 bg-white/[0.02] border border-white/[0.06] hover:text-green-400'
+                            : 'text-muted-foreground bg-secondary border border-border hover:text-green-400'
                         }`}
                         title="Toggle New Arrival"
                       >
@@ -520,7 +520,7 @@ export default function AdminProductsClient({
                         className={`p-1.5 rounded-lg transition-all cursor-pointer ${
                           product.best_seller
                             ? 'text-accent bg-accent/10 border border-accent/20'
-                            : 'text-zinc-500 bg-white/[0.02] border border-white/[0.06] hover:text-accent'
+                            : 'text-muted-foreground bg-secondary border border-border hover:text-accent'
                         }`}
                         title="Toggle Best Seller"
                       >
@@ -534,7 +534,7 @@ export default function AdminProductsClient({
                             ? 'bg-green-500/10 text-green-400 border border-green-500/10'
                             : product.status === 'draft'
                             ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/10'
-                            : 'bg-zinc-500/10 text-zinc-400 border border-zinc-500/10'
+                            : 'bg-zinc-500/10 text-muted-foreground border border-zinc-500/10'
                         }`}
                       >
                         {product.status}
@@ -544,7 +544,7 @@ export default function AdminProductsClient({
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => openEditModal(product)}
-                          className="p-1.5 text-zinc-400 hover:text-white bg-white/[0.02] hover:bg-white/5 border border-white/[0.06] rounded-lg transition-all cursor-pointer"
+                          className="p-1.5 text-muted-foreground hover:text-foreground bg-secondary hover:bg-white/5 border border-border rounded-lg transition-all cursor-pointer"
                           title="Edit Product"
                         >
                           <Edit className="h-4 w-4" />
@@ -569,15 +569,15 @@ export default function AdminProductsClient({
       {/* Add / Edit Drawer Modal Overlay */}
       {isModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-end bg-black/60 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="w-full max-w-2xl h-full bg-zinc-950 border-l border-white/[0.06] p-6 sm:p-8 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300">
+          <div className="w-full max-w-2xl h-full bg-background border-l border-border p-6 sm:p-8 flex flex-col justify-between overflow-y-auto animate-in slide-in-from-right duration-300">
             <div>
-              <div className="flex justify-between items-center border-b border-white/[0.06] pb-4 mb-6">
-                <h2 className="text-xl font-extrabold text-white">
+              <div className="flex justify-between items-center border-b border-border pb-4 mb-6">
+                <h2 className="text-xl font-extrabold text-foreground">
                   {editingProduct ? 'Edit Footwear' : 'Add Footwear to Catalog'}
                 </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-1.5 text-zinc-400 hover:text-white rounded-lg hover:bg-white/5 cursor-pointer"
+                  className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-white/5 cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>
@@ -586,7 +586,7 @@ export default function AdminProductsClient({
               <form onSubmit={handleSave} className="space-y-4">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                   <div className="space-y-1">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Product Title
                     </label>
                     <input
@@ -595,11 +595,11 @@ export default function AdminProductsClient({
                       placeholder="e.g. AeroStride Infinity Max"
                       value={title}
                       onChange={e => setTitle(e.target.value)}
-                      className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
+                      className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Stock Keeping Unit (SKU)
                     </label>
                     <input
@@ -607,20 +607,20 @@ export default function AdminProductsClient({
                       required
                       value={sku}
                       onChange={e => setSku(e.target.value)}
-                      className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary font-mono"
+                      className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary font-mono"
                     />
                   </div>
                 </div>
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Brand
                     </label>
                     <select
                       value={brandId}
                       onChange={e => setBrandId(e.target.value)}
-                      className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-3 py-2.5 text-xs outline-none focus:border-primary"
+                      className="w-full bg-card text-foreground border border-border rounded-xl px-3 py-2.5 text-xs outline-none focus:border-primary"
                     >
                       {brands.map(b => (
                         <option key={b.id} value={b.id}>
@@ -630,13 +630,13 @@ export default function AdminProductsClient({
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Category
                     </label>
                     <select
                       value={categoryId}
                       onChange={e => setCategoryId(e.target.value)}
-                      className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-3 py-2.5 text-xs outline-none focus:border-primary"
+                      className="w-full bg-card text-foreground border border-border rounded-xl px-3 py-2.5 text-xs outline-none focus:border-primary"
                     >
                       {categories.map(c => (
                         <option key={c.id} value={c.id}>
@@ -646,13 +646,13 @@ export default function AdminProductsClient({
                     </select>
                   </div>
                   <div className="space-y-1">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Publish Status
                     </label>
                     <select
                       value={status}
                       onChange={e => setStatus(e.target.value as any)}
-                      className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-3 py-2.5 text-xs outline-none focus:border-primary"
+                      className="w-full bg-card text-foreground border border-border rounded-xl px-3 py-2.5 text-xs outline-none focus:border-primary"
                     >
                       <option value="active">Active</option>
                       <option value="draft">Draft</option>
@@ -663,7 +663,7 @@ export default function AdminProductsClient({
 
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                   <div className="space-y-1">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Regular Price (₹)
                     </label>
                     <input
@@ -674,11 +674,11 @@ export default function AdminProductsClient({
                       placeholder="180"
                       value={price}
                       onChange={e => setPrice(e.target.value)}
-                      className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
+                      className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Sale Price (₹) (Optional)
                     </label>
                     <input
@@ -688,11 +688,11 @@ export default function AdminProductsClient({
                       placeholder="140"
                       value={salePrice}
                       onChange={e => setSalePrice(e.target.value)}
-                      className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
+                      className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
                     />
                   </div>
                   <div className="space-y-1">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Total Stock
                     </label>
                     <input
@@ -701,17 +701,17 @@ export default function AdminProductsClient({
                       min="0"
                       value={stock}
                       onChange={e => setStock(e.target.value)}
-                      className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
+                      className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
                     />
                   </div>
                 </div>
 
                 {/* Image Upload */}
                 <div className="space-y-2">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Product Images
                   </label>
-                  <div className="border-2 border-dashed border-white/[0.1] rounded-xl p-6 text-center hover:border-primary/30 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
+                  <div className="border-2 border-dashed border-border rounded-xl p-6 text-center hover:border-primary/30 transition-colors cursor-pointer" onClick={() => fileInputRef.current?.click()}>
                     <input
                       ref={fileInputRef}
                       type="file"
@@ -720,16 +720,16 @@ export default function AdminProductsClient({
                       onChange={handleImageUpload}
                       className="hidden"
                     />
-                    <Upload className="h-8 w-8 text-zinc-500 mx-auto mb-2" />
-                    <p className="text-sm text-zinc-400">Click to upload images</p>
-                    <p className="text-xs text-zinc-500 mt-1">PNG, JPG up to 10MB</p>
+                    <Upload className="h-8 w-8 text-muted-foreground mx-auto mb-2" />
+                    <p className="text-sm text-muted-foreground">Click to upload images</p>
+                    <p className="text-xs text-muted-foreground mt-1">PNG, JPG up to 10MB</p>
                   </div>
                   
                   {uploadedImages.length > 0 && (
                     <div className="grid grid-cols-4 gap-2 mt-3">
                       {uploadedImages.map((img, idx) => (
                         <div key={idx} className="relative group">
-                          <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-20 object-cover rounded-lg border border-white/[0.1]" />
+                          <img src={img} alt={`Upload ${idx + 1}`} className="w-full h-20 object-cover rounded-lg border border-border" />
                           <button
                             onClick={() => setUploadedImages(prev => prev.filter((_, i) => i !== idx))}
                             className="absolute top-1 right-1 p-1 bg-red-500 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
@@ -743,7 +743,7 @@ export default function AdminProductsClient({
                   
                   {imageUrl && uploadedImages.length === 0 && (
                     <div className="mt-3">
-                      <img src={imageUrl} alt="Product" className="w-full h-32 object-cover rounded-lg border border-white/[0.1]" />
+                      <img src={imageUrl} alt="Product" className="w-full h-32 object-cover rounded-lg border border-border" />
                     </div>
                   )}
                 </div>
@@ -751,7 +751,7 @@ export default function AdminProductsClient({
                 {/* Variants */}
                 <div className="space-y-2">
                   <div className="flex items-center justify-between">
-                    <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                    <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                       Size & Color Variants
                     </label>
                     <button
@@ -770,21 +770,21 @@ export default function AdminProductsClient({
                           placeholder="Size (e.g., 8, 9, 10)"
                           value={variant.size}
                           onChange={e => updateVariant(idx, 'size', e.target.value)}
-                          className="flex-1 bg-zinc-900 text-white border border-white/[0.06] rounded-lg px-3 py-2 text-xs outline-none focus:border-primary"
+                          className="flex-1 bg-card text-foreground border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary"
                         />
                         <input
                           type="text"
                           placeholder="Color"
                           value={variant.color}
                           onChange={e => updateVariant(idx, 'color', e.target.value)}
-                          className="flex-1 bg-zinc-900 text-white border border-white/[0.06] rounded-lg px-3 py-2 text-xs outline-none focus:border-primary"
+                          className="flex-1 bg-card text-foreground border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary"
                         />
                         <input
                           type="number"
                           placeholder="Stock"
                           value={variant.stock}
                           onChange={e => updateVariant(idx, 'stock', parseInt(e.target.value) || 0)}
-                          className="w-20 bg-zinc-900 text-white border border-white/[0.06] rounded-lg px-3 py-2 text-xs outline-none focus:border-primary"
+                          className="w-20 bg-card text-foreground border border-border rounded-lg px-3 py-2 text-xs outline-none focus:border-primary"
                         />
                         {variants.length > 1 && (
                           <button
@@ -801,7 +801,7 @@ export default function AdminProductsClient({
                 </div>
 
                 <div className="space-y-1">
-                  <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-400">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
                     Description
                   </label>
                   <textarea
@@ -809,12 +809,12 @@ export default function AdminProductsClient({
                     placeholder="Enter detailed description of features, materials, and support specs."
                     value={description}
                     onChange={e => setDescription(e.target.value)}
-                    className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
+                    className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
                   />
                 </div>
 
-                <div className="flex flex-wrap gap-6 p-4 bg-white/[0.02] border border-white/[0.04] rounded-xl">
-                  <label className="flex items-center gap-2 text-xs font-bold text-zinc-400 cursor-pointer">
+                <div className="flex flex-wrap gap-6 p-4 bg-secondary border border-border rounded-xl">
+                  <label className="flex items-center gap-2 text-xs font-bold text-muted-foreground cursor-pointer">
                     <input
                       type="checkbox"
                       checked={featured}
@@ -823,7 +823,7 @@ export default function AdminProductsClient({
                     />
                     Featured product
                   </label>
-                  <label className="flex items-center gap-2 text-xs font-bold text-zinc-400 cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-bold text-muted-foreground cursor-pointer">
                     <input
                       type="checkbox"
                       checked={newArrival}
@@ -832,7 +832,7 @@ export default function AdminProductsClient({
                     />
                     New Arrival
                   </label>
-                  <label className="flex items-center gap-2 text-xs font-bold text-zinc-400 cursor-pointer">
+                  <label className="flex items-center gap-2 text-xs font-bold text-muted-foreground cursor-pointer">
                     <input
                       type="checkbox"
                       checked={bestSeller}
@@ -843,7 +843,7 @@ export default function AdminProductsClient({
                   </label>
                 </div>
 
-                <div className="flex gap-4 pt-4 border-t border-white/[0.06]">
+                <div className="flex gap-4 pt-4 border-t border-border">
                   <button
                     type="submit"
                     className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center gap-1.5 transition-colors cursor-pointer"
@@ -853,7 +853,7 @@ export default function AdminProductsClient({
                   <button
                     type="button"
                     onClick={() => setIsModalOpen(false)}
-                    className="bg-zinc-800 hover:bg-zinc-700 text-zinc-300 px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
+                    className="bg-zinc-800 hover:bg-zinc-700 text-muted-foreground px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors cursor-pointer"
                   >
                     Cancel
                   </button>

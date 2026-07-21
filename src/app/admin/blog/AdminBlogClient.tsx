@@ -98,14 +98,14 @@ export default function AdminBlogClient({ initialPosts }: AdminBlogClientProps) 
         <div>
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
           >
             <ArrowLeft className="h-3 w-3" /> Dashboard
           </Link>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight flex items-center gap-2">
             <Newspaper className="h-7 w-7 text-primary" /> Blog Management
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             {posts.length} posts · {publishedCount} published · {posts.length - publishedCount} drafts
           </p>
         </div>
@@ -131,21 +131,21 @@ export default function AdminBlogClient({ initialPosts }: AdminBlogClientProps) 
 
       <div className="glass-card rounded-2xl p-4 mb-6">
         <div className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             placeholder="Search posts by title, category, or slug..."
-            className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="w-full bg-card text-foreground border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
           />
         </div>
       </div>
 
       {filtered.length === 0 ? (
         <div className="glass-card rounded-2xl p-12 text-center">
-          <Newspaper className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400">No blog posts found.</p>
+          <Newspaper className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground">No blog posts found.</p>
           <Link
             href="/admin/blog/new"
             className="inline-flex items-center gap-2 mt-4 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all"
@@ -160,7 +160,7 @@ export default function AdminBlogClient({ initialPosts }: AdminBlogClientProps) 
             return (
               <div
                 key={post.id}
-                className="glass-card rounded-2xl p-4 flex items-center gap-4 border border-white/[0.04]"
+                className="glass-card rounded-2xl p-4 flex items-center gap-4 border border-border"
               >
                 <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden bg-zinc-900 flex-shrink-0">
                   {post.featured_image ? (
@@ -171,7 +171,7 @@ export default function AdminBlogClient({ initialPosts }: AdminBlogClientProps) 
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center text-zinc-600">
+                    <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                       <Newspaper className="h-6 w-6" />
                     </div>
                   )}
@@ -183,15 +183,15 @@ export default function AdminBlogClient({ initialPosts }: AdminBlogClientProps) 
                       className={`text-[10px] font-bold uppercase tracking-wider px-2 py-0.5 rounded-full ${
                         isPublished
                           ? 'bg-green-500/15 text-green-400'
-                          : 'bg-zinc-700/40 text-zinc-400'
+                          : 'bg-zinc-700/40 text-muted-foreground'
                       }`}
                     >
                       {isPublished ? 'Published' : 'Draft'}
                     </span>
                     <span className="text-xs font-semibold text-primary">{post.category}</span>
                   </div>
-                  <h3 className="text-white font-bold truncate mt-1">{post.title}</h3>
-                  <p className="text-zinc-500 text-xs truncate">
+                  <h3 className="text-foreground font-bold truncate mt-1">{post.title}</h3>
+                  <p className="text-muted-foreground text-xs truncate">
                     /blog/{post.slug}
                     {post.published_at &&
                       ` · ${new Date(post.published_at).toLocaleDateString()}`}
@@ -204,7 +204,7 @@ export default function AdminBlogClient({ initialPosts }: AdminBlogClientProps) 
                       href={`/blog/${post.slug}`}
                       target="_blank"
                       title="View live"
-                      className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+                      className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Link>
@@ -213,14 +213,14 @@ export default function AdminBlogClient({ initialPosts }: AdminBlogClientProps) 
                     onClick={() => togglePublish(post)}
                     disabled={busyId === post.id}
                     title={isPublished ? 'Unpublish' : 'Publish'}
-                    className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors disabled:opacity-40"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors disabled:opacity-40"
                   >
                     {isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                   <Link
                     href={`/admin/blog/${post.id}`}
                     title="Edit"
-                    className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
                   >
                     <Pencil className="h-4 w-4" />
                   </Link>
@@ -228,7 +228,7 @@ export default function AdminBlogClient({ initialPosts }: AdminBlogClientProps) 
                     onClick={() => handleDelete(post)}
                     disabled={busyId === post.id}
                     title="Delete"
-                    className="p-2 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors disabled:opacity-40"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>

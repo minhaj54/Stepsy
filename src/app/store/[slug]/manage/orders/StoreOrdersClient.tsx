@@ -82,7 +82,7 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
       case 'shipped': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
       case 'delivered': return 'bg-green-500/10 text-green-400 border-green-500/20';
       case 'cancelled': return 'bg-red-500/10 text-red-400 border-red-500/20';
-      default: return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+      default: return 'bg-zinc-500/10 text-muted-foreground border-zinc-500/20';
     }
   };
 
@@ -91,7 +91,7 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
       case 'paid': return 'bg-green-500/10 text-green-400';
       case 'unpaid': return 'bg-red-500/10 text-red-400';
       case 'refunded': return 'bg-yellow-500/10 text-yellow-400';
-      default: return 'bg-zinc-500/10 text-zinc-400';
+      default: return 'bg-zinc-500/10 text-muted-foreground';
     }
   };
 
@@ -101,33 +101,33 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
         <div>
           <Link
             href={`/store/${storeSlug}/manage`}
-            className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
           >
             <ArrowLeft className="h-3 w-3" /> Dashboard
           </Link>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Orders</h1>
-          <p className="text-zinc-400 text-sm mt-1">Manage and track your store orders</p>
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Orders</h1>
+          <p className="text-muted-foreground text-sm mt-1">Manage and track your store orders</p>
         </div>
       </div>
 
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search by order ID or customer..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="w-full bg-card/50 text-foreground border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-zinc-500" />
+          <Filter className="h-4 w-4 text-muted-foreground" />
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as any)}
-            className="bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="bg-card/50 text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
           >
             <option value="all">All Status</option>
             {statuses.map(s => (
@@ -140,8 +140,8 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
       {/* Orders List */}
       {filteredOrders.length === 0 ? (
         <div className="glass-card rounded-2xl p-12 text-center">
-          <ShoppingBag className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400 text-sm">No orders found</p>
+          <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm">No orders found</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -154,9 +154,9 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
                       <ShoppingBag className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm font-bold text-white">#{order.id.slice(0, 8)}</p>
-                      <p className="text-xs text-zinc-400">{order.users?.full_name || 'Unknown Customer'}</p>
-                      <p className="text-xs text-zinc-500">{new Date(order.created_at).toLocaleDateString()}</p>
+                      <p className="text-sm font-bold text-foreground">#{order.id.slice(0, 8)}</p>
+                      <p className="text-xs text-muted-foreground">{order.users?.full_name || 'Unknown Customer'}</p>
+                      <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
@@ -166,14 +166,14 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
                     <span className={`px-2.5 py-1 rounded-lg text-[10px] font-bold uppercase ${getPaymentStatusColor(order.payment_status)}`}>
                       {order.payment_status}
                     </span>
-                    <p className="text-sm font-black text-white">₹{Number(order.total_amount).toFixed(2)}</p>
+                    <p className="text-sm font-black text-foreground">₹{Number(order.total_amount).toFixed(2)}</p>
                   </div>
                 </div>
 
                 {/* Expandable Order Details */}
                 <button
                   onClick={() => setExpandedOrder(expandedOrder === order.id ? null : order.id)}
-                  className="mt-4 flex items-center gap-1.5 text-xs text-zinc-400 hover:text-white transition-colors"
+                  className="mt-4 flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
                 >
                   {expandedOrder === order.id ? (
                     <ChevronUp className="h-4 w-4" />
@@ -184,21 +184,21 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
                 </button>
 
                 {expandedOrder === order.id && (
-                  <div className="mt-4 pt-4 border-t border-white/[0.06] space-y-4">
+                  <div className="mt-4 pt-4 border-t border-border space-y-4">
                     {/* Order Items */}
                     <div>
-                      <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-3">Items</h4>
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Items</h4>
                       <div className="space-y-2">
                         {(order.order_items ?? []).map((item: any) => (
-                          <div key={item.id} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl">
+                          <div key={item.id} className="flex items-center justify-between p-3 bg-secondary rounded-xl">
                             <div className="flex items-center gap-3">
-                              <Package className="h-4 w-4 text-zinc-500" />
+                              <Package className="h-4 w-4 text-muted-foreground" />
                               <div>
-                                <p className="text-sm text-white">{item.products?.title || 'Product'}</p>
-                                <p className="text-xs text-zinc-500">Qty: {item.quantity}</p>
+                                <p className="text-sm text-foreground">{item.products?.title || 'Product'}</p>
+                                <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
                               </div>
                             </div>
-                            <p className="text-sm font-semibold text-white">₹{Number(item.products?.price || 0).toFixed(2)}</p>
+                            <p className="text-sm font-semibold text-foreground">₹{Number(item.products?.price || 0).toFixed(2)}</p>
                           </div>
                         ))}
                       </div>
@@ -207,10 +207,10 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
                     {/* Shipping Address */}
                     {order.shipping_address && (
                       <div>
-                        <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Shipping Address</h4>
-                        <div className="p-3 bg-white/[0.02] rounded-xl flex items-start gap-2">
-                          <MapPin className="h-4 w-4 text-zinc-500 mt-0.5" />
-                          <p className="text-xs text-zinc-300">
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Shipping Address</h4>
+                        <div className="p-3 bg-secondary rounded-xl flex items-start gap-2">
+                          <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
+                          <p className="text-xs text-muted-foreground">
                             {order.shipping_address.fullName}<br />
                             {order.shipping_address.addressLine1}<br />
                             {order.shipping_address.city}, {order.shipping_address.state} - {order.shipping_address.pincode}
@@ -221,7 +221,7 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
 
                     {/* Status Update */}
                     <div>
-                      <h4 className="text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">Update Status</h4>
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Update Status</h4>
                       <div className="flex flex-wrap gap-2">
                         {statuses.map(status => (
                           <button
@@ -231,7 +231,7 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
                             className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all ${
                               order.status === status
                                 ? 'bg-primary text-white'
-                                : 'bg-white/[0.04] text-zinc-400 hover:bg-white/[0.08] hover:text-white'
+                                : 'bg-secondary text-muted-foreground hover:bg-muted hover:text-foreground'
                             }`}
                           >
                             {status.charAt(0).toUpperCase() + status.slice(1)}

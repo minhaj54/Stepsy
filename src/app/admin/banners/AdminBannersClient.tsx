@@ -112,12 +112,12 @@ export default function AdminBannersClient({ initialBanner }: AdminBannersClient
       <div className="mb-8">
         <Link
           href="/admin"
-          className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
         >
           <ArrowLeft className="h-3 w-3" /> Dashboard
         </Link>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Home Page Banner</h1>
-        <p className="text-zinc-400 text-sm mt-1">Manage the hero banner on the home page</p>
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Home Page Banner</h1>
+        <p className="text-muted-foreground text-sm mt-1">Manage the hero banner on the home page</p>
       </div>
 
       {message && (
@@ -133,7 +133,7 @@ export default function AdminBannersClient({ initialBanner }: AdminBannersClient
       <form onSubmit={handleSave} className="space-y-6">
         {/* Banner Preview */}
         <div className="glass-card rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
             <ImageIcon className="h-5 w-5 text-primary" /> Banner Preview
           </h2>
           
@@ -143,16 +143,16 @@ export default function AdminBannersClient({ initialBanner }: AdminBannersClient
             ) : (
               <div className="w-full h-full bg-gradient-to-br from-primary/20 via-zinc-900 to-accent/20 flex items-center justify-center">
                 <div className="text-center">
-                  <ImageIcon className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-                  <p className="text-zinc-400 text-sm">No banner image uploaded</p>
+                  <ImageIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+                  <p className="text-muted-foreground text-sm">No banner image uploaded</p>
                 </div>
               </div>
             )}
             {title && (
               <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 to-transparent flex items-end p-6">
                 <div>
-                  <h3 className="text-2xl font-bold text-white mb-1">{title}</h3>
-                  {subtitle && <p className="text-zinc-300">{subtitle}</p>}
+                  <h3 className="text-2xl font-bold text-foreground mb-1">{title}</h3>
+                  {subtitle && <p className="text-muted-foreground">{subtitle}</p>}
                 </div>
               </div>
             )}
@@ -161,7 +161,7 @@ export default function AdminBannersClient({ initialBanner }: AdminBannersClient
           <button
             type="button"
             onClick={handleImageUpload}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] rounded-xl text-sm text-zinc-300 hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-muted border border-border rounded-xl text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <Upload className="h-4 w-4" />
             Upload Banner Image
@@ -170,46 +170,46 @@ export default function AdminBannersClient({ initialBanner }: AdminBannersClient
 
         {/* Banner Settings */}
         <div className="glass-card rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-white mb-6 flex items-center gap-2">
+          <h2 className="text-lg font-bold text-foreground mb-6 flex items-center gap-2">
             <Globe className="h-5 w-5 text-primary" /> Banner Settings
           </h2>
           
           <div className="space-y-4">
             <div className="space-y-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Banner Title
               </label>
               <input
                 type="text"
                 value={title}
                 onChange={e => setTitle(e.target.value)}
-                className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                 placeholder="e.g., New Season Arrivals"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Subtitle
               </label>
               <input
                 type="text"
                 value={subtitle}
                 onChange={e => setSubtitle(e.target.value)}
-                className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                 placeholder="e.g., Discover the latest trends in footwear"
               />
             </div>
 
             <div className="space-y-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Link URL (optional)
               </label>
               <input
                 type="text"
                 value={link}
                 onChange={e => setLink(e.target.value)}
-                className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                 placeholder="e.g., /shop?category=new-arrivals"
               />
             </div>

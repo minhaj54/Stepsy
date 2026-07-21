@@ -134,29 +134,29 @@ export default function ShopContent({ products, brands, categories }: ShopConten
       {/* Top Title & Controls */}
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Zarwinto Footwear Catalog</h1>
-          <p className="text-zinc-500 text-sm mt-1">Showing {sortedProducts.length} premium products</p>
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Zarwinto Footwear Catalog</h1>
+          <p className="text-muted-foreground text-sm mt-1">Showing {sortedProducts.length} premium products</p>
         </div>
 
         <div className="flex w-full md:w-auto items-center justify-between sm:justify-end gap-3 self-stretch md:self-auto">
           {/* Mobile Filter Button */}
           <button
             onClick={() => setIsFilterDrawerOpen(true)}
-            className="flex md:hidden items-center gap-2 px-4 py-2.5 bg-zinc-900 border border-white/[0.08] hover:border-white/[0.15] text-zinc-300 rounded-xl text-sm font-semibold transition-all cursor-pointer"
+            className="flex md:hidden items-center gap-2 px-4 py-2.5 bg-card border border-border hover:border-muted-foreground/50 text-muted-foreground rounded-xl text-sm font-semibold transition-all cursor-pointer"
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filters
           </button>
 
           {/* Sorting Dropdown */}
-          <div className="flex items-center gap-2 bg-zinc-900 border border-white/[0.08] hover:border-white/[0.15] rounded-xl px-3 py-2 text-sm text-zinc-300 transition-all w-full sm:w-auto justify-between sm:justify-start">
-            <span className="text-zinc-500 text-xs flex items-center gap-1 font-medium">
+          <div className="flex items-center gap-2 bg-card border border-border hover:border-muted-foreground/50 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-all w-full sm:w-auto justify-between sm:justify-start">
+            <span className="text-muted-foreground text-xs flex items-center gap-1 font-medium">
               <ArrowUpDown className="h-3.5 w-3.5" /> Sort:
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent text-white outline-none border-none pr-6 cursor-pointer font-semibold text-xs"
+              className="bg-transparent text-foreground outline-none border-none pr-6 cursor-pointer font-semibold text-xs"
             >
               <option value="newest" className="bg-zinc-900">Newest Drops</option>
               <option value="price-low" className="bg-zinc-900">Price: Low to High</option>
@@ -169,9 +169,9 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
       <div className="grid grid-cols-1 lg:grid-cols-4 gap-6 items-start">
         {/* Desktop Sidebar Filters */}
-        <aside className="hidden lg:block space-y-8 glass-card p-6 rounded-2xl border border-white/[0.05]">
-          <div className="flex justify-between items-center pb-4 border-b border-white/[0.06]">
-            <h3 className="font-bold text-white text-base">Filter Products</h3>
+        <aside className="hidden lg:block space-y-8 glass-card p-6 rounded-2xl border border-border">
+          <div className="flex justify-between items-center pb-4 border-b border-border">
+            <h3 className="font-bold text-foreground text-base">Filter Products</h3>
             <button 
               onClick={resetFilters}
               className="text-xs font-semibold text-primary hover:text-primary-hover transition-colors"
@@ -182,12 +182,12 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
           {/* Category Filter */}
           <div className="space-y-3">
-            <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Category</h4>
+            <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Category</h4>
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => setSelectedCategory('')}
                 className={`text-left text-sm py-1.5 px-3 rounded-lg transition-colors font-medium ${
-                  selectedCategory === '' ? 'bg-primary/20 text-primary font-bold' : 'text-zinc-400 hover:text-white'
+                  selectedCategory === '' ? 'bg-primary/20 text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 All Categories
@@ -197,7 +197,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.slug)}
                   className={`text-left text-sm py-1.5 px-3 rounded-lg transition-colors font-medium flex justify-between items-center ${
-                    selectedCategory === cat.slug ? 'bg-primary/20 text-primary font-bold' : 'text-zinc-400 hover:text-white'
+                    selectedCategory === cat.slug ? 'bg-primary/20 text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {cat.name}
@@ -208,13 +208,13 @@ export default function ShopContent({ products, brands, categories }: ShopConten
           </div>
 
           {/* Brand Filter */}
-          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
-            <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Brand</h4>
+          <div className="space-y-3 pt-4 border-t border-border">
+            <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Brand</h4>
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => setSelectedBrand('')}
                 className={`text-left text-sm py-1.5 px-3 rounded-lg transition-colors font-medium ${
-                  selectedBrand === '' ? 'bg-primary/20 text-primary font-bold' : 'text-zinc-400 hover:text-white'
+                  selectedBrand === '' ? 'bg-primary/20 text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
                 }`}
               >
                 All Brands
@@ -224,7 +224,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                   key={brand.id}
                   onClick={() => setSelectedBrand(brand.slug)}
                   className={`text-left text-sm py-1.5 px-3 rounded-lg transition-colors font-medium flex justify-between items-center ${
-                    selectedBrand === brand.slug ? 'bg-primary/20 text-primary font-bold' : 'text-zinc-400 hover:text-white'
+                    selectedBrand === brand.slug ? 'bg-primary/20 text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
                   }`}
                 >
                   {brand.name}
@@ -235,10 +235,10 @@ export default function ShopContent({ products, brands, categories }: ShopConten
           </div>
 
           {/* Price Range Filter */}
-          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
+          <div className="space-y-3 pt-4 border-t border-border">
             <div className="flex justify-between items-center">
-              <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Max Price</h4>
-              <span className="text-sm font-bold text-white">₹{maxPrice}</span>
+              <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Max Price</h4>
+              <span className="text-sm font-bold text-foreground">₹{maxPrice}</span>
             </div>
             <input
               type="range"
@@ -247,17 +247,17 @@ export default function ShopContent({ products, brands, categories }: ShopConten
               step="10"
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-full accent-primary h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-primary h-1 bg-muted rounded-lg appearance-none cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-zinc-500 font-semibold">
+            <div className="flex justify-between text-[10px] text-muted-foreground font-semibold">
               <span>₹0</span>
               <span>₹{priceCeiling}</span>
             </div>
           </div>
 
           {/* Size Filter */}
-          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
-            <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Sizes (US)</h4>
+          <div className="space-y-3 pt-4 border-t border-border">
+            <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Sizes (US)</h4>
             <div className="grid grid-cols-4 gap-2">
               {sizes.map((size) => {
                 const isSelected = selectedSizes.includes(size);
@@ -268,7 +268,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                     className={`h-10 rounded-xl font-bold text-xs flex items-center justify-center border transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-primary text-white border-primary shadow-[0_0_10px_rgba(99,102,241,0.3)]'
-                        : 'bg-zinc-900 border-white/[0.08] hover:border-white/[0.15] text-zinc-300'
+                        : 'bg-card border-border hover:border-muted-foreground/50 text-muted-foreground'
                     }`}
                   >
                     {size}
@@ -279,8 +279,8 @@ export default function ShopContent({ products, brands, categories }: ShopConten
           </div>
 
           {/* Color Filter */}
-          <div className="space-y-3 pt-4 border-t border-white/[0.06]">
-            <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Colors</h4>
+          <div className="space-y-3 pt-4 border-t border-border">
+            <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Colors</h4>
             <div className="flex flex-wrap gap-2.5">
               {colors.map((color) => {
                 const isSelected = selectedColors.includes(color.name);
@@ -289,7 +289,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                     key={color.name}
                     onClick={() => handleColorToggle(color.name)}
                     className={`h-8 w-8 rounded-full border flex items-center justify-center relative cursor-pointer group transition-transform ${
-                      isSelected ? 'border-primary scale-110' : 'border-white/[0.08] hover:scale-105'
+                      isSelected ? 'border-primary scale-110' : 'border-border hover:scale-105'
                     }`}
                     title={color.name}
                   >
@@ -311,8 +311,8 @@ export default function ShopContent({ products, brands, categories }: ShopConten
           {sortedProducts.length === 0 ? (
             <div className="glass-card p-12 rounded-3xl text-center space-y-4">
               <p className="text-3xl">👟🚫</p>
-              <h3 className="text-xl font-extrabold text-white">No footwear matches your filters</h3>
-              <p className="text-zinc-500 text-sm max-w-md mx-auto">
+              <h3 className="text-xl font-extrabold text-foreground">No footwear matches your filters</h3>
+              <p className="text-muted-foreground text-sm max-w-md mx-auto">
                 We couldn't find any shoes matching your configuration. Try relaxing your filters or resetting the catalog.
               </p>
               <button
@@ -330,11 +330,11 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                 const salePrice = product.sale_price;
 
                 return (
-                  <div key={product.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative group border border-white/[0.04]">
+                  <div key={product.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative group border border-border">
                     {/* Wishlist toggle */}
                     <button 
                       onClick={() => toggleWishlist(product.id)}
-                      className="absolute top-4 right-4 z-20 p-2.5 bg-zinc-900/60 hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-full border border-white/[0.04] transition-colors"
+                      className="absolute top-4 right-4 z-20 p-2.5 bg-card/60 hover:bg-muted text-muted-foreground hover:text-foreground rounded-full border border-border transition-colors"
                       aria-label="Toggle Wishlist"
                     >
                       <Heart className={`h-4.5 w-4.5 ${isWishlisted ? 'fill-accent text-accent' : ''}`} />
@@ -348,7 +348,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                     )}
 
                     {/* Product Image */}
-                    <Link href={`/product/${product.slug}`} className="block aspect-square w-full bg-zinc-950/40 relative overflow-hidden">
+                    <Link href={`/product/${product.slug}`} className="block aspect-square w-full bg-background/40 relative overflow-hidden">
                       <ShimmerImage
                         src={product.images[0]}
                         alt={product.title}
@@ -359,7 +359,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                     {/* Details */}
                     <div className="p-5 flex-grow flex flex-col justify-between">
                       <div>
-                        <div className="flex justify-between items-center text-xs text-zinc-500 mb-1">
+                        <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
                           <span>{product.brand_name}</span>
                           <div className="flex items-center gap-0.5 text-accent font-semibold">
                             <Star className="h-3 w-3 fill-accent" />
@@ -368,26 +368,26 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                         </div>
 
                         <Link href={`/product/${product.slug}`}>
-                          <h3 className="font-bold text-white text-base hover:text-primary transition-colors line-clamp-1">
+                          <h3 className="font-bold text-foreground text-base hover:text-primary transition-colors line-clamp-1">
                             {product.title}
                           </h3>
                         </Link>
                       </div>
 
-                      <div className="flex justify-between items-center mt-4 pt-3 border-t border-white/[0.04]">
+                      <div className="flex justify-between items-center mt-4 pt-3 border-t border-border">
                         <div>
                           {salePrice ? (
                             <div className="flex items-center gap-2">
-                              <span className="text-sm line-through text-zinc-500">₹{price}</span>
-                              <span className="text-base font-black text-white">₹{salePrice}</span>
+                              <span className="text-sm line-through text-muted-foreground">₹{price}</span>
+                              <span className="text-base font-black text-foreground">₹{salePrice}</span>
                             </div>
                           ) : (
-                            <span className="text-base font-black text-white">₹{price}</span>
+                            <span className="text-base font-black text-foreground">₹{price}</span>
                           )}
                         </div>
                         <Link 
                           href={`/product/${product.slug}`}
-                          className="bg-white/[0.05] hover:bg-primary text-white p-2 rounded-xl border border-white/[0.06] hover:border-primary transition-all duration-300"
+                          className="bg-secondary hover:bg-primary text-primary-foreground p-2 rounded-xl border border-border hover:border-primary transition-all duration-300"
                           aria-label="View Details"
                         >
                           <ArrowRight className="h-4 w-4" />
@@ -404,13 +404,13 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
       {/* Mobile Drawer (Absolute overlay) */}
       {isFilterDrawerOpen && (
-        <div className="fixed inset-0 z-50 flex lg:hidden bg-zinc-950/80 backdrop-blur-sm animate-in fade-in duration-300">
-          <div className="relative ml-auto flex h-full w-full max-w-xs flex-col bg-zinc-900 border-l border-white/[0.08] p-6 overflow-y-auto animate-in slide-in-from-right duration-300">
-            <div className="flex justify-between items-center pb-4 border-b border-white/[0.06] mb-6">
-              <h3 className="font-bold text-white text-base">Filters</h3>
+        <div className="fixed inset-0 z-50 flex lg:hidden bg-background/80 backdrop-blur-sm animate-in fade-in duration-300">
+          <div className="relative ml-auto flex h-full w-full max-w-xs flex-col bg-background border-l border-border p-6 overflow-y-auto animate-in slide-in-from-right duration-300">
+            <div className="flex justify-between items-center pb-4 border-b border-border mb-6">
+              <h3 className="font-bold text-foreground text-base">Filters</h3>
               <button 
                 onClick={() => setIsFilterDrawerOpen(false)}
-                className="p-1 text-zinc-400 hover:text-white rounded-lg hover:bg-white/5"
+                className="p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary"
               >
                 <X className="h-6 w-6" />
               </button>
@@ -418,11 +418,11 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
             {/* Mobile Category */}
             <div className="space-y-3 mb-6">
-              <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Category</h4>
+              <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Category</h4>
               <div className="flex flex-col gap-1.5">
                 <button
                   onClick={() => { setSelectedCategory(''); setIsFilterDrawerOpen(false); }}
-                  className={`text-left text-sm py-2 px-3 rounded-lg font-semibold ${selectedCategory === '' ? 'bg-primary/20 text-primary' : 'text-zinc-400'}`}
+                  className={`text-left text-sm py-2 px-3 rounded-lg font-semibold ${selectedCategory === '' ? 'bg-primary/20 text-primary' : 'text-muted-foreground'}`}
                 >
                   All Categories
                 </button>
@@ -430,7 +430,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                   <button
                     key={cat.id}
                     onClick={() => { setSelectedCategory(cat.slug); setIsFilterDrawerOpen(false); }}
-                    className={`text-left text-sm py-2 px-3 rounded-lg font-semibold flex justify-between items-center ${selectedCategory === cat.slug ? 'bg-primary/20 text-primary' : 'text-zinc-400'}`}
+                    className={`text-left text-sm py-2 px-3 rounded-lg font-semibold flex justify-between items-center ${selectedCategory === cat.slug ? 'bg-primary/20 text-primary' : 'text-muted-foreground'}`}
                   >
                     {cat.name}
                     {selectedCategory === cat.slug && <Check className="h-4 w-4" />}
@@ -440,12 +440,12 @@ export default function ShopContent({ products, brands, categories }: ShopConten
             </div>
 
             {/* Mobile Brand */}
-            <div className="space-y-3 mb-6 pt-4 border-t border-white/[0.06]">
-              <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Brand</h4>
+            <div className="space-y-3 mb-6 pt-4 border-t border-border">
+              <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Brand</h4>
               <div className="flex flex-col gap-1.5">
                 <button
                   onClick={() => { setSelectedBrand(''); setIsFilterDrawerOpen(false); }}
-                  className={`text-left text-sm py-2 px-3 rounded-lg font-semibold ${selectedBrand === '' ? 'bg-primary/20 text-primary' : 'text-zinc-400'}`}
+                  className={`text-left text-sm py-2 px-3 rounded-lg font-semibold ${selectedBrand === '' ? 'bg-primary/20 text-primary' : 'text-muted-foreground'}`}
                 >
                   All Brands
                 </button>
@@ -453,7 +453,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                   <button
                     key={brand.id}
                     onClick={() => { setSelectedBrand(brand.slug); setIsFilterDrawerOpen(false); }}
-                    className={`text-left text-sm py-2 px-3 rounded-lg font-semibold flex justify-between items-center ${selectedBrand === brand.slug ? 'bg-primary/20 text-primary' : 'text-zinc-400'}`}
+                    className={`text-left text-sm py-2 px-3 rounded-lg font-semibold flex justify-between items-center ${selectedBrand === brand.slug ? 'bg-primary/20 text-primary' : 'text-muted-foreground'}`}
                   >
                     {brand.name}
                     {selectedBrand === brand.slug && <Check className="h-4 w-4" />}
@@ -463,10 +463,10 @@ export default function ShopContent({ products, brands, categories }: ShopConten
             </div>
 
             {/* Mobile Price */}
-            <div className="space-y-3 mb-6 pt-4 border-t border-white/[0.06]">
+            <div className="space-y-3 mb-6 pt-4 border-t border-border">
               <div className="flex justify-between items-center">
-                <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Max Price</h4>
-                <span className="text-sm font-bold text-white">₹{maxPrice}</span>
+                <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Max Price</h4>
+                <span className="text-sm font-bold text-foreground">₹{maxPrice}</span>
               </div>
               <input
                 type="range"
@@ -475,13 +475,13 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                 step="10"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full accent-primary h-1 bg-zinc-800 rounded-lg appearance-none cursor-pointer"
+                className="w-full accent-primary h-1 bg-muted rounded-lg appearance-none cursor-pointer"
               />
             </div>
 
             {/* Mobile Size */}
-            <div className="space-y-3 mb-6 pt-4 border-t border-white/[0.06]">
-              <h4 className="text-xs uppercase font-extrabold tracking-widest text-zinc-400">Sizes</h4>
+            <div className="space-y-3 mb-6 pt-4 border-t border-border">
+              <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Sizes</h4>
               <div className="grid grid-cols-4 gap-2">
                 {sizes.map((size) => {
                   const isSelected = selectedSizes.includes(size);
@@ -489,7 +489,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                     <button
                       key={size}
                       onClick={() => handleSizeToggle(size)}
-                      className={`h-10 rounded-xl font-bold text-xs flex items-center justify-center border ${isSelected ? 'bg-primary text-white border-primary' : 'bg-zinc-800 border-white/[0.08] text-zinc-300'}`}
+                      className={`h-10 rounded-xl font-bold text-xs flex items-center justify-center border ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-border text-muted-foreground'}`}
                     >
                       {size}
                     </button>
@@ -498,10 +498,10 @@ export default function ShopContent({ products, brands, categories }: ShopConten
               </div>
             </div>
 
-            <div className="flex gap-4 mt-8 pt-4 border-t border-white/[0.06]">
+            <div className="flex gap-4 mt-8 pt-4 border-t border-border">
               <button
                 onClick={() => { resetFilters(); setIsFilterDrawerOpen(false); }}
-                className="flex-1 py-3 bg-zinc-800 text-white rounded-xl text-xs font-bold text-center"
+                className="flex-1 py-3 bg-muted text-foreground rounded-xl text-xs font-bold text-center"
               >
                 Reset
               </button>

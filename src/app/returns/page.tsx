@@ -42,17 +42,17 @@ export default function ReturnsPage() {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <div className="relative py-12 sm:py-20 overflow-hidden border-b border-white/[0.04]">
+      <div className="relative py-12 sm:py-20 overflow-hidden border-b border-border">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
         <div className="relative px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold mb-6">
             <RefreshCw className="h-4 w-4" />
             30-Day Happiness Guarantee
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight mb-6">
             Returns & <span className="text-primary">Exchanges</span>
           </h1>
-          <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Not the perfect fit? No worries. Every Zarwinto order comes with a hassle-free 30-day
             return or exchange window and a free return label.
           </p>
@@ -62,19 +62,19 @@ export default function ReturnsPage() {
       <div className="px-4 sm:px-6 lg:px-8 py-12 max-w-5xl mx-auto space-y-16">
         {/* How it works */}
         <section>
-          <h2 className="text-2xl font-bold text-white tracking-tight mb-8">How it works</h2>
+          <h2 className="text-2xl font-bold text-foreground tracking-tight mb-8">How it works</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
             {steps.map((step, i) => (
               <div
                 key={step.title}
-                className="relative rounded-2xl border border-white/[0.06] bg-zinc-900/40 p-5"
+                className="relative rounded-2xl border border-border bg-card/40 p-5"
               >
-                <span className="absolute -top-3 left-5 text-xs font-black text-zinc-600">0{i + 1}</span>
+                <span className="absolute -top-3 left-5 text-xs font-black text-muted-foreground">0{i + 1}</span>
                 <div className="h-11 w-11 rounded-xl bg-primary/15 flex items-center justify-center text-primary mb-4">
                   <step.icon className="h-5 w-5" />
                 </div>
-                <h3 className="text-base font-bold text-white mb-1.5">{step.title}</h3>
-                <p className="text-sm text-zinc-400 leading-relaxed">{step.description}</p>
+                <h3 className="text-base font-bold text-foreground mb-1.5">{step.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{step.description}</p>
               </div>
             ))}
           </div>
@@ -82,29 +82,29 @@ export default function ReturnsPage() {
 
         {/* Policy list */}
         <section>
-          <h2 className="text-2xl font-bold text-white tracking-tight mb-6">Return policy</h2>
+          <h2 className="text-2xl font-bold text-foreground tracking-tight mb-6">Return policy</h2>
           <ul className="space-y-3">
             {policies.map((p) => (
               <li
                 key={p}
-                className="flex items-start gap-3 rounded-xl border border-white/[0.04] bg-zinc-900/30 p-4"
+                className="flex items-start gap-3 rounded-xl border border-border bg-zinc-900/30 p-4"
               >
                 <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
-                <span className="text-sm text-zinc-300 leading-relaxed">{p}</span>
+                <span className="text-sm text-muted-foreground leading-relaxed">{p}</span>
               </li>
             ))}
           </ul>
         </section>
 
         {/* CTA */}
-        <section className="rounded-3xl border border-white/[0.06] bg-gradient-to-r from-primary/10 via-zinc-950 to-primary/10 p-8 text-center">
+        <section className="rounded-3xl border border-border bg-gradient-to-r from-primary/10 via-zinc-950 to-primary/10 p-8 text-center">
           <div className="flex justify-center mb-4">
             <div className="h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center text-primary">
               <MessageCircle className="h-6 w-6" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-white tracking-tight mb-2">Need a hand?</h2>
-          <p className="text-sm text-zinc-400 max-w-md mx-auto mb-6">
+          <h2 className="text-2xl font-bold text-foreground tracking-tight mb-2">Need a hand?</h2>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
             Our support team is happy to help with sizing, defects, or starting a return. Reach out
             and we'll take care of the rest.
           </p>
@@ -118,7 +118,7 @@ export default function ReturnsPage() {
             </Link>
             <a
               href="mailto:support@zarwinto.com"
-              className="inline-flex items-center justify-center gap-2 bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/[0.08] px-6 py-3 rounded-xl font-semibold text-sm transition-all"
+              className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted text-white border border-border px-6 py-3 rounded-xl font-semibold text-sm transition-all"
             >
               Contact Support
             </a>

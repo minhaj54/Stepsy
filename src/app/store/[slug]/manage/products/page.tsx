@@ -55,14 +55,14 @@ export default async function StoreProductsPage({ params }: { params: Promise<{ 
       <div className="px-4 sm:px-6 lg:px-8 py-8">
         <div className="flex items-center justify-between mb-6 flex-wrap gap-3">
           <div>
-            <h1 className="text-3xl font-extrabold text-white tracking-tight">Manage Products</h1>
-            <p className="text-zinc-400 text-sm mt-1">
+            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Manage Products</h1>
+            <p className="text-muted-foreground text-sm mt-1">
               Products for your store
             </p>
           </div>
           <a
             href={`/store/${store.slug}`}
-            className="inline-flex items-center gap-2 bg-white/[0.05] hover:bg-primary text-white px-4 py-2.5 rounded-xl font-semibold text-sm border border-white/[0.06] hover:border-primary transition-all"
+            className="inline-flex items-center gap-2 bg-secondary hover:bg-primary text-white px-4 py-2.5 rounded-xl font-semibold text-sm border border-border hover:border-primary transition-all"
           >
             <StoreIcon className="h-4 w-4" />
             View My Store

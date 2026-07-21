@@ -46,21 +46,21 @@ export default function PrivacyPage() {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <div className="relative py-12 sm:py-20 overflow-hidden border-b border-white/[0.04]">
+      <div className="relative py-12 sm:py-20 overflow-hidden border-b border-border">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
         <div className="relative px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold mb-6">
             <ShieldCheck className="h-4 w-4" />
             Your Data, Protected
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-white tracking-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight mb-6">
             Privacy <span className="text-primary">Policy</span>
           </h1>
-          <p className="text-lg text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             We respect your privacy and are transparent about how we handle your information.
             This policy explains what we collect and why.
           </p>
-          <p className="text-xs text-zinc-600 mt-4">Last updated: July 2026</p>
+          <p className="text-xs text-muted-foreground mt-4">Last updated: July 2026</p>
         </div>
       </div>
 
@@ -69,16 +69,16 @@ export default function PrivacyPage() {
         <div className="space-y-8">
           {sections.map((s) => (
             <section key={s.title}>
-              <h2 className="text-xl font-bold text-white tracking-tight mb-3">{s.title}</h2>
-              <p className="text-sm text-zinc-400 leading-relaxed">{s.body}</p>
+              <h2 className="text-xl font-bold text-foreground tracking-tight mb-3">{s.title}</h2>
+              <p className="text-sm text-muted-foreground leading-relaxed">{s.body}</p>
             </section>
           ))}
         </div>
 
         {/* CTA */}
-        <div className="mt-12 rounded-3xl border border-white/[0.06] bg-gradient-to-r from-primary/10 via-zinc-950 to-primary/10 p-8 text-center">
-          <h2 className="text-2xl font-bold text-white tracking-tight mb-2">Questions about your data?</h2>
-          <p className="text-sm text-zinc-400 max-w-md mx-auto mb-6">
+        <div className="mt-12 rounded-3xl border border-border bg-gradient-to-r from-primary/10 via-zinc-950 to-primary/10 p-8 text-center">
+          <h2 className="text-2xl font-bold text-foreground tracking-tight mb-2">Questions about your data?</h2>
+          <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
             Our team is happy to help. Reach out and we'll get back to you promptly.
           </p>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
@@ -91,7 +91,7 @@ export default function PrivacyPage() {
             </a>
             <Link
               href="/returns"
-              className="inline-flex items-center justify-center gap-2 bg-white/[0.04] hover:bg-white/[0.08] text-white border border-white/[0.08] px-6 py-3 rounded-xl font-semibold text-sm transition-all"
+              className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted text-white border border-border px-6 py-3 rounded-xl font-semibold text-sm transition-all"
             >
               Returns & Exchanges
             </Link>

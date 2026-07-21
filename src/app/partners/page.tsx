@@ -33,11 +33,11 @@ export default async function PartnersPage() {
             Trusted Partners
           </div>
           
-          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-white tracking-tight mb-6">
+          <h1 className="text-4xl sm:text-5xl lg:text-6xl font-black text-foreground tracking-tight mb-6">
             Our <span className="gradient-text">Partner Stores</span>
           </h1>
           
-          <p className="text-lg sm:text-xl text-zinc-400 max-w-2xl mx-auto leading-relaxed">
+          <p className="text-lg sm:text-xl text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             Discover premium footwear from our curated network of trusted sellers and brands. 
             Each partner brings unique styles, quality craftsmanship, and exceptional service.
           </p>
@@ -45,24 +45,24 @@ export default async function PartnersPage() {
       </div>
 
       {/* Stats Bar */}
-      <div className="border-y border-white/[0.06] bg-zinc-950/50">
+      <div className="border-y border-border bg-background/50">
         <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto py-6">
           <div className="flex flex-wrap items-center justify-center gap-8 sm:gap-16">
             <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-black text-white">{stores.length}</p>
-              <p className="text-xs sm:text-sm text-zinc-500 uppercase tracking-wider mt-1">Partner Stores</p>
+              <p className="text-2xl sm:text-3xl font-black text-foreground">{stores.length}</p>
+              <p className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wider mt-1">Partner Stores</p>
             </div>
             <div className="w-px h-8 bg-white/[0.08] hidden sm:block" />
             <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-black text-white">
+              <p className="text-2xl sm:text-3xl font-black text-foreground">
                 {storesWithCounts.reduce((acc, store) => acc + store.productCount, 0)}
               </p>
-              <p className="text-xs sm:text-sm text-zinc-500 uppercase tracking-wider mt-1">Products Listed</p>
+              <p className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wider mt-1">Products Listed</p>
             </div>
             <div className="w-px h-8 bg-white/[0.08] hidden sm:block" />
             <div className="text-center">
-              <p className="text-2xl sm:text-3xl font-black text-white">100%</p>
-              <p className="text-xs sm:text-sm text-zinc-500 uppercase tracking-wider mt-1">Verified Sellers</p>
+              <p className="text-2xl sm:text-3xl font-black text-foreground">100%</p>
+              <p className="text-xs sm:text-sm text-muted-foreground uppercase tracking-wider mt-1">Verified Sellers</p>
             </div>
           </div>
         </div>
@@ -72,9 +72,9 @@ export default async function PartnersPage() {
       <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto py-10 sm:py-14">
         {storesWithCounts.length === 0 ? (
           <div className="text-center py-20">
-            <StoreIcon className="h-16 w-16 text-zinc-600 mx-auto mb-4" />
-            <h3 className="text-xl font-bold text-white mb-2">No Partners Yet</h3>
-            <p className="text-zinc-400 max-w-md mx-auto">
+            <StoreIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
+            <h3 className="text-xl font-bold text-foreground mb-2">No Partners Yet</h3>
+            <p className="text-muted-foreground max-w-md mx-auto">
               We're currently onboarding new partner stores. Check back soon to discover amazing footwear brands.
             </p>
           </div>
@@ -113,31 +113,31 @@ export default async function PartnersPage() {
                         />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <StoreIcon className="h-8 w-8 text-zinc-500" />
+                          <StoreIcon className="h-8 w-8 text-muted-foreground" />
                         </div>
                       )}
                     </div>
                     
                     <div className="flex-1 min-w-0 pt-8 sm:pt-10">
-                      <h3 className="text-lg font-bold text-white tracking-tight truncate group-hover:text-primary transition-colors">
+                      <h3 className="text-lg font-bold text-foreground tracking-tight truncate group-hover:text-primary transition-colors">
                         {store.name}
                       </h3>
                       {store.social_handle && (
-                        <p className="text-xs text-zinc-500 mt-0.5">@{store.social_handle}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">@{store.social_handle}</p>
                       )}
                     </div>
                   </div>
 
                   {/* Description */}
                   {store.description && (
-                    <p className="text-sm text-zinc-400 leading-relaxed line-clamp-2 mb-4 flex-grow">
+                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 mb-4 flex-grow">
                       {store.description}
                     </p>
                   )}
 
                   {/* Footer */}
-                  <div className="flex items-center justify-between pt-4 border-t border-white/[0.06]">
-                    <span className="text-xs text-zinc-500">
+                  <div className="flex items-center justify-between pt-4 border-t border-border">
+                    <span className="text-xs text-muted-foreground">
                       {store.productCount} {store.productCount === 1 ? 'product' : 'products'}
                     </span>
                     <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:text-primary-hover transition-colors">
@@ -158,10 +158,10 @@ export default async function PartnersPage() {
           <div className="absolute inset-0 bg-gradient-to-r from-primary/10 via-transparent to-accent/10" />
           <div className="relative">
             <StoreIcon className="h-12 w-12 text-primary mx-auto mb-4" />
-            <h2 className="text-2xl sm:text-3xl font-bold text-white mb-3">
+            <h2 className="text-2xl sm:text-3xl font-bold text-foreground mb-3">
               Want to become a partner?
             </h2>
-            <p className="text-zinc-400 max-w-lg mx-auto mb-6">
+            <p className="text-muted-foreground max-w-lg mx-auto mb-6">
               Join our growing community of sellers and reach thousands of customers looking for premium footwear.
             </p>
             <Link

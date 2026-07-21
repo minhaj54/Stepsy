@@ -43,7 +43,7 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
       case 'shipped': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
       case 'delivered': return 'bg-green-500/10 text-green-400 border-green-500/20';
       case 'cancelled': return 'bg-red-500/10 text-red-400 border-red-500/20';
-      default: return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+      default: return 'bg-zinc-500/10 text-muted-foreground border-zinc-500/20';
     }
   };
 
@@ -52,15 +52,15 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
       case 'paid': return 'bg-green-500/10 text-green-400';
       case 'unpaid': return 'bg-red-500/10 text-red-400';
       case 'refunded': return 'bg-yellow-500/10 text-yellow-400';
-      default: return 'bg-zinc-500/10 text-zinc-400';
+      default: return 'bg-zinc-500/10 text-muted-foreground';
     }
   };
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-8">
       <div className="mb-8">
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Super Admin Dashboard</h1>
-        <p className="text-zinc-400 text-sm mt-1">Welcome back! Here's what's happening across the marketplace.</p>
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Super Admin Dashboard</h1>
+        <p className="text-muted-foreground text-sm mt-1">Welcome back! Here's what's happening across the marketplace.</p>
       </div>
 
       {/* Stats Cards */}
@@ -68,13 +68,13 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
         {cards.map((card) => (
           <div key={card.label} className="glass-card rounded-2xl p-5 hover:border-primary/20">
             <div className="flex items-center justify-between mb-3">
-              <span className="text-[10px] font-semibold text-zinc-400 uppercase tracking-wider">{card.label}</span>
+              <span className="text-[10px] font-semibold text-muted-foreground uppercase tracking-wider">{card.label}</span>
               <div className={`p-1.5 rounded-lg ${card.bg}`}>
                 <card.icon className={`h-4 w-4 ${card.color}`} />
               </div>
             </div>
             <div className="flex items-end justify-between">
-              <p className="text-2xl font-black text-white">{card.value}</p>
+              <p className="text-2xl font-black text-foreground">{card.value}</p>
               <div className="flex items-center gap-1 text-green-400 text-[10px] font-semibold">
                 <TrendingUp className="h-3 w-3" />
                 {card.trend}
@@ -88,7 +88,7 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
         {/* Recent Orders */}
         <div className="lg:col-span-2 glass-card rounded-2xl p-6">
           <div className="flex items-center justify-between mb-6">
-            <h2 className="text-lg font-bold text-white">Recent Orders</h2>
+            <h2 className="text-lg font-bold text-foreground">Recent Orders</h2>
             <Link href="/admin/orders" className="text-xs text-primary hover:text-primary-hover font-semibold flex items-center gap-1">
               View All <ArrowRight className="h-3 w-3" />
             </Link>
@@ -96,24 +96,24 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
           
           {recentOrders.length === 0 ? (
             <div className="text-center py-8">
-              <ShoppingBag className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-              <p className="text-zinc-400 text-sm">No orders yet</p>
+              <ShoppingBag className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+              <p className="text-muted-foreground text-sm">No orders yet</p>
             </div>
           ) : (
             <div className="space-y-3">
               {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-3 bg-white/[0.02] rounded-xl border border-white/[0.04] hover:bg-white/[0.04] transition-colors">
+                <div key={order.id} className="flex items-center justify-between p-3 bg-secondary rounded-xl border border-border hover:bg-secondary transition-colors">
                   <div className="flex items-center gap-3">
                     <div className="p-2 bg-primary/10 rounded-lg">
                       <ShoppingBag className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-white">#{order.id.slice(0, 8)}</p>
-                      <p className="text-xs text-zinc-400">{order.users?.full_name || 'Unknown'}</p>
+                      <p className="text-sm font-semibold text-foreground">#{order.id.slice(0, 8)}</p>
+                      <p className="text-xs text-muted-foreground">{order.users?.full_name || 'Unknown'}</p>
                     </div>
                   </div>
                   <div className="text-right">
-                    <p className="text-sm font-bold text-white">₹{Number(order.total_amount).toFixed(2)}</p>
+                    <p className="text-sm font-bold text-foreground">₹{Number(order.total_amount).toFixed(2)}</p>
                     <div className="flex items-center gap-2 justify-end">
                       <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${getStatusColor(order.status)}`}>
                         {order.status}
@@ -131,22 +131,22 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
 
         {/* Quick Actions */}
         <div className="glass-card rounded-2xl p-6">
-          <h2 className="text-lg font-bold text-white mb-6">Quick Actions</h2>
+          <h2 className="text-lg font-bold text-foreground mb-6">Quick Actions</h2>
           <div className="space-y-3">
             {quickLinks.map((link) => (
               <Link
                 key={link.href}
                 href={link.href}
-                className="flex items-center gap-3 p-4 bg-white/[0.02] rounded-xl border border-white/[0.04] hover:bg-white/[0.04] hover:border-primary/20 transition-all group"
+                className="flex items-center gap-3 p-4 bg-secondary rounded-xl border border-border hover:bg-secondary hover:border-primary/20 transition-all group"
               >
                 <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
                   <link.icon className="h-4 w-4 text-primary" />
                 </div>
                 <div className="flex-1">
-                  <h3 className="font-bold text-white text-sm group-hover:text-primary transition-colors">{link.label}</h3>
-                  <p className="text-xs text-zinc-500 mt-0.5">{link.description}</p>
+                  <h3 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">{link.label}</h3>
+                  <p className="text-xs text-muted-foreground mt-0.5">{link.description}</p>
                 </div>
-                <ArrowRight className="h-4 w-4 text-zinc-500 group-hover:text-primary transition-colors" />
+                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
               </Link>
             ))}
           </div>
@@ -155,16 +155,16 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
 
       {/* Marketplace Activity */}
       <div className="glass-card rounded-2xl p-6">
-        <h2 className="text-lg font-bold text-white mb-6">Marketplace Activity</h2>
+        <h2 className="text-lg font-bold text-foreground mb-6">Marketplace Activity</h2>
         <div className="space-y-4">
           <div className="flex items-start gap-3">
             <div className="p-2 bg-green-500/10 rounded-lg">
               <CheckCircle className="h-4 w-4 text-green-400" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-white">New order received</p>
-              <p className="text-xs text-zinc-400">Order #12345 placed by John Doe</p>
-              <p className="text-xs text-zinc-500 mt-1">2 minutes ago</p>
+              <p className="text-sm text-foreground">New order received</p>
+              <p className="text-xs text-muted-foreground">Order #12345 placed by John Doe</p>
+              <p className="text-xs text-muted-foreground mt-1">2 minutes ago</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -172,9 +172,9 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
               <Users className="h-4 w-4 text-blue-400" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-white">New customer registered</p>
-              <p className="text-xs text-zinc-400">Jane Smith joined the marketplace</p>
-              <p className="text-xs text-zinc-500 mt-1">15 minutes ago</p>
+              <p className="text-sm text-foreground">New customer registered</p>
+              <p className="text-xs text-muted-foreground">Jane Smith joined the marketplace</p>
+              <p className="text-xs text-muted-foreground mt-1">15 minutes ago</p>
             </div>
           </div>
           <div className="flex items-start gap-3">
@@ -182,9 +182,9 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
               <StoreIcon className="h-4 w-4 text-accent" />
             </div>
             <div className="flex-1">
-              <p className="text-sm text-white">New store registered</p>
-              <p className="text-xs text-zinc-400">SneakerVault applied for store approval</p>
-              <p className="text-xs text-zinc-500 mt-1">1 hour ago</p>
+              <p className="text-sm text-foreground">New store registered</p>
+              <p className="text-xs text-muted-foreground">SneakerVault applied for store approval</p>
+              <p className="text-xs text-muted-foreground mt-1">1 hour ago</p>
             </div>
           </div>
         </div>

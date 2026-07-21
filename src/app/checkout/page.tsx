@@ -138,28 +138,28 @@ export default function CheckoutPage() {
           <span className="text-xs font-bold text-primary uppercase tracking-widest flex items-center justify-center gap-1">
             <Sparkles className="h-4 w-4 text-accent" /> Payment Succeeded
           </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-white tracking-tight">Your order has been placed!</h1>
-          <p className="text-zinc-500 text-sm max-w-md mx-auto">
-            Order Reference: <strong className="text-zinc-300 font-bold">{completedOrder.id}</strong>. We've sent a detailed shipping breakdown to your registered email.
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Your order has been placed!</h1>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto">
+            Order Reference: <strong className="text-foreground font-bold">{completedOrder.id}</strong>. We've sent a detailed shipping breakdown to your registered email.
           </p>
         </div>
 
         {/* Short Order Info */}
-        <div className="w-full glass-card p-6 rounded-3xl border border-white/[0.05] text-left space-y-4 max-w-lg">
-          <h3 className="font-extrabold text-white text-sm uppercase tracking-wider border-b border-white/[0.06] pb-2">Shipping Destination</h3>
-          <div className="text-xs space-y-1 text-zinc-400">
-            <p className="font-bold text-white">{completedOrder.shipping_address.fullName}</p>
+        <div className="w-full glass-card p-6 rounded-3xl border border-border text-left space-y-4 max-w-lg">
+          <h3 className="font-extrabold text-foreground text-sm uppercase tracking-wider border-b border-border pb-2">Shipping Destination</h3>
+          <div className="text-xs space-y-1 text-muted-foreground">
+            <p className="font-bold text-foreground">{completedOrder.shipping_address.fullName}</p>
             <p>{completedOrder.shipping_address.addressLine1}</p>
             <p>{completedOrder.shipping_address.city}, {completedOrder.shipping_address.state} {completedOrder.shipping_address.pincode}</p>
             <p>Phone: {completedOrder.shipping_address.phone}</p>
           </div>
 
-          <h3 className="font-extrabold text-white text-sm uppercase tracking-wider border-b border-white/[0.06] pb-2 pt-2">Payment Details</h3>
-          <div className="flex justify-between text-xs font-semibold text-zinc-400">
+          <h3 className="font-extrabold text-foreground text-sm uppercase tracking-wider border-b border-border pb-2 pt-2">Payment Details</h3>
+          <div className="flex justify-between text-xs font-semibold text-muted-foreground">
             <span>Gateway Merchant</span>
-            <span className="text-white">Razorpay Secure UPI</span>
+            <span className="text-foreground">Razorpay Secure UPI</span>
           </div>
-          <div className="flex justify-between text-sm font-bold text-white border-t border-white/[0.04] pt-2">
+          <div className="flex justify-between text-sm font-bold text-foreground border-t border-border pt-2">
             <span>Total Debited</span>
             <span className="text-primary font-black">₹{completedOrder.total_amount}</span>
           </div>
@@ -168,7 +168,7 @@ export default function CheckoutPage() {
         <div className="flex gap-4">
           <Link
             href="/account?tab=orders"
-            className="bg-zinc-900 border border-white/[0.06] hover:border-white/[0.15] text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors"
+            className="bg-zinc-900 border border-border hover:border-muted-foreground/50 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors"
           >
             Track Order
           </Link>
@@ -187,8 +187,8 @@ export default function CheckoutPage() {
   if (cart.length === 0) {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4 flex-grow flex flex-col justify-center">
-        <h1 className="text-2xl font-black text-white">Checkout Unavailable</h1>
-        <p className="text-zinc-500 text-sm">Your cart is empty. Please add items before visiting the checkout terminal.</p>
+        <h1 className="text-2xl font-black text-foreground">Checkout Unavailable</h1>
+        <p className="text-muted-foreground text-sm">Your cart is empty. Please add items before visiting the checkout terminal.</p>
         <Link href="/shop" className="bg-primary text-white py-3 rounded-xl font-bold text-sm block">Shop Catalog</Link>
       </div>
     );
@@ -198,30 +198,30 @@ export default function CheckoutPage() {
     <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow relative space-y-8">
       {/* Loading Overlay */}
       {isProcessing && (
-        <div className="fixed inset-0 z-50 bg-zinc-950/90 flex flex-col items-center justify-center text-center p-4 animate-in fade-in duration-300">
+        <div className="fixed inset-0 z-50 bg-background/90 flex flex-col items-center justify-center text-center p-4 animate-in fade-in duration-300">
           <div className="h-14 w-14 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-          <h2 className="text-xl font-bold text-white tracking-tight">Processing Transactions</h2>
-          <p className="text-zinc-500 text-xs mt-1 animate-pulse font-medium">{processStep}</p>
+          <h2 className="text-xl font-bold text-foreground tracking-tight">Processing Transactions</h2>
+          <p className="text-muted-foreground text-xs mt-1 animate-pulse font-medium">{processStep}</p>
         </div>
       )}
 
       <div className="flex items-center gap-2">
-        <Link href="/cart" className="text-zinc-500 hover:text-white p-2 border border-white/[0.04] bg-zinc-900/40 rounded-xl transition-all">
+        <Link href="/cart" className="text-muted-foreground hover:text-foreground p-2 border border-border bg-card/40 rounded-xl transition-all">
           <ArrowLeft className="h-4 w-4" />
         </Link>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Express Checkout</h1>
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Express Checkout</h1>
       </div>
 
       <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
         {/* Left: Fields */}
         <div className="lg:col-span-8 space-y-6">
-          <div className="glass-card p-6 rounded-2xl border border-white/[0.05] space-y-4">
-            <h2 className="font-extrabold text-white text-base tracking-tight mb-2 uppercase text-primary">1. Shipping Address</h2>
+          <div className="glass-card p-6 rounded-2xl border border-border space-y-4">
+            <h2 className="font-extrabold text-foreground text-base tracking-tight mb-2 uppercase text-primary">1. Shipping Address</h2>
             
             {/* Saved Addresses Selector */}
             {savedAddresses.length > 0 && (
               <div className="space-y-2 mb-4">
-                <label className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">Saved Addresses</label>
+                <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Saved Addresses</label>
                 <div className="grid grid-cols-1 gap-3">
                   {savedAddresses.map((addr) => (
                     <button
@@ -239,12 +239,12 @@ export default function CheckoutPage() {
                       className={`p-4 rounded-xl text-left transition-all cursor-pointer ${
                         selectedAddressId === addr.id
                           ? 'bg-primary/20 border border-primary'
-                          : 'bg-zinc-950/40 border border-white/[0.06] hover:bg-zinc-900'
+                          : 'bg-background/40 border border-border hover:bg-card'
                       }`}
                     >
                       <div className="flex items-start justify-between gap-3">
                         <div className="flex-1">
-                          <p className="font-bold text-white text-xs flex items-center gap-2">
+                          <p className="font-bold text-foreground text-xs flex items-center gap-2">
                             {addr.full_name}
                             {addr.is_default && (
                               <span className="px-2 py-0.5 bg-primary/30 text-primary text-[8px] rounded-full font-extrabold uppercase">
@@ -252,8 +252,8 @@ export default function CheckoutPage() {
                               </span>
                             )}
                           </p>
-                          <p className="text-[10px] text-zinc-400 mt-1">{addr.phone}</p>
-                          <p className="text-[10px] text-zinc-400 mt-0.5">
+                          <p className="text-[10px] text-muted-foreground mt-1">{addr.phone}</p>
+                          <p className="text-[10px] text-muted-foreground mt-0.5">
                             {addr.address_line1}, {addr.city}, {addr.state} {addr.pincode}
                           </p>
                         </div>
@@ -262,7 +262,7 @@ export default function CheckoutPage() {
                     </button>
                   ))}
                 </div>
-                <div className="text-center text-xs text-zinc-500 my-2">
+                <div className="text-center text-xs text-muted-foreground my-2">
                   — OR ADD NEW ADDRESS —
                 </div>
               </div>
@@ -272,81 +272,81 @@ export default function CheckoutPage() {
             <div className="space-y-4">
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div className="space-y-1">
-                  <label htmlFor="name-input" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">Full Name</label>
+                  <label htmlFor="name-input" className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Full Name</label>
                   <input
                     id="name-input"
                     type="text"
                     required
                     value={fullName}
                     onChange={(e) => setFullName(e.target.value)}
-                    className="w-full bg-zinc-950 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                    className="w-full bg-background text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="phone-input" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">Phone Number</label>
+                  <label htmlFor="phone-input" className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Phone Number</label>
                   <input
                     id="phone-input"
                     type="text"
                     required
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
-                    className="w-full bg-zinc-950 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                    className="w-full bg-background text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   />
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="address-input" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">Address Line 1</label>
+                <label htmlFor="address-input" className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Address Line 1</label>
                 <input
                   id="address-input"
                   type="text"
                   required
                   value={addressLine1}
                   onChange={(e) => setAddressLine1(e.target.value)}
-                  className="w-full bg-zinc-950 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                  className="w-full bg-background text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                 />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div className="space-y-1">
-                  <label htmlFor="city-input" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">City</label>
+                  <label htmlFor="city-input" className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">City</label>
                   <input
                     id="city-input"
                     type="text"
                     required
                     value={city}
                     onChange={(e) => setCity(e.target.value)}
-                    className="w-full bg-zinc-950 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                    className="w-full bg-background text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="state-input" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">State</label>
+                  <label htmlFor="state-input" className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">State</label>
                   <input
                     id="state-input"
                     type="text"
                     required
                     value={state}
                     onChange={(e) => setState(e.target.value)}
-                    className="w-full bg-zinc-950 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                    className="w-full bg-background text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   />
                 </div>
                 <div className="space-y-1">
-                  <label htmlFor="pincode-input" className="block text-[10px] font-bold uppercase tracking-wider text-zinc-500">Pincode</label>
+                  <label htmlFor="pincode-input" className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Pincode</label>
                   <input
                     id="pincode-input"
                     type="text"
                     required
                     value={pincode}
                     onChange={(e) => setPincode(e.target.value)}
-                    className="w-full bg-zinc-950 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                    className="w-full bg-background text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   />
                 </div>
               </div>
             </div>
           </div>
 
-          <div className="glass-card p-6 rounded-2xl border border-white/[0.05] space-y-4">
-            <h2 className="font-extrabold text-white text-base tracking-tight mb-2 uppercase text-primary">2. Payment Method</h2>
+          <div className="glass-card p-6 rounded-2xl border border-border space-y-4">
+            <h2 className="font-extrabold text-foreground text-base tracking-tight mb-2 uppercase text-primary">2. Payment Method</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               {/* Razorpay Option */}
@@ -356,7 +356,7 @@ export default function CheckoutPage() {
                 className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
                   paymentMethod === 'razorpay'
                     ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(99,102,241,0.2)]'
-                    : 'border-white/[0.06] hover:border-white/[0.12] text-zinc-400 hover:text-white'
+                    : 'border-border hover:border-muted-foreground/50 text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <Landmark className="h-5 w-5" />
@@ -370,7 +370,7 @@ export default function CheckoutPage() {
                 className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
                   paymentMethod === 'card'
                     ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(99,102,241,0.2)]'
-                    : 'border-white/[0.06] hover:border-white/[0.12] text-zinc-400 hover:text-white'
+                    : 'border-border hover:border-muted-foreground/50 text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <CreditCard className="h-5 w-5" />
@@ -384,7 +384,7 @@ export default function CheckoutPage() {
                 className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
                   paymentMethod === 'netbanking'
                     ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(99,102,241,0.2)]'
-                    : 'border-white/[0.06] hover:border-white/[0.12] text-zinc-400 hover:text-white'
+                    : 'border-border hover:border-muted-foreground/50 text-muted-foreground hover:text-foreground'
                 }`}
               >
                 <ShoppingBag className="h-5 w-5" />
@@ -396,36 +396,36 @@ export default function CheckoutPage() {
 
         {/* Right: Summary */}
         <div className="lg:col-span-4 space-y-6">
-          <div className="glass-card p-6 rounded-2xl border border-white/[0.05] space-y-6">
-            <h3 className="font-extrabold text-white text-base tracking-tight mb-2 uppercase border-b border-white/[0.06] pb-2">Cart Summary</h3>
+          <div className="glass-card p-6 rounded-2xl border border-border space-y-6">
+            <h3 className="font-extrabold text-foreground text-base tracking-tight mb-2 uppercase border-b border-border pb-2">Cart Summary</h3>
 
             {/* Item list */}
-            <div className="max-h-[220px] overflow-y-auto pr-2 divide-y divide-white/[0.04] space-y-3.5">
+            <div className="max-h-[220px] overflow-y-auto pr-2 divide-y divide-border space-y-3.5">
               {cart.map((item) => (
                 <div key={item.variant.id} className="flex gap-4 items-center justify-between text-xs pt-3 first:pt-0">
                   <div className="flex gap-3 items-center">
                     <ShimmerImage src={item.product.images[0]} alt="" className="h-9 w-9" />
                     <div>
-                      <p className="font-bold text-white line-clamp-1 max-w-[120px]">{item.product.title}</p>
-                      <p className="text-zinc-500 mt-0.5">Size {item.variant.size} • Qty {item.quantity}</p>
+                      <p className="font-bold text-foreground line-clamp-1 max-w-[120px]">{item.product.title}</p>
+                      <p className="text-muted-foreground mt-0.5">Size {item.variant.size} • Qty {item.quantity}</p>
                     </div>
                   </div>
-                  <span className="font-bold text-white">₹{(item.product.sale_price || item.product.price) * item.quantity}</span>
+                  <span className="font-bold text-foreground">₹{(item.product.sale_price || item.product.price) * item.quantity}</span>
                 </div>
               ))}
             </div>
 
             {/* Financial breakdown */}
-            <div className="border-t border-white/[0.06] pt-4 text-xs space-y-2">
-              <div className="flex justify-between text-zinc-400 font-semibold">
+            <div className="border-t border-border pt-4 text-xs space-y-2">
+              <div className="flex justify-between text-muted-foreground font-semibold">
                 <span>Subtotal</span>
                 <span>₹{cartTotal}</span>
               </div>
-              <div className="flex justify-between text-zinc-400 font-semibold">
+              <div className="flex justify-between text-muted-foreground font-semibold">
                 <span>Shipping</span>
                 <span>{cartTotal >= 1500 ? 'Free' : '₹150'}</span>
               </div>
-              <div className="flex justify-between text-sm font-black text-white border-t border-white/[0.04] pt-3">
+              <div className="flex justify-between text-sm font-black text-foreground border-t border-border pt-3">
                 <span>Grand Total</span>
                 <span className="text-primary font-black">₹{finalTotal}</span>
               </div>
@@ -440,7 +440,7 @@ export default function CheckoutPage() {
             </button>
           </div>
 
-          <div className="text-center bg-zinc-950 p-4 border border-white/[0.04] rounded-2xl text-[10px] text-zinc-500 flex items-center justify-center gap-1.5 uppercase font-bold tracking-wider">
+          <div className="text-center bg-background p-4 border border-border rounded-2xl text-[10px] text-muted-foreground flex items-center justify-center gap-1.5 uppercase font-bold tracking-wider">
             <ShieldCheck className="h-4.5 w-4.5 text-primary" /> Encrypted with 256-bit SSL Protection
           </div>
         </div>

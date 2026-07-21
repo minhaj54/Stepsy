@@ -117,7 +117,7 @@ export default function OpenStorePage() {
 
   if (loadingAuth) {
     return (
-      <div className="min-h-[60vh] flex items-center justify-center text-zinc-400">
+      <div className="min-h-[60vh] flex items-center justify-center text-muted-foreground">
         <Loader2 className="h-6 w-6 animate-spin" />
       </div>
     );
@@ -130,8 +130,8 @@ export default function OpenStorePage() {
           <div className="p-4 bg-primary/10 rounded-2xl w-fit mx-auto mb-5">
             <StoreIcon className="h-8 w-8 text-primary" />
           </div>
-          <h1 className="text-2xl font-extrabold text-white">Open Your Store</h1>
-          <p className="text-zinc-400 text-sm mt-2">
+          <h1 className="text-2xl font-extrabold text-foreground">Open Your Store</h1>
+          <p className="text-muted-foreground text-sm mt-2">
             You need to sign in before you can create a store on the marketplace.
           </p>
           <Link
@@ -151,8 +151,8 @@ export default function OpenStorePage() {
         <div className="p-4 bg-primary/10 rounded-2xl w-fit mx-auto mb-4">
           <StoreIcon className="h-8 w-8 text-primary" />
         </div>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Open Your Store</h1>
-        <p className="text-zinc-400 text-sm mt-2">
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Open Your Store</h1>
+        <p className="text-muted-foreground text-sm mt-2">
           Set up your storefront and start selling your footwear to the world.
         </p>
       </div>
@@ -160,15 +160,15 @@ export default function OpenStorePage() {
       <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
         {/* Banner */}
         <div>
-          <label className="block text-sm font-semibold text-white mb-2">Store Banner</label>
+          <label className="block text-sm font-semibold text-foreground mb-2">Store Banner</label>
           <input ref={bannerInputRef} type="file" accept="image/*" onChange={pickBanner} className="hidden" />
           {bannerPreview ? (
-            <div className="relative rounded-xl overflow-hidden border border-white/[0.06]">
+            <div className="relative rounded-xl overflow-hidden border border-border">
               <img src={bannerPreview} alt="Banner preview" className="w-full h-40 object-cover" />
               <button
                 type="button"
                 onClick={() => { setBannerFile(null); setBannerPreview(''); }}
-                className="absolute top-2 right-2 p-1.5 bg-zinc-900/70 hover:bg-zinc-900 text-white rounded-full"
+                className="absolute top-2 right-2 p-1.5 bg-zinc-900/70 hover:bg-zinc-900 text-foreground rounded-full"
                 aria-label="Remove banner"
               >
                 <X className="h-4 w-4" />
@@ -178,7 +178,7 @@ export default function OpenStorePage() {
             <button
               type="button"
               onClick={() => bannerInputRef.current?.click()}
-              className="w-full h-40 border-2 border-dashed border-white/[0.1] hover:border-primary/40 rounded-xl flex flex-col items-center justify-center gap-2 text-zinc-500 hover:text-primary transition-colors"
+              className="w-full h-40 border-2 border-dashed border-border hover:border-primary/40 rounded-xl flex flex-col items-center justify-center gap-2 text-muted-foreground hover:text-primary transition-colors"
             >
               <ImageIcon className="h-6 w-6" />
               <span className="text-sm">Click to upload banner (recommended 1200×300)</span>
@@ -188,16 +188,16 @@ export default function OpenStorePage() {
 
         {/* Logo */}
         <div>
-          <label className="block text-sm font-semibold text-white mb-2">Store Logo</label>
+          <label className="block text-sm font-semibold text-foreground mb-2">Store Logo</label>
           <input ref={logoInputRef} type="file" accept="image/*" onChange={pickLogo} className="hidden" />
           <div className="flex items-center gap-4">
             {logoPreview ? (
               <div className="relative">
-                <img src={logoPreview} alt="Logo preview" className="h-20 w-20 rounded-xl object-cover border border-white/[0.06]" />
+                <img src={logoPreview} alt="Logo preview" className="h-20 w-20 rounded-xl object-cover border border-border" />
                 <button
                   type="button"
                   onClick={() => { setLogoFile(null); setLogoPreview(''); }}
-                  className="absolute -top-2 -right-2 p-1 bg-zinc-900/70 hover:bg-zinc-900 text-white rounded-full"
+                  className="absolute -top-2 -right-2 p-1 bg-zinc-900/70 hover:bg-zinc-900 text-foreground rounded-full"
                   aria-label="Remove logo"
                 >
                   <X className="h-3.5 w-3.5" />
@@ -207,7 +207,7 @@ export default function OpenStorePage() {
               <button
                 type="button"
                 onClick={() => logoInputRef.current?.click()}
-                className="h-20 w-20 border-2 border-dashed border-white/[0.1] hover:border-primary/40 rounded-xl flex flex-col items-center justify-center gap-1 text-zinc-500 hover:text-primary transition-colors"
+                className="h-20 w-20 border-2 border-dashed border-border hover:border-primary/40 rounded-xl flex flex-col items-center justify-center gap-1 text-muted-foreground hover:text-primary transition-colors"
               >
                 <UploadCloud className="h-5 w-5" />
                 <span className="text-[10px]">Logo</span>
@@ -225,40 +225,40 @@ export default function OpenStorePage() {
 
         {/* Name */}
         <div>
-          <label className="block text-sm font-semibold text-white mb-2">Store Name *</label>
+          <label className="block text-sm font-semibold text-foreground mb-2">Store Name *</label>
           <input
             type="text"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Sole Society"
-            className="w-full bg-white/[0.03] text-white border border-white/[0.08] hover:border-white/[0.15] focus:border-primary focus:bg-white/[0.06] rounded-xl px-4 py-3 text-sm outline-none transition-all"
+            className="w-full bg-secondary text-foreground border border-border hover:border-muted-foreground/50 focus:border-primary focus:bg-white/[0.06] rounded-xl px-4 py-3 text-sm outline-none transition-all"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-semibold text-white mb-2">Store Description</label>
+          <label className="block text-sm font-semibold text-foreground mb-2">Store Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             placeholder="Tell customers what makes your store special..."
-            className="w-full bg-white/[0.03] text-white border border-white/[0.08] hover:border-white/[0.15] focus:border-primary focus:bg-white/[0.06] rounded-xl px-4 py-3 text-sm outline-none transition-all resize-none"
+            className="w-full bg-secondary text-foreground border border-border hover:border-muted-foreground/50 focus:border-primary focus:bg-white/[0.06] rounded-xl px-4 py-3 text-sm outline-none transition-all resize-none"
           />
         </div>
 
         {/* Social handle */}
         <div>
-          <label className="block text-sm font-semibold text-white mb-2">Social Handle (optional)</label>
-          <div className="flex items-center bg-white/[0.03] border border-white/[0.08] focus-within:border-primary rounded-xl px-4 transition-all">
-            <span className="text-zinc-500 text-sm">@</span>
+          <label className="block text-sm font-semibold text-foreground mb-2">Social Handle (optional)</label>
+          <div className="flex items-center bg-secondary border border-border focus-within:border-primary rounded-xl px-4 transition-all">
+            <span className="text-muted-foreground text-sm">@</span>
             <input
               type="text"
               value={socialHandle}
               onChange={(e) => setSocialHandle(e.target.value.replace(/[^a-zA-Z0-9._]/g, ''))}
               placeholder="yourhandle"
-              className="flex-grow bg-transparent text-white py-3 text-sm outline-none"
+              className="flex-grow bg-transparent text-foreground py-3 text-sm outline-none"
             />
           </div>
         </div>

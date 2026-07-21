@@ -52,7 +52,7 @@ export default function AdminStoresClient({ initialStores }: AdminStoresClientPr
       case 'active': return 'bg-green-500/10 text-green-400 border-green-500/20';
       case 'pending': return 'bg-yellow-500/10 text-yellow-400 border-yellow-500/20';
       case 'suspended': return 'bg-red-500/10 text-red-400 border-red-500/20';
-      default: return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+      default: return 'bg-zinc-500/10 text-muted-foreground border-zinc-500/20';
     }
   };
 
@@ -70,32 +70,32 @@ export default function AdminStoresClient({ initialStores }: AdminStoresClientPr
       <div className="mb-8">
         <Link
           href="/admin"
-          className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
         >
           <ArrowLeft className="h-3 w-3" /> Dashboard
         </Link>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Stores Management</h1>
-        <p className="text-zinc-400 text-sm mt-1">{filteredStores.length} of {stores.length} stores</p>
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Stores Management</h1>
+        <p className="text-muted-foreground text-sm mt-1">{filteredStores.length} of {stores.length} stores</p>
       </div>
 
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search by store name or owner..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="w-full bg-card/50 text-foreground border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-zinc-500" />
+          <Filter className="h-4 w-4 text-muted-foreground" />
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as any)}
-            className="bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="bg-card/50 text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
           >
             <option value="all">All Status</option>
             <option value="active">Active</option>
@@ -108,8 +108,8 @@ export default function AdminStoresClient({ initialStores }: AdminStoresClientPr
       {/* Stores Grid */}
       {filteredStores.length === 0 ? (
         <div className="glass-card rounded-2xl p-12 text-center">
-          <StoreIcon className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400 text-sm">No stores found</p>
+          <StoreIcon className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm">No stores found</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
@@ -135,30 +135,30 @@ export default function AdminStoresClient({ initialStores }: AdminStoresClientPr
                 {/* Store Info */}
                 <div className="p-5">
                   <div className="flex items-center gap-3 mb-3">
-                    <div className="h-12 w-12 rounded-xl overflow-hidden bg-zinc-800 border border-white/[0.06] shrink-0">
+                    <div className="h-12 w-12 rounded-xl overflow-hidden bg-zinc-800 border border-border shrink-0">
                       {store.logo_url ? (
                         <img src={store.logo_url} alt={store.name} className="w-full h-full object-cover" />
                       ) : (
                         <div className="w-full h-full flex items-center justify-center">
-                          <StoreIcon className="h-6 w-6 text-zinc-500" />
+                          <StoreIcon className="h-6 w-6 text-muted-foreground" />
                         </div>
                       )}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-bold text-white text-sm truncate">{store.name}</h3>
-                      <p className="text-xs text-zinc-500">by {store.users?.full_name || 'Unknown'}</p>
+                      <h3 className="font-bold text-foreground text-sm truncate">{store.name}</h3>
+                      <p className="text-xs text-muted-foreground">by {store.users?.full_name || 'Unknown'}</p>
                     </div>
                   </div>
 
                   {store.description && (
-                    <p className="text-xs text-zinc-400 line-clamp-2 mb-4">{store.description}</p>
+                    <p className="text-xs text-muted-foreground line-clamp-2 mb-4">{store.description}</p>
                   )}
 
                   {/* Actions */}
                   <div className="flex items-center gap-2">
                     <Link
                       href={`/store/${store.slug}`}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs text-zinc-300 hover:text-white bg-white/[0.04] hover:bg-white/[0.08] border border-white/[0.06] rounded-lg px-3 py-2 transition-colors"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 text-xs text-muted-foreground hover:text-foreground bg-secondary hover:bg-muted border border-border rounded-lg px-3 py-2 transition-colors"
                     >
                       <ExternalLink className="h-3.5 w-3.5" />
                       View

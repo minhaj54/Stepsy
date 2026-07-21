@@ -14,7 +14,7 @@ export default async function SearchPage() {
 
   return (
     <Suspense fallback={
-      <div className="min-h-[60vh] flex flex-col items-center justify-center text-zinc-400 gap-4">
+      <div className="min-h-[60vh] flex flex-col items-center justify-center text-muted-foreground gap-4">
         <div className="h-10 w-10 border-4 border-primary border-t-transparent rounded-full animate-spin" />
         <span className="text-sm font-semibold tracking-wider animate-pulse">Searching Zarwinto...</span>
       </div>

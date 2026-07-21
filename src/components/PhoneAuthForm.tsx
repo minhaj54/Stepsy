@@ -150,10 +150,10 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-10">
       <div className="w-full max-w-md">
         <div className="text-center mb-8">
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
             {isSignup ? 'Join Zarwinto' : 'Welcome Back'}
           </h1>
-          <p className="text-zinc-400 text-sm mt-2">
+          <p className="text-muted-foreground text-sm mt-2">
             {step === 'phone'
               ? 'Enter your mobile number to receive an OTP'
               : `Enter the 6-digit code sent to +91 ${phone.replace(/\D/g, '').slice(-10)}`}
@@ -189,39 +189,39 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
             <form onSubmit={handleSendOtp} className="space-y-4">
               {isSignup && (
                 <div>
-                  <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                  <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                     Full Name
                   </label>
                   <div className="relative">
-                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                    <User className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                     <input
                       type="text"
                       value={fullName}
                       onChange={(e) => setFullName(e.target.value)}
                       required
                       placeholder="Your name"
-                      className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl py-2.5 pl-10 pr-4 text-white text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                      className="w-full bg-secondary border border-border rounded-xl py-2.5 pl-10 pr-4 text-foreground text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                     />
                   </div>
                 </div>
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   Mobile Number
                 </label>
                 <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
                   <input
                     type="tel"
                     value={phone}
                     onChange={(e) => setPhone(e.target.value)}
                     required
                     placeholder="98765 43210"
-                    className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl py-2.5 pl-10 pr-4 text-white text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                    className="w-full bg-secondary border border-border rounded-xl py-2.5 pl-10 pr-4 text-foreground text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
                   />
                 </div>
-                <p className="text-[10px] text-zinc-500 mt-1.5">India (+91) numbers supported. Include country code for others.</p>
+                <p className="text-[10px] text-muted-foreground mt-1.5">India (+91) numbers supported. Include country code for others.</p>
               </div>
 
               <button
@@ -243,7 +243,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
               )}
 
               <div>
-                <label className="block text-xs font-semibold text-zinc-400 uppercase tracking-wider mb-2">
+                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
                   OTP Code
                 </label>
                 <input
@@ -257,9 +257,9 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                   autoFocus
                   disabled={verifying}
                   placeholder="123456"
-                  className="w-full bg-white/[0.04] border border-white/[0.08] rounded-xl py-3 px-4 text-white text-center text-2xl font-bold tracking-[0.5em] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50"
+                  className="w-full bg-secondary border border-border rounded-xl py-3 px-4 text-foreground text-center text-2xl font-bold tracking-[0.5em] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50"
                 />
-                <p className="text-[10px] text-zinc-500 mt-1.5">
+                <p className="text-[10px] text-muted-foreground mt-1.5">
                   Enter the 6-digit code from your SMS. The code is valid for 10 minutes.
                 </p>
               </div>
@@ -287,7 +287,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                   type="button"
                   onClick={() => { setStep('phone'); setError(''); setVerifying(false); setIsRateLimited(false); }}
                   disabled={verifying}
-                  className="text-zinc-400 hover:text-white transition-colors disabled:opacity-50 flex items-center gap-1"
+                  className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 flex items-center gap-1"
                 >
                   <RotateCcw className="h-3 w-3" />
                   Change number
@@ -296,7 +296,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                   type="button"
                   onClick={handleResend}
                   disabled={resendCooldown > 0 || verifying || sending}
-                  className="text-primary hover:text-primary-hover font-semibold disabled:text-zinc-600 disabled:cursor-not-allowed"
+                  className="text-primary hover:text-primary-hover font-semibold disabled:text-muted-foreground disabled:cursor-not-allowed"
                 >
                   {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
                 </button>
@@ -304,7 +304,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
             </form>
           )}
 
-          <p className="text-center text-sm text-zinc-400">
+          <p className="text-center text-sm text-muted-foreground">
             {isSignup ? (
               <>
                 Already have an account?{' '}

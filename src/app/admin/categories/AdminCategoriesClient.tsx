@@ -98,12 +98,12 @@ export default function AdminCategoriesClient({ initialCategories, brands }: Adm
         <div>
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
           >
             <ArrowLeft className="h-3 w-3" /> Dashboard
           </Link>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Categories</h1>
-          <p className="text-zinc-400 text-sm mt-1">Manage product categories</p>
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Categories</h1>
+          <p className="text-muted-foreground text-sm mt-1">Manage product categories</p>
         </div>
         <button
           onClick={openAddModal}
@@ -116,21 +116,21 @@ export default function AdminCategoriesClient({ initialCategories, brands }: Adm
 
       {/* Search */}
       <div className="relative max-w-md mb-6">
-        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
           type="text"
           placeholder="Search categories..."
           value={searchQuery}
           onChange={e => setSearchQuery(e.target.value)}
-          className="w-full bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+          className="w-full bg-card/50 text-foreground border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
         />
       </div>
 
       {/* Categories Grid */}
       {filteredCategories.length === 0 ? (
         <div className="glass-card rounded-2xl p-12 text-center">
-          <Tag className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400 text-sm">No categories found</p>
+          <Tag className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm">No categories found</p>
         </div>
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
@@ -141,20 +141,20 @@ export default function AdminCategoriesClient({ initialCategories, brands }: Adm
                   <Tag className="h-5 w-5 text-primary" />
                 </div>
                 <div>
-                  <h3 className="font-bold text-white text-sm">{category.name}</h3>
-                  <p className="text-xs text-zinc-500">/{category.slug}</p>
+                  <h3 className="font-bold text-foreground text-sm">{category.name}</h3>
+                  <p className="text-xs text-muted-foreground">/{category.slug}</p>
                 </div>
               </div>
               <div className="flex items-center gap-2">
                 <button
                   onClick={() => openEditModal(category)}
-                  className="p-2 bg-white/[0.04] hover:bg-primary/20 text-zinc-400 hover:text-primary rounded-lg transition-colors"
+                  className="p-2 bg-secondary hover:bg-primary/20 text-muted-foreground hover:text-primary rounded-lg transition-colors"
                 >
                   <Edit className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(category.id)}
-                  className="p-2 bg-white/[0.04] hover:bg-red-500/20 text-zinc-400 hover:text-red-400 rounded-lg transition-colors"
+                  className="p-2 bg-secondary hover:bg-red-500/20 text-muted-foreground hover:text-red-400 rounded-lg transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>
@@ -169,12 +169,12 @@ export default function AdminCategoriesClient({ initialCategories, brands }: Adm
         <div className="fixed inset-0 bg-black/60 backdrop-blur-sm flex items-center justify-center z-50 p-4">
           <div className="glass-card rounded-2xl p-6 w-full max-w-md">
             <div className="flex items-center justify-between mb-6">
-              <h2 className="text-lg font-bold text-white">
+              <h2 className="text-lg font-bold text-foreground">
                 {editingCategory ? 'Edit Category' : 'Add Category'}
               </h2>
               <button
                 onClick={() => setIsModalOpen(false)}
-                className="p-1.5 text-zinc-400 hover:text-white transition-colors"
+                className="p-1.5 text-muted-foreground hover:text-foreground transition-colors"
               >
                 <X className="h-5 w-5" />
               </button>
@@ -182,40 +182,40 @@ export default function AdminCategoriesClient({ initialCategories, brands }: Adm
 
             <form onSubmit={handleSave} className="space-y-4">
               <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Category Name
                 </label>
                 <input
                   type="text"
                   value={name}
                   onChange={e => setName(e.target.value)}
-                  className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                  className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   placeholder="e.g., Sneakers"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Slug
                 </label>
                 <input
                   type="text"
                   value={slug}
                   onChange={e => setSlug(e.target.value)}
-                  className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                  className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   placeholder="e.g., sneakers"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Image URL (optional)
                 </label>
                 <input
                   type="text"
                   value={image}
                   onChange={e => setImage(e.target.value)}
-                  className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                  className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   placeholder="https://..."
                 />
               </div>
@@ -224,7 +224,7 @@ export default function AdminCategoriesClient({ initialCategories, brands }: Adm
                 <button
                   type="button"
                   onClick={() => setIsModalOpen(false)}
-                  className="flex-1 px-4 py-2.5 bg-white/[0.05] hover:bg-white/[0.08] text-white rounded-xl font-semibold text-sm transition-colors"
+                  className="flex-1 px-4 py-2.5 bg-secondary hover:bg-muted text-foreground rounded-xl font-semibold text-sm transition-colors"
                 >
                   Cancel
                 </button>

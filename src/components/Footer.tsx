@@ -18,16 +18,16 @@ export const Footer: React.FC = () => {
   };
 
   return (
-    <footer className="w-full bg-zinc-950 border-t border-white/[0.04] text-zinc-400 mt-auto">
+    <footer className="w-full bg-background border-t border-border text-muted-foreground mt-auto">
       {/* Newsletter Banner */}
-      <div className="border-b border-white/[0.04] py-8 bg-gradient-to-r from-zinc-950 via-primary/5 to-zinc-950">
+      <div className="border-b border-border py-8 bg-gradient-to-r from-background via-primary/5 to-background">
         <div className="px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
             <div>
-              <h3 className="text-xl font-bold text-white tracking-tight sm:text-2xl">
+              <h3 className="text-xl font-bold text-foreground tracking-tight sm:text-2xl">
                 Join the Sneaker Club
               </h3>
-              <p className="mt-2 text-sm text-zinc-400">
+              <p className="mt-2 text-sm text-muted-foreground">
                 Subscribe to get early access to exclusive drops, restocks, and weekly edits.
               </p>
             </div>
@@ -39,7 +39,7 @@ export const Footer: React.FC = () => {
                   placeholder="Enter your email address"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
-                  className="flex-grow bg-white/[0.03] text-white border border-white/[0.08] hover:border-white/[0.15] focus:border-primary focus:bg-white/[0.06] rounded-xl px-4 py-3 text-sm outline-none transition-all duration-300"
+                  className="flex-grow bg-secondary text-foreground border border-border hover:border-muted-foreground/50 focus:border-primary focus:bg-muted rounded-xl px-4 py-3 text-sm outline-none transition-all duration-300"
                 />
                 <button
                   type="submit"
@@ -64,17 +64,17 @@ export const Footer: React.FC = () => {
         <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
           {/* Brand Info */}
           <div className="space-y-4">
-            <Link href="/" className="text-xl font-black tracking-tighter text-white">
+            <Link href="/" className="text-xl font-black tracking-tighter text-foreground">
               ZARW<span className="text-primary">INTO</span>
             </Link>
-            <p className="text-sm text-zinc-400 leading-relaxed">
+            <p className="text-sm text-muted-foreground leading-relaxed">
               Zarwinto is a state-of-the-art premium footwear marketplace offering elite performance shoes, luxury craft sneakers, and all-weather boots.
             </p>
             <a
               href="https://www.instagram.com/zarwinto?igsh=MWl0MzIzOHkwaDVzbg=="
               target="_blank"
               rel="noopener noreferrer"
-              className="p-2 bg-white/[0.03] hover:bg-primary/20 hover:text-white rounded-lg transition-colors"
+              className="p-2 bg-secondary hover:bg-primary/20 hover:text-foreground rounded-lg transition-colors"
               aria-label="Instagram"
             >
               <svg
@@ -97,55 +97,55 @@ export const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 className="text-sm font-semibold text-white tracking-widest uppercase mb-4">
+            <h4 className="text-sm font-semibold text-foreground tracking-widest uppercase mb-4">
               Shop Categories
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link href="/shop?category=sneakers" className="hover:text-white transition-colors">Sneakers</Link>
+                <Link href="/shop?category=sneakers" className="hover:text-foreground transition-colors">Sneakers</Link>
               </li>
               <li>
-                <Link href="/shop?category=casual" className="hover:text-white transition-colors">Casual Shoes</Link>
+                <Link href="/shop?category=casual" className="hover:text-foreground transition-colors">Casual Shoes</Link>
               </li>
               <li>
-                <Link href="/shop?category=boots" className="hover:text-white transition-colors">Boots</Link>
+                <Link href="/shop?category=boots" className="hover:text-foreground transition-colors">Boots</Link>
               </li>
               <li>
-                <Link href="/shop?category=formal" className="hover:text-white transition-colors">Formal Shoes</Link>
+                <Link href="/shop?category=formal" className="hover:text-foreground transition-colors">Formal Shoes</Link>
               </li>
               <li>
-                <Link href="/shop?category=sandals" className="hover:text-white transition-colors">Sandals</Link>
+                <Link href="/shop?category=sandals" className="hover:text-foreground transition-colors">Sandals</Link>
               </li>
             </ul>
           </div>
 
           {/* Help & Support */}
           <div>
-            <h4 className="text-sm font-semibold text-white tracking-widest uppercase mb-4">
+            <h4 className="text-sm font-semibold text-foreground tracking-widest uppercase mb-4">
               Customer Support
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link href="#" className="hover:text-white transition-colors">Track Your Order</Link>
+                <Link href="#" className="hover:text-foreground transition-colors">Track Your Order</Link>
               </li>
               <li>
-                <Link href="/returns" className="hover:text-white transition-colors">Returns & Exchanges</Link>
+                <Link href="/returns" className="hover:text-foreground transition-colors">Returns & Exchanges</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">Shipping Information</Link>
+                <Link href="#" className="hover:text-foreground transition-colors">Shipping Information</Link>
               </li>
               <li>
-                <Link href="/faq" className="hover:text-white transition-colors">FAQs</Link>
+                <Link href="/faq" className="hover:text-foreground transition-colors">FAQs</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-white transition-colors">Size Guide</Link>
+                <Link href="#" className="hover:text-foreground transition-colors">Size Guide</Link>
               </li>
             </ul>
           </div>
 
           {/* Contact Details */}
           <div>
-            <h4 className="text-sm font-semibold text-white tracking-widest uppercase mb-4">
+            <h4 className="text-sm font-semibold text-foreground tracking-widest uppercase mb-4">
               Get in Touch
             </h4>
             <ul className="space-y-3 text-sm">
@@ -155,26 +155,26 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex gap-2.5 items-center">
                 <Phone className="h-5 w-5 text-primary flex-shrink-0" />
-                <a href="tel:+917982369183" className="hover:text-white transition-colors">+91 79823 69183</a>
+                <a href="tel:+917982369183" className="hover:text-foreground transition-colors">+91 79823 69183</a>
               </li>
               <li className="flex gap-2.5 items-center">
                 <Mail className="h-5 w-5 text-primary flex-shrink-0" />
-                <a href="mailto:support@zarwinto.com" className="hover:text-white transition-colors">support@zarwinto.com</a>
+                <a href="mailto:support@zarwinto.com" className="hover:text-foreground transition-colors">support@zarwinto.com</a>
               </li>
             </ul>
           </div>
         </div>
 
         {/* Lower Banner */}
-        <div className="border-t border-white/[0.04] mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
+        <div className="border-t border-border mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
           <p>© {new Date().getFullYear()} Zarwinto Inc. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/open-store" className="inline-flex items-center gap-1.5 text-primary hover:text-primary-hover font-semibold transition-colors">
               <Store className="h-4 w-4" />
               Open Your Store
             </Link>
-            <Link href="/privacy" className="hover:text-white transition-colors">Privacy Policy</Link>
-            <Link href="/terms" className="hover:text-white transition-colors">Terms of Service</Link>
+            <Link href="/privacy" className="hover:text-foreground transition-colors">Privacy Policy</Link>
+            <Link href="/terms" className="hover:text-foreground transition-colors">Terms of Service</Link>
           </div>
         </div>
       </div>

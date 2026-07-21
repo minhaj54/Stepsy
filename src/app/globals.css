@@ -1,31 +1,68 @@
 @import "tailwindcss";
 
 :root {
-  /* Dark mode by default for premium sneaker store aesthetics */
-  --background: #09090b;
-  --foreground: #f4f4f5;
-  
-  --card: #151518;
-  --card-foreground: #f4f4f5;
-  --card-border: rgba(255, 255, 255, 0.08);
- 
-  --popover: #111113;
-  --popover-foreground: #f4f4f5;
- 
+  /* Light theme (default) */
+  --background: #ffffff;
+  --foreground: #09090b;
+
+  --card: #f4f4f5;
+  --card-foreground: #09090b;
+  --card-border: rgba(0, 0, 0, 0.08);
+
+  --popover: #ffffff;
+  --popover-foreground: #09090b;
+
   --primary: #6366f1; /* Indigo */
   --primary-hover: #4f46e5;
   --primary-foreground: #ffffff;
- 
-  --secondary: #1f1f23;
-  --secondary-foreground: #f4f4f5;
- 
-  --muted: #27272a;
-  --muted-foreground: #a1a1aa;
- 
+
+  --secondary: #f4f4f5;
+  --secondary-foreground: #09090b;
+
+  --muted: #f4f4f5;
+  --muted-foreground: #71717a;
+
   --accent: #f97316; /* Amber/Orange */
   --accent-hover: #ea580c;
   --accent-foreground: #ffffff;
- 
+
+  --destructive: #ef4444;
+  --destructive-foreground: #ffffff;
+
+  --border: #e4e4e7;
+  --input: #f4f4f5;
+  --ring: #6366f1;
+
+  --glass-bg: rgba(255, 255, 255, 0.6);
+  --glass-border: rgba(0, 0, 0, 0.08);
+}
+
+.dark {
+  /* Dark theme overrides */
+  --background: #09090b;
+  --foreground: #f4f4f5;
+
+  --card: #151518;
+  --card-foreground: #f4f4f5;
+  --card-border: rgba(255, 255, 255, 0.08);
+
+  --popover: #111113;
+  --popover-foreground: #f4f4f5;
+
+  --primary: #6366f1; /* Indigo */
+  --primary-hover: #4f46e5;
+  --primary-foreground: #ffffff;
+
+  --secondary: #1f1f23;
+  --secondary-foreground: #f4f4f5;
+
+  --muted: #27272a;
+  --muted-foreground: #a1a1aa;
+
+  --accent: #f97316; /* Amber/Orange */
+  --accent-hover: #ea580c;
+  --accent-foreground: #ffffff;
+
   --destructive: #ef4444;
   --destructive-foreground: #ffffff;
 
@@ -40,25 +77,25 @@
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
-  
+
   --color-card: var(--card);
   --color-card-foreground: var(--card-foreground);
   --color-card-border: var(--card-border);
-  
+
   --color-primary: var(--primary);
   --color-primary-hover: var(--primary-hover);
   --color-primary-foreground: var(--primary-foreground);
-  
+
   --color-secondary: var(--secondary);
   --color-secondary-foreground: var(--secondary-foreground);
-  
+
   --color-accent: var(--accent);
   --color-accent-hover: var(--accent-hover);
   --color-accent-foreground: var(--accent-foreground);
 
   --color-muted: var(--muted);
   --color-muted-foreground: var(--muted-foreground);
-  
+
   --color-border: var(--border);
   --color-input: var(--input);
   --color-ring: var(--ring);
@@ -91,11 +128,31 @@ body {
   transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
+.dark .glass-card {
+  background: rgba(30, 30, 40, 0.45);
+  border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+:root .glass-card {
+  background: rgba(0, 0, 0, 0.03);
+  border: 1px solid rgba(0, 0, 0, 0.06);
+}
+
+:root .glass-card:hover {
+  background: rgba(0, 0, 0, 0.05);
+  border-color: rgba(0, 0, 0, 0.1);
+}
+
 .glass-card:hover {
   background: rgba(40, 40, 55, 0.6);
   border-color: rgba(255, 255, 255, 0.1);
   box-shadow: 0 10px 30px -10px rgba(99, 102, 241, 0.15);
   transform: translateY(-4px);
+}
+
+.dark .glass-card:hover {
+  background: rgba(40, 40, 55, 0.6);
+  border-color: rgba(255, 255, 255, 0.1);
 }
 
 /* Animated premium gradients */
@@ -118,16 +175,16 @@ body {
 }
 
 ::-webkit-scrollbar-track {
-  background: #09090b;
+  background: var(--background);
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #27272a;
+  background: var(--muted);
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #3f3f46;
+  background: var(--muted-foreground);
 }
 
 /* Custom animations */

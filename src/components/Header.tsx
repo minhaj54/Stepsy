@@ -3,9 +3,10 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ShoppingBag, Heart, Search, User, Menu, X, ChevronRight } from 'lucide-react';
+import { ShoppingBag, Heart, Search, User, Menu, X, ChevronRight, Sun, Moon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { getProductsClient } from '../lib/data/products.client';
 import { Product } from '../types';
 import ShimmerImage from './ShimmerImage';
@@ -22,6 +23,7 @@ interface Suggestion {
 export const Header: React.FC = () => {
   const { cartCount, wishlist } = useCart();
   const { user } = useAuth();
+  const { theme, themeMounted, toggleTheme } = useTheme();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
   const [products, setProducts] = useState<Product[]>([]);
@@ -154,13 +156,13 @@ export const Header: React.FC = () => {
   ];
 
   return (
-    <header className="sticky top-0 z-50 w-full glass-panel border-b border-white/[0.06] backdrop-blur-md">
+    <header className="sticky top-0 z-50 w-full glass-panel border-b border-border backdrop-blur-md">
       <div className="px-4 sm:px-6 lg:px-8">
         <div className="flex h-16 items-center justify-between gap-4">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center gap-2 group">
-              <span className="text-2xl font-black tracking-tighter text-white flex items-center">
+              <span className="text-2xl font-black tracking-tighter text-foreground flex items-center">
                 ZARW<span className="text-primary group-hover:text-accent transition-colors duration-300">INTO</span>
               </span>
             </Link>
@@ -183,11 +185,11 @@ export const Header: React.FC = () => {
                 onFocus={() => setShowSuggestions(true)}
                 onKeyDown={handleKeyDown}
                 autoComplete="off"
-                className="w-full bg-white/[0.04] text-white placeholder-zinc-400 border border-white/[0.08] hover:border-white/[0.15] focus:border-primary focus:bg-white/[0.06] focus:ring-1 focus:ring-primary rounded-full py-2 pl-4 pr-10 outline-none transition-all duration-300 text-sm"
+                className="w-full bg-secondary text-foreground placeholder:text-muted-foreground border border-border hover:border-muted-foreground/50 focus:border-primary focus:bg-muted focus:ring-1 focus:ring-primary rounded-full py-2 pl-4 pr-10 outline-none transition-all duration-300 text-sm"
               />
               <button
                 type="submit"
-                className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-white transition-colors duration-200"
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors duration-200"
                 aria-label="Search"
               >
                 <Search className="h-4 w-4" />
@@ -195,7 +197,7 @@ export const Header: React.FC = () => {
 
               {/* Autocomplete dropdown */}
               {showSuggestions && searchQuery.trim() && suggestions.length > 0 && (
-                <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl border border-white/[0.08] bg-zinc-950/95 backdrop-blur-xl shadow-2xl shadow-black/50 overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
+                <div className="absolute top-full left-0 right-0 mt-2 z-50 rounded-2xl border border-border bg-background/95 backdrop-blur-xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-150">
                   <ul className="max-h-[60vh] overflow-y-auto py-1">
                     {suggestions.map((s, i) => (
                       <li key={`${s.type}-${s.label}-${i}`}>
@@ -204,19 +206,19 @@ export const Header: React.FC = () => {
                           onMouseEnter={() => setActiveIndex(i)}
                           onClick={() => goTo(s.href)}
                           className={`w-full flex items-center gap-3 px-3 py-2 text-left transition-colors ${
-                            i === activeIndex ? 'bg-white/[0.06]' : 'hover:bg-white/[0.04]'
+                            i === activeIndex ? 'bg-secondary' : 'hover:bg-secondary'
                           }`}
                         >
                           {s.type === 'product' ? (
                             <>
-                              <div className="h-10 w-10 flex-shrink-0 rounded-lg overflow-hidden bg-zinc-900 border border-white/[0.06]">
+                              <div className="h-10 w-10 flex-shrink-0 rounded-lg overflow-hidden bg-card border border-border">
                                 {s.image && (
                                   <ShimmerImage src={s.image} alt={s.label} className="w-full h-full" />
                                 )}
                               </div>
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-semibold text-white truncate">{s.label}</p>
-                                <p className="text-xs text-zinc-500 truncate">{s.sublabel}</p>
+                                <p className="text-sm font-semibold text-foreground truncate">{s.label}</p>
+                                <p className="text-xs text-muted-foreground truncate">{s.sublabel}</p>
                               </div>
                               {s.price != null && (
                                 <span className="text-sm font-bold text-primary flex-shrink-0">₹{s.price}</span>
@@ -228,8 +230,8 @@ export const Header: React.FC = () => {
                                 {s.label.charAt(0)}
                               </div>
                               <div className="min-w-0 flex-1">
-                                <p className="text-sm font-semibold text-white truncate">{s.label}</p>
-                                <p className="text-xs text-zinc-500 truncate">Search brand</p>
+                                <p className="text-sm font-semibold text-foreground truncate">{s.label}</p>
+                                <p className="text-xs text-muted-foreground truncate">Search brand</p>
                               </div>
                             </>
                           )}
@@ -240,7 +242,7 @@ export const Header: React.FC = () => {
                   <button
                     type="button"
                     onClick={() => submitQuery(searchQuery)}
-                    className="w-full border-t border-white/[0.06] px-3 py-2.5 text-left text-xs font-semibold text-primary hover:bg-white/[0.04] transition-colors flex items-center gap-2"
+                    className="w-full border-t border-border px-3 py-2.5 text-left text-xs font-semibold text-primary hover:bg-secondary transition-colors flex items-center gap-2"
                   >
                     <Search className="h-3.5 w-3.5" />
                     See all results for &ldquo;{searchQuery.trim()}&rdquo;
@@ -280,8 +282,8 @@ export const Header: React.FC = () => {
                 <Link
                   key={link.label}
                   href={link.href}
-                  className={`text-sm font-medium tracking-wide transition-colors duration-200 hover:text-white ${
-                    isActive ? 'text-white border-b-2 border-primary pb-0.5' : 'text-zinc-400'
+                  className={`text-sm font-medium tracking-wide transition-colors duration-200 hover:text-foreground ${
+                    isActive ? 'text-foreground border-b-2 border-primary pb-0.5' : 'text-muted-foreground'
                   }`}
                 >
                   {link.label}
@@ -293,18 +295,27 @@ export const Header: React.FC = () => {
           {/* Utility Icons */}
           <div className="flex items-center gap-2 sm:gap-4">
             {/* Mobile Search Trigger */}
-            <Link 
-              href="/search" 
-              className="p-2 text-zinc-400 hover:text-white md:hidden transition-colors rounded-full hover:bg-white/5"
+            <Link
+              href="/search"
+              className="p-2 text-muted-foreground hover:text-foreground md:hidden transition-colors rounded-full hover:bg-secondary"
               aria-label="Search"
             >
               <Search className="h-5 w-5" />
             </Link>
 
+            {/* Theme Toggle */}
+            <button
+              onClick={toggleTheme}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary"
+              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+            >
+              {themeMounted ? (theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />) : <Sun className="h-5 w-5" />}
+            </button>
+
             {/* Wishlist */}
-            <Link 
-              href="/account?tab=wishlist" 
-              className="p-2 text-zinc-400 hover:text-white relative transition-colors rounded-full hover:bg-white/5"
+            <Link
+              href="/account?tab=wishlist"
+              className="p-2 text-muted-foreground hover:text-foreground relative transition-colors rounded-full hover:bg-secondary"
               aria-label="Wishlist"
             >
               <Heart className="h-5 w-5" />
@@ -314,9 +325,9 @@ export const Header: React.FC = () => {
             </Link>
 
             {/* Cart */}
-            <Link 
-              href="/cart" 
-              className="p-2 text-zinc-400 hover:text-white relative transition-colors rounded-full hover:bg-white/5"
+            <Link
+              href="/cart"
+              className="p-2 text-muted-foreground hover:text-foreground relative transition-colors rounded-full hover:bg-secondary"
               aria-label="Shopping Cart"
             >
               <ShoppingBag className="h-5 w-5" />
@@ -328,9 +339,9 @@ export const Header: React.FC = () => {
             </Link>
 
             {/* Profile */}
-            <Link 
-              href={sessionUser ? '/account' : '/auth/login'} 
-              className="p-2 text-zinc-400 hover:text-white transition-colors rounded-full hover:bg-white/5 flex items-center gap-1.5"
+            <Link
+              href={sessionUser ? '/account' : '/auth/login'}
+              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary flex items-center gap-1.5"
               aria-label="Account"
             >
               <User className="h-5 w-5" />
@@ -351,7 +362,7 @@ export const Header: React.FC = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-zinc-400 hover:text-white lg:hidden transition-colors rounded-full hover:bg-white/5"
+              className="p-2 text-muted-foreground hover:text-foreground lg:hidden transition-colors rounded-full hover:bg-secondary"
               aria-label="Toggle Menu"
             >
               {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
@@ -362,7 +373,7 @@ export const Header: React.FC = () => {
 
       {/* Mobile Drawer Navigation */}
       {isMobileMenuOpen && (
-        <div className="lg:hidden border-t border-white/[0.06] bg-zinc-950 px-4 pt-4 pb-6 space-y-4 animate-in slide-in-from-top-5 duration-300">
+        <div className="lg:hidden border-t border-border bg-background px-4 pt-4 pb-6 space-y-4 animate-in slide-in-from-top-5 duration-300">
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <input
               type="text"
@@ -371,9 +382,9 @@ export const Header: React.FC = () => {
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={handleKeyDown}
               autoComplete="off"
-              className="w-full bg-white/[0.04] text-white border border-white/[0.08] rounded-xl py-2.5 pl-4 pr-10 outline-none text-sm"
+              className="w-full bg-secondary text-foreground border border-border rounded-xl py-2.5 pl-4 pr-10 outline-none text-sm"
             />
-            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400">
+            <button type="submit" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground">
               <Search className="h-4 w-4" />
             </button>
           </form>
@@ -384,15 +395,15 @@ export const Header: React.FC = () => {
                 key={link.label}
                 href={link.href}
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between py-3 px-3 text-zinc-300 hover:text-white hover:bg-white/[0.02] rounded-xl transition-all font-medium"
+                className="flex items-center justify-between py-3 px-3 text-muted-foreground hover:text-foreground hover:bg-secondary rounded-xl transition-all font-medium"
               >
                 {link.label}
-                <ChevronRight className="h-4 w-4 text-zinc-500" />
+                <ChevronRight className="h-4 w-4 text-muted-foreground" />
               </Link>
             ))}
           </div>
 
-          <div className="border-t border-white/[0.06] pt-4 px-3 flex items-center justify-between">
+          <div className="border-t border-border pt-4 px-3 flex items-center justify-between">
             {sessionUser ? (
               <>
                 <div className="flex items-center gap-3">
@@ -400,11 +411,11 @@ export const Header: React.FC = () => {
                     {sessionUser.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-white">{sessionUser.full_name}</p>
-                    <p className="text-xs text-zinc-400">{sessionUser.email}</p>
+                    <p className="text-sm font-semibold text-foreground">{sessionUser.full_name}</p>
+                    <p className="text-xs text-muted-foreground">{sessionUser.email}</p>
                   </div>
                 </div>
-                <Link 
+                <Link
                   href="/account"
                   onClick={() => setIsMobileMenuOpen(false)}
                   className="text-xs font-bold text-primary hover:underline"

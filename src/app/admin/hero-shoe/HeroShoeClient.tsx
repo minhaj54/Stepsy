@@ -58,10 +58,10 @@ export default function HeroShoeClient({ products, currentProductId }: HeroShoeC
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight flex items-center gap-2">
           <Star className="h-7 w-7 text-primary" /> Hero Shoe
         </h1>
-        <p className="text-zinc-400 text-sm mt-1">
+        <p className="text-muted-foreground text-sm mt-1">
           Pick one product from your collection to feature in the home page hero banner.
         </p>
       </div>
@@ -82,13 +82,13 @@ export default function HeroShoeClient({ products, currentProductId }: HeroShoeC
         {/* Product picker */}
         <div className="lg:col-span-2 glass-card rounded-2xl p-6">
           <div className="relative mb-4">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
             <input
               type="text"
               value={search}
               onChange={(e) => setSearch(e.target.value)}
               placeholder="Search products..."
-              className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+              className="w-full bg-card text-foreground border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
             />
           </div>
 
@@ -102,7 +102,7 @@ export default function HeroShoeClient({ products, currentProductId }: HeroShoeC
                   className={`relative rounded-xl overflow-hidden border text-left transition-all ${
                     isSelected
                       ? 'border-primary ring-2 ring-primary/40'
-                      : 'border-white/[0.06] hover:border-white/[0.15]'
+                      : 'border-border hover:border-muted-foreground/50'
                   }`}
                 >
                   <div className="aspect-square bg-zinc-900">
@@ -112,8 +112,8 @@ export default function HeroShoeClient({ products, currentProductId }: HeroShoeC
                     )}
                   </div>
                   <div className="p-2">
-                    <p className="text-xs font-semibold text-white truncate">{p.title}</p>
-                    <p className="text-[11px] text-zinc-500">
+                    <p className="text-xs font-semibold text-foreground truncate">{p.title}</p>
+                    <p className="text-[11px] text-muted-foreground">
                       ₹{p.sale_price ?? p.price}
                     </p>
                   </div>
@@ -126,7 +126,7 @@ export default function HeroShoeClient({ products, currentProductId }: HeroShoeC
               );
             })}
             {filtered.length === 0 && (
-              <p className="col-span-full text-center text-zinc-500 text-sm py-8">No products found.</p>
+              <p className="col-span-full text-center text-muted-foreground text-sm py-8">No products found.</p>
             )}
           </div>
         </div>
@@ -134,10 +134,10 @@ export default function HeroShoeClient({ products, currentProductId }: HeroShoeC
         {/* Preview + actions */}
         <div className="space-y-4">
           <div className="glass-card rounded-2xl p-6">
-            <h3 className="text-sm font-bold text-white mb-4 flex items-center gap-2">
+            <h3 className="text-sm font-bold text-foreground mb-4 flex items-center gap-2">
               <Eye className="h-4 w-4 text-primary" /> Live Preview
             </h3>
-            <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-tr from-zinc-900 to-white/5 border border-white/[0.06] flex items-center justify-center p-4">
+            <div className="relative aspect-square rounded-2xl overflow-hidden bg-gradient-to-tr from-zinc-900 to-white/5 border border-border flex items-center justify-center p-4">
               {selected ? (
                 // eslint-disable-next-line @next/next/no-img-element
                 <img
@@ -146,13 +146,13 @@ export default function HeroShoeClient({ products, currentProductId }: HeroShoeC
                   className="w-full h-auto object-contain transform -rotate-12 drop-shadow-[0_15px_30px_rgba(99,102,241,0.4)]"
                 />
               ) : (
-                <p className="text-zinc-500 text-sm text-center">No shoe selected.<br />Default will be shown.</p>
+                <p className="text-muted-foreground text-sm text-center">No shoe selected.<br />Default will be shown.</p>
               )}
               {selected && (
                 <div className="absolute bottom-3 left-3 right-3 glass-card p-3 rounded-xl flex justify-between items-center">
                   <div>
                     <p className="text-[10px] font-bold text-primary uppercase tracking-wider">Featured</p>
-                    <p className="text-xs font-bold text-white truncate">{selected.title}</p>
+                    <p className="text-xs font-bold text-foreground truncate">{selected.title}</p>
                   </div>
                   <p className="text-xs font-black text-accent">₹{selected.sale_price ?? selected.price}</p>
                 </div>
@@ -172,7 +172,7 @@ export default function HeroShoeClient({ products, currentProductId }: HeroShoeC
               <Link
                 href={`/product/${selected.slug}`}
                 target="_blank"
-                className="text-center text-xs text-zinc-500 hover:text-white transition-colors"
+                className="text-center text-xs text-muted-foreground hover:text-foreground transition-colors"
               >
                 View product page →
               </Link>

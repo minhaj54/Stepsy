@@ -99,7 +99,7 @@ export default function AdminUsersClient({ initialUsers }: AdminUsersClientProps
       case 'vendor': return 'bg-purple-500/10 text-purple-400 border-purple-500/20';
       case 'customer': return 'bg-primary/10 text-primary border-primary/20';
       case 'banned': return 'bg-red-500/10 text-red-400 border-red-500/20';
-      default: return 'bg-zinc-500/10 text-zinc-400 border-zinc-500/20';
+      default: return 'bg-zinc-500/10 text-muted-foreground border-zinc-500/20';
     }
   };
 
@@ -118,32 +118,32 @@ export default function AdminUsersClient({ initialUsers }: AdminUsersClientProps
       <div className="mb-8">
         <Link
           href="/admin"
-          className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+          className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
         >
           <ArrowLeft className="h-3 w-3" /> Dashboard
         </Link>
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Users Management</h1>
-        <p className="text-zinc-400 text-sm mt-1">{filteredUsers.length} of {users.length} registered users</p>
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Users Management</h1>
+        <p className="text-muted-foreground text-sm mt-1">{filteredUsers.length} of {users.length} registered users</p>
       </div>
 
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search by name, email, or phone..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="w-full bg-card/50 text-foreground border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-zinc-500" />
+          <Filter className="h-4 w-4 text-muted-foreground" />
           <select
             value={roleFilter}
             onChange={e => setRoleFilter(e.target.value as any)}
-            className="bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="bg-card/50 text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
           >
             <option value="all">All Roles</option>
             <option value="customer">Customers</option>
@@ -157,46 +157,46 @@ export default function AdminUsersClient({ initialUsers }: AdminUsersClientProps
       {/* Users Table */}
       {filteredUsers.length === 0 ? (
         <div className="glass-card rounded-2xl p-12 text-center">
-          <User className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400 text-sm">No users found</p>
+          <User className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm">No users found</p>
         </div>
       ) : (
         <div className="glass-card rounded-2xl overflow-hidden">
           <div className="overflow-x-auto">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-white/[0.06]">
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">User</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Contact</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Role</th>
-                  <th className="text-left px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Joined</th>
-                  <th className="text-right px-6 py-4 text-xs font-semibold text-zinc-400 uppercase tracking-wider">Actions</th>
+                <tr className="border-b border-border">
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">User</th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Contact</th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Role</th>
+                  <th className="text-left px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Joined</th>
+                  <th className="text-right px-6 py-4 text-xs font-semibold text-muted-foreground uppercase tracking-wider">Actions</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-white/[0.04]">
                 {filteredUsers.map((user) => {
                   const RoleIcon = getRoleIcon(user.role);
                   return (
-                    <tr key={user.id} className="hover:bg-white/[0.02] transition-colors">
+                    <tr key={user.id} className="hover:bg-secondary transition-colors">
                       <td className="px-6 py-4">
                         <div className="flex items-center gap-3">
                           <div className="h-10 w-10 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-sm">
                             {user.full_name?.split(' ').map((n: string) => n[0]).join('').slice(0, 2).toUpperCase()}
                           </div>
                           <div>
-                            <p className="text-sm font-semibold text-white">{user.full_name}</p>
-                            <p className="text-xs text-zinc-500">ID: {user.id.slice(0, 8)}</p>
+                            <p className="text-sm font-semibold text-foreground">{user.full_name}</p>
+                            <p className="text-xs text-muted-foreground">ID: {user.id.slice(0, 8)}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-4">
                         <div className="space-y-1">
-                          <p className="text-sm text-zinc-300 flex items-center gap-1.5">
-                            <Mail className="h-3.5 w-3.5 text-zinc-500" />
+                          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                            <Mail className="h-3.5 w-3.5 text-muted-foreground" />
                             {user.email}
                           </p>
-                          <p className="text-sm text-zinc-300 flex items-center gap-1.5">
-                            <Phone className="h-3.5 w-3.5 text-zinc-500" />
+                          <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                            <Phone className="h-3.5 w-3.5 text-muted-foreground" />
                             {user.phone}
                           </p>
                         </div>
@@ -208,8 +208,8 @@ export default function AdminUsersClient({ initialUsers }: AdminUsersClientProps
                         </span>
                       </td>
                       <td className="px-6 py-4">
-                        <p className="text-sm text-zinc-400 flex items-center gap-1.5">
-                          <Calendar className="h-3.5 w-3.5 text-zinc-500" />
+                        <p className="text-sm text-muted-foreground flex items-center gap-1.5">
+                          <Calendar className="h-3.5 w-3.5 text-muted-foreground" />
                           {new Date(user.created_at).toLocaleDateString()}
                         </p>
                       </td>
@@ -219,7 +219,7 @@ export default function AdminUsersClient({ initialUsers }: AdminUsersClientProps
                             value={user.role}
                             onChange={e => handleRoleChange(user.id, e.target.value)}
                             disabled={updatingId === user.id}
-                            className="bg-zinc-900 text-white border border-white/[0.06] rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary disabled:opacity-50"
+                            className="bg-card text-foreground border border-border rounded-lg px-3 py-1.5 text-xs outline-none focus:border-primary disabled:opacity-50"
                           >
                             <option value="customer">Customer</option>
                             <option value="vendor">Vendor</option>

@@ -187,8 +187,8 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                 <button
                   key={idx}
                   onClick={() => setActiveImageIndex(idx)}
-                  className={`aspect-square w-14 sm:w-16 bg-zinc-950/40 border rounded-2xl p-1.5 sm:p-2 flex items-center justify-center transition-all cursor-pointer ${
-                    activeImageIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-white/[0.06] hover:border-white/[0.15]'
+                  className={`aspect-square w-14 sm:w-16 bg-background/40 border rounded-2xl p-1.5 sm:p-2 flex items-center justify-center transition-all cursor-pointer ${
+                    activeImageIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-muted-foreground/50'
                   }`}
                 >
                   <ShimmerImage src={img} alt="" className="max-h-[30px] sm:max-h-[40px] w-auto" />
@@ -200,7 +200,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           {/* Main Image */}
           <div className="flex-1">
             <div
-              className="aspect-[3/4] sm:aspect-[4/5] bg-zinc-950/40 rounded-2xl sm:rounded-3xl overflow-hidden border border-white/[0.05] relative group cursor-zoom-in"
+              className="aspect-[3/4] sm:aspect-[4/5] bg-background/40 rounded-2xl sm:rounded-3xl overflow-hidden border border-border relative group cursor-zoom-in"
               onClick={() => setShowImageZoom(true)}
             >
               <ShimmerImage
@@ -222,8 +222,8 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                   <button
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
-                    className={`flex-shrink-0 aspect-square w-16 sm:w-20 bg-zinc-950/40 border rounded-xl sm:rounded-2xl p-1.5 sm:p-2 flex items-center justify-center transition-all cursor-pointer ${
-                      activeImageIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-white/[0.06] hover:border-white/[0.15]'
+                    className={`flex-shrink-0 aspect-square w-16 sm:w-20 bg-background/40 border rounded-xl sm:rounded-2xl p-1.5 sm:p-2 flex items-center justify-center transition-all cursor-pointer ${
+                      activeImageIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-muted-foreground/50'
                     }`}
                   >
                     <ShimmerImage src={img} alt="" className="max-h-[40px] sm:max-h-[50px] w-auto" />
@@ -242,7 +242,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
             <div className="flex gap-2">
               <button
                 onClick={handleShare}
-                className="p-2.5 rounded-full border bg-zinc-900/40 border-white/[0.06] transition-colors cursor-pointer text-zinc-400 hover:text-white hover:border-white/[0.15]"
+                className="p-2.5 rounded-full border bg-card border-border transition-colors cursor-pointer text-muted-foreground hover:text-foreground hover:border-muted-foreground/50"
                 aria-label="Share"
                 title="Share"
               >
@@ -250,7 +250,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
               </button>
               <button
                 onClick={handleWhatsApp}
-                className="p-2.5 rounded-full border bg-zinc-900/40 border-white/[0.06] transition-colors cursor-pointer text-zinc-400 hover:text-green-500 hover:border-green-500/30"
+                className="p-2.5 rounded-full border bg-card border-border transition-colors cursor-pointer text-muted-foreground hover:text-green-500 hover:border-green-500/30"
                 aria-label="WhatsApp"
                 title="Chat on WhatsApp"
               >
@@ -258,8 +258,8 @@ export default function ProductDetailClient({ product, store, initialReviews, re
               </button>
               <button
                 onClick={() => toggleWishlist(product.id)}
-                className={`p-2.5 rounded-full border bg-zinc-900/40 border-white/[0.06] transition-colors cursor-pointer ${
-                  isWishlisted ? 'text-accent border-accent/40' : 'text-zinc-400 hover:text-white'
+                className={`p-2.5 rounded-full border bg-card border-border transition-colors cursor-pointer ${
+                  isWishlisted ? 'text-accent border-accent/40' : 'text-muted-foreground hover:text-foreground'
                 }`}
                 aria-label="Toggle Wishlist"
               >
@@ -268,30 +268,30 @@ export default function ProductDetailClient({ product, store, initialReviews, re
             </div>
           </div>
           
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-white tracking-tight leading-tight">{product.title}</h1>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight leading-tight">{product.title}</h1>
           
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <div className="flex items-center gap-0.5 text-accent font-bold text-sm">
               <Star className="h-4 w-4 fill-accent" />
               <span>{product.rating}</span>
-              <span className="text-zinc-500 font-semibold ml-1">({localReviews.length} reviews)</span>
+              <span className="text-muted-foreground font-semibold ml-1">({localReviews.length} reviews)</span>
             </div>
-            <span className="text-zinc-700">|</span>
-            <span className="text-xs text-zinc-400 font-semibold">SKU: {product.sku}</span>
+            <span className="text-muted-foreground">|</span>
+            <span className="text-xs text-muted-foreground font-semibold">SKU: {product.sku}</span>
           </div>
 
           {/* Pricing */}
-          <div className="p-5 bg-zinc-900/40 border border-white/[0.04] rounded-2xl">
+          <div className="p-5 bg-card border border-border rounded-2xl">
             <div className="flex items-center justify-between">
               <div>
-                <span className="text-xs text-zinc-500 font-bold block mb-1 uppercase tracking-wider">Price</span>
+                <span className="text-xs text-muted-foreground font-bold block mb-1 uppercase tracking-wider">Price</span>
                 {salePrice ? (
                   <div className="flex items-baseline gap-2">
-                    <span className="text-2xl font-black text-white">₹{salePrice}</span>
-                    <span className="text-sm line-through text-zinc-500">₹{price}</span>
+                    <span className="text-2xl font-black text-foreground">₹{salePrice}</span>
+                    <span className="text-sm line-through text-muted-foreground">₹{price}</span>
                   </div>
                 ) : (
-                  <span className="text-2xl font-black text-white">₹{price}</span>
+                  <span className="text-2xl font-black text-foreground">₹{price}</span>
                 )}
               </div>
               {salePrice && (
@@ -304,7 +304,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
 
           {/* Color Selection */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Select Color</h3>
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Select Color</h3>
             <div className="flex flex-wrap gap-2">
               {uniqueColors.map((color) => (
                 <button
@@ -316,7 +316,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                   className={`px-4 py-2 border rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     selectedColor === color
                       ? 'bg-primary text-white border-primary shadow-[0_0_10px_rgba(99,102,241,0.25)]'
-                      : 'bg-zinc-900 border-white/[0.06] hover:border-white/[0.12] text-zinc-300'
+                      : 'bg-card border-border hover:border-muted-foreground/50 text-muted-foreground'
                   }`}
                 >
                   {color}
@@ -328,7 +328,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           {/* Size Selection */}
           <div className="space-y-3">
             <div className="flex justify-between items-center text-xs">
-              <h3 className="font-bold uppercase tracking-wider text-zinc-400">Select Size (US)</h3>
+              <h3 className="font-bold uppercase tracking-wider text-muted-foreground">Select Size (US)</h3>
               <button 
                 onClick={() => setShowSizeChart(true)}
                 className="text-primary hover:underline font-semibold flex items-center gap-1"
@@ -353,13 +353,13 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                       isSelected
                         ? 'bg-primary text-white border-primary shadow-[0_0_10px_rgba(99,102,241,0.3)]'
                         : hasStock
-                        ? 'bg-zinc-900 border-white/[0.06] hover:border-white/[0.12] text-zinc-300'
-                        : 'bg-zinc-950 border-white/[0.02] text-zinc-600 cursor-not-allowed line-through'
+                        ? 'bg-card border-border hover:border-muted-foreground/50 text-muted-foreground'
+                        : 'bg-background border-border text-muted-foreground cursor-not-allowed line-through'
                     }`}
                   >
                     <span>{size}</span>
                     {hasStock && variant && (
-                      <span className={`text-[10px] mt-0.5 ${isSelected ? 'text-white/60' : 'text-zinc-500'}`}>
+                      <span className={`text-[10px] mt-0.5 ${isSelected ? 'text-foreground/60' : 'text-muted-foreground'}`}>
                         {variant.stock_quantity} left
                       </span>
                     )}
@@ -371,18 +371,18 @@ export default function ProductDetailClient({ product, store, initialReviews, re
 
           {/* Quantity */}
           <div className="space-y-3">
-            <h3 className="text-xs font-bold uppercase tracking-wider text-zinc-400">Quantity</h3>
-            <div className="flex items-center bg-zinc-900 border border-white/[0.06] rounded-xl px-3 w-fit">
+            <h3 className="text-xs font-bold uppercase tracking-wider text-muted-foreground">Quantity</h3>
+            <div className="flex items-center bg-card border border-border rounded-xl px-3 w-fit">
               <button
                 onClick={() => setQuantity(prev => Math.max(1, prev - 1))}
-                className="h-10 w-8 flex items-center justify-center font-bold text-zinc-400 hover:text-white"
+                className="h-10 w-8 flex items-center justify-center font-bold text-muted-foreground hover:text-foreground"
               >
                 -
               </button>
-              <span className="w-10 text-center text-sm font-extrabold text-white">{quantity}</span>
+              <span className="w-10 text-center text-sm font-extrabold text-foreground">{quantity}</span>
               <button
                 onClick={() => setQuantity(prev => prev + 1)}
-                className="h-10 w-8 flex items-center justify-center font-bold text-zinc-400 hover:text-white"
+                className="h-10 w-8 flex items-center justify-center font-bold text-muted-foreground hover:text-foreground"
               >
                 +
               </button>
@@ -419,26 +419,26 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           </div>
 
           {/* Delivery & Warranty */}
-          <div className="border-t border-white/[0.06] pt-6 space-y-4">
+          <div className="border-t border-border pt-6 space-y-4">
             <div className="flex gap-3 items-start text-xs">
               <Truck className="h-5 w-5 text-primary flex-shrink-0" />
               <div>
-                <p className="font-bold text-white">Free Express Delivery</p>
-                <p className="text-zinc-500 mt-0.5">Arrives in 2-4 business days.</p>
+                <p className="font-bold text-foreground">Free Express Delivery</p>
+                <p className="text-muted-foreground mt-0.5">Arrives in 2-4 business days.</p>
               </div>
             </div>
             <div className="flex gap-3 items-start text-xs">
               <RefreshCw className="h-5 w-5 text-primary flex-shrink-0" />
               <div>
-                <p className="font-bold text-white">Easy Returns</p>
-                <p className="text-zinc-500 mt-0.5">30-day exchange window with free return label.</p>
+                <p className="font-bold text-foreground">Easy Returns</p>
+                <p className="text-muted-foreground mt-0.5">30-day exchange window with free return label.</p>
               </div>
             </div>
             <div className="flex gap-3 items-start text-xs">
               <Shield className="h-5 w-5 text-primary flex-shrink-0" />
               <div>
-                <p className="font-bold text-white">Authenticity Guaranteed</p>
-                <p className="text-zinc-500 mt-0.5">Checked manually by our experts before shipping.</p>
+                <p className="font-bold text-foreground">Authenticity Guaranteed</p>
+                <p className="text-muted-foreground mt-0.5">Checked manually by our experts before shipping.</p>
               </div>
             </div>
           </div>
@@ -447,33 +447,33 @@ export default function ProductDetailClient({ product, store, initialReviews, re
 
       {/* Store badge — like a YouTube channel, below images / above description */}
       {store && (
-        <div className="mt-8 flex items-center gap-4 rounded-2xl border border-white/[0.06] bg-zinc-900/40 p-4">
+        <div className="mt-8 flex items-center gap-4 rounded-2xl border border-border bg-card p-4">
           <Link
             href={`/store/${store.slug}`}
-            className="flex-shrink-0 h-14 w-14 rounded-full overflow-hidden border border-white/[0.08] bg-zinc-950 flex items-center justify-center"
+            className="flex-shrink-0 h-14 w-14 rounded-full overflow-hidden border border-border bg-background flex items-center justify-center"
             aria-label={store.name}
           >
             {store.logo_url ? (
               <ShimmerImage src={store.logo_url} alt={store.name} className="w-full h-full" />
             ) : (
-              <StoreIcon className="h-6 w-6 text-zinc-400" />
+              <StoreIcon className="h-6 w-6 text-muted-foreground" />
             )}
           </Link>
           <div className="min-w-0 flex-1">
-            <p className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold">Sold by</p>
+            <p className="text-[11px] uppercase tracking-wider text-muted-foreground font-semibold">Sold by</p>
             <Link
               href={`/store/${store.slug}`}
-              className="text-base font-bold text-white hover:text-primary transition-colors truncate block"
+              className="text-base font-bold text-foreground hover:text-primary transition-colors truncate block"
             >
               {store.name}
             </Link>
             {store.description && (
-              <p className="text-xs text-zinc-500 truncate mt-0.5">{store.description}</p>
+              <p className="text-xs text-muted-foreground truncate mt-0.5">{store.description}</p>
             )}
           </div>
           <Link
             href={`/store/${store.slug}`}
-            className="flex-shrink-0 hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-white/[0.04] hover:bg-primary hover:text-white border border-white/[0.06] hover:border-primary text-sm font-semibold text-zinc-200 transition-all"
+            className="flex-shrink-0 hidden sm:inline-flex items-center gap-1.5 px-4 py-2 rounded-xl bg-secondary hover:bg-primary hover:text-foreground border border-border hover:border-primary text-sm font-semibold text-muted-foreground transition-all"
           >
             Visit Store
             <ArrowRight className="h-4 w-4" />
@@ -482,12 +482,12 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       )}
 
       {/* Details Tabs */}
-      <section className="mt-12 border-t border-white/[0.06] pt-8">
-        <div className="flex gap-6 border-b border-white/[0.04] pb-2 text-sm">
+      <section className="mt-12 border-t border-border pt-8">
+        <div className="flex gap-6 border-b border-border pb-2 text-sm">
           <button
             onClick={() => setActiveTab('description')}
             className={`pb-3.5 font-bold tracking-wide transition-all ${
-              activeTab === 'description' ? 'text-white border-b-2 border-primary' : 'text-zinc-500 hover:text-zinc-300'
+              activeTab === 'description' ? 'text-foreground border-b-2 border-primary' : 'text-muted-foreground hover:text-muted-foreground'
             }`}
           >
             Description
@@ -495,7 +495,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           <button
             onClick={() => setActiveTab('specifications')}
             className={`pb-3.5 font-bold tracking-wide transition-all ${
-              activeTab === 'specifications' ? 'text-white border-b-2 border-primary' : 'text-zinc-500 hover:text-zinc-300'
+              activeTab === 'specifications' ? 'text-foreground border-b-2 border-primary' : 'text-muted-foreground hover:text-muted-foreground'
             }`}
           >
             Technical Specifications
@@ -503,14 +503,14 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           <button
             onClick={() => setActiveTab('shipping')}
             className={`pb-3.5 font-bold tracking-wide transition-all ${
-              activeTab === 'shipping' ? 'text-white border-b-2 border-primary' : 'text-zinc-500 hover:text-zinc-300'
+              activeTab === 'shipping' ? 'text-foreground border-b-2 border-primary' : 'text-muted-foreground hover:text-muted-foreground'
             }`}
           >
             Shipping & Returns
           </button>
         </div>
 
-        <div className="py-6 text-sm leading-relaxed text-zinc-400">
+        <div className="py-6 text-sm leading-relaxed text-muted-foreground">
           {activeTab === 'description' && (
             <div className="max-w-3xl prose prose-invert prose-sm">
               {formatDescription(product.description)}
@@ -518,7 +518,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           )}
 
           {activeTab === 'specifications' && (
-            <div className="max-w-xl bg-zinc-900/40 border border-white/[0.04] rounded-2xl overflow-hidden divide-y divide-white/[0.04]">
+            <div className="max-w-xl bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
               {product.specifications ? (
                 Object.entries(product.specifications).map(([key, val]) => (
                   <div key={key} className="grid grid-cols-2 p-4">
@@ -527,7 +527,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                   </div>
                 ))
               ) : (
-                <p className="p-4 text-zinc-500 italic">No specifications available for this product.</p>
+                <p className="p-4 text-muted-foreground italic">No specifications available for this product.</p>
               )}
             </div>
           )}
@@ -535,7 +535,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           {activeTab === 'shipping' && (
             <div className="max-w-2xl space-y-4">
               <p>We provide fast and secure shipping worldwide. Standard shipping is completely free for all orders above ₹1500.</p>
-              <h4 className="font-bold text-white text-xs uppercase tracking-wider">Return Rules</h4>
+              <h4 className="font-bold text-foreground text-xs uppercase tracking-wider">Return Rules</h4>
               <p>Items must be returned in their original packaging, unworn, and with tags attached. Once our inspection team validates the returned item, a refund is processed back to your original payment method within 5-7 business days.</p>
             </div>
           )}
@@ -543,25 +543,25 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       </section>
 
       {/* Reviews Tab */}
-      <section className="mt-16 border-t border-white/[0.06] pt-10">
-        <h2 className="text-2xl font-extrabold text-white tracking-tight mb-8">Customer Reviews ({localReviews.length})</h2>
+      <section className="mt-16 border-t border-border pt-10">
+        <h2 className="text-2xl font-extrabold text-foreground tracking-tight mb-8">Customer Reviews ({localReviews.length})</h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
           {/* Review Grid */}
           <div className="lg:col-span-2 space-y-6">
             {localReviews.length === 0 ? (
-              <p className="text-zinc-500 italic">No reviews yet for this product. Be the first to leave one below!</p>
+              <p className="text-muted-foreground italic">No reviews yet for this product. Be the first to leave one below!</p>
             ) : (
               localReviews.map((rev) => (
-                <div key={rev.id} className="bg-zinc-900/30 border border-white/[0.04] p-6 rounded-2xl space-y-3">
+                <div key={rev.id} className="bg-card border border-border p-6 rounded-2xl space-y-3">
                   <div className="flex justify-between items-center">
                     <div className="flex items-center gap-2">
                       <div className="h-8 w-8 bg-primary/20 rounded-full flex items-center justify-center text-xs font-bold text-primary">
                         {rev.user_name.substring(0, 2).toUpperCase()}
                       </div>
                       <div>
-                        <h4 className="text-sm font-bold text-white">{rev.user_name}</h4>
-                        <p className="text-[10px] text-zinc-500">{new Date(rev.created_at).toLocaleDateString()}</p>
+                        <h4 className="text-sm font-bold text-foreground">{rev.user_name}</h4>
+                        <p className="text-[10px] text-muted-foreground">{new Date(rev.created_at).toLocaleDateString()}</p>
                       </div>
                     </div>
                     
@@ -572,19 +572,19 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                     </div>
                   </div>
                   
-                  <p className="text-zinc-400 italic text-sm">"{rev.review_text}"</p>
+                  <p className="text-muted-foreground italic text-sm">"{rev.review_text}"</p>
                 </div>
               ))
             )}
           </div>
 
           {/* Review Form */}
-          <div className="glass-card p-6 rounded-2xl border border-white/[0.05] space-y-4">
-            <h3 className="font-bold text-white text-base">Write a Review</h3>
+          <div className="glass-card p-6 rounded-2xl border border-border space-y-4">
+            <h3 className="font-bold text-foreground text-base">Write a Review</h3>
             
             <form onSubmit={handleReviewSubmit} className="space-y-4">
               <div>
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400 mb-2">Rating</label>
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Rating</label>
                 <div className="flex gap-1.5 text-accent">
                   {[1, 2, 3, 4, 5].map((star) => (
                     <button
@@ -600,7 +600,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="name-input" className="block text-xs font-bold uppercase tracking-wider text-zinc-400">Your Name</label>
+                <label htmlFor="name-input" className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Your Name</label>
                 <input
                   id="name-input"
                   type="text"
@@ -608,12 +608,12 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                   placeholder="e.g. Minhaj Raza"
                   value={newReviewName}
                   onChange={(e) => setNewReviewName(e.target.value)}
-                  className="w-full bg-zinc-950 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                  className="w-full bg-background text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                 />
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="review-input" className="block text-xs font-bold uppercase tracking-wider text-zinc-400">Review Message</label>
+                <label htmlFor="review-input" className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Review Message</label>
                 <textarea
                   id="review-input"
                   required
@@ -621,7 +621,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                   placeholder="What did you like or dislike about these shoes?"
                   value={newReviewText}
                   onChange={(e) => setNewReviewText(e.target.value)}
-                  className="w-full bg-zinc-950 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                  className="w-full bg-background text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                 />
               </div>
 
@@ -645,12 +645,12 @@ export default function ProductDetailClient({ product, store, initialReviews, re
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (
-        <section className="mt-20 border-t border-white/[0.06] pt-10">
-          <h2 className="text-2xl font-extrabold text-white tracking-tight mb-8">Related Footwear</h2>
+        <section className="mt-20 border-t border-border pt-10">
+          <h2 className="text-2xl font-extrabold text-foreground tracking-tight mb-8">Related Footwear</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
             {relatedProducts.map((p) => (
-              <div key={p.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative border border-white/[0.04] group">
-                <Link href={`/product/${p.slug}`} className="block aspect-square w-full bg-zinc-950/40 relative overflow-hidden">
+              <div key={p.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative border border-border group">
+                <Link href={`/product/${p.slug}`} className="block aspect-square w-full bg-background/40 relative overflow-hidden">
                   <img
                     src={p.images[0]}
                     alt={p.title}
@@ -659,15 +659,15 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                 </Link>
                 <div className="p-4 flex-grow flex flex-col justify-between">
                   <div>
-                    <span className="text-[10px] text-zinc-500 uppercase font-bold">{p.brand_name}</span>
+                    <span className="text-[10px] text-muted-foreground uppercase font-bold">{p.brand_name}</span>
                     <Link href={`/product/${p.slug}`}>
-                      <h3 className="font-bold text-white text-sm hover:text-primary transition-colors line-clamp-1 mt-0.5">
+                      <h3 className="font-bold text-foreground text-sm hover:text-primary transition-colors line-clamp-1 mt-0.5">
                         {p.title}
                       </h3>
                     </Link>
                   </div>
-                  <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/[0.04]">
-                    <span className="text-sm font-black text-white">₹{p.sale_price || p.price}</span>
+                  <div className="flex justify-between items-center mt-3 pt-2 border-t border-border">
+                    <span className="text-sm font-black text-foreground">₹{p.sale_price || p.price}</span>
                     <Link href={`/product/${p.slug}`} className="text-xs font-bold text-primary flex items-center gap-0.5">
                       Details <ArrowRight className="h-3 w-3" />
                     </Link>
@@ -726,50 +726,50 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           onClick={() => setShowSizeChart(false)}
         >
           <div 
-            className="bg-zinc-900 border border-white/[0.08] rounded-3xl max-w-lg w-full max-h-[90vh] overflow-hidden"
+            className="bg-card border border-border rounded-3xl max-w-lg w-full max-h-[90vh] overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            <div className="flex items-center justify-between p-6 border-b border-white/[0.06]">
+            <div className="flex items-center justify-between p-6 border-b border-border">
               <div className="flex items-center gap-3">
                 <div className="p-2 bg-primary/10 rounded-xl">
                   <Ruler className="h-5 w-5 text-primary" />
                 </div>
-                <h3 className="text-lg font-bold text-white">Size Chart</h3>
+                <h3 className="text-lg font-bold text-foreground">Size Chart</h3>
               </div>
               <button
                 onClick={() => setShowSizeChart(false)}
                 className="p-2 rounded-full hover:bg-white/10 transition-colors cursor-pointer"
               >
-                <X className="h-5 w-5 text-zinc-400" />
+                <X className="h-5 w-5 text-muted-foreground" />
               </button>
             </div>
             <div className="p-6 overflow-y-auto max-h-[60vh]">
-              <p className="text-xs text-zinc-500 mb-4">All measurements are in centimeters (CM). Please refer to this chart when selecting your size.</p>
+              <p className="text-xs text-muted-foreground mb-4">All measurements are in centimeters (CM). Please refer to this chart when selecting your size.</p>
               <div className="overflow-x-auto">
                 <table className="w-full text-sm">
                   <thead>
-                    <tr className="border-b border-white/[0.08]">
-                      <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-zinc-400">US</th>
-                      <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-zinc-400">UK</th>
-                      <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-zinc-400">EU</th>
-                      <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-zinc-400">CM</th>
+                    <tr className="border-b border-border">
+                      <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">US</th>
+                      <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">UK</th>
+                      <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">EU</th>
+                      <th className="text-left py-3 px-4 text-xs font-bold uppercase tracking-wider text-muted-foreground">CM</th>
                     </tr>
                   </thead>
                   <tbody>
                     {SIZE_CHART.map((row) => (
-                      <tr key={row.us} className="border-b border-white/[0.04] hover:bg-white/[0.02] transition-colors">
-                        <td className="py-3 px-4 font-bold text-white">{row.us}</td>
-                        <td className="py-3 px-4 text-zinc-300">{row.uk}</td>
-                        <td className="py-3 px-4 text-zinc-300">{row.eu}</td>
-                        <td className="py-3 px-4 text-zinc-300">{row.cm}</td>
+                      <tr key={row.us} className="border-b border-border hover:bg-secondary transition-colors">
+                        <td className="py-3 px-4 font-bold text-foreground">{row.us}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{row.uk}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{row.eu}</td>
+                        <td className="py-3 px-4 text-muted-foreground">{row.cm}</td>
                       </tr>
                     ))}
                   </tbody>
                 </table>
               </div>
               <div className="mt-6 p-4 bg-primary/5 border border-primary/10 rounded-xl">
-                <p className="text-xs text-zinc-400">
-                  <strong className="text-white">Tip:</strong> If you're between sizes, we recommend going up half a size for a more comfortable fit.
+                <p className="text-xs text-muted-foreground">
+                  <strong className="text-foreground">Tip:</strong> If you're between sizes, we recommend going up half a size for a more comfortable fit.
                 </p>
               </div>
             </div>

@@ -68,7 +68,7 @@ export default function SearchContent({ products }: SearchContentProps) {
     <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow">
       {/* Search Bar Block */}
       <div className="max-w-2xl mx-auto text-center space-y-6 mb-10">
-        <h1 className="text-3xl font-extrabold text-white tracking-tight">Explore Zarwinto Marketplace</h1>
+        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Explore Zarwinto Marketplace</h1>
         
         <form onSubmit={handleSearchSubmit} className="relative group">
           <input
@@ -76,7 +76,7 @@ export default function SearchContent({ products }: SearchContentProps) {
             placeholder="Search footwear by brand, color, purpose..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full bg-zinc-900 text-white placeholder-zinc-500 border border-white/[0.08] group-hover:border-white/[0.15] focus:border-primary focus:bg-white/[0.04] focus:ring-1 focus:ring-primary rounded-2xl py-4 pl-5 pr-14 outline-none transition-all duration-300 text-sm font-medium"
+            className="w-full bg-card text-foreground placeholder:text-muted-foreground border border-border group-hover:border-muted-foreground/50 focus:border-primary focus:bg-muted focus:ring-1 focus:ring-primary rounded-2xl py-4 pl-5 pr-14 outline-none transition-all duration-300 text-sm font-medium"
           />
           <button
             type="submit"
@@ -89,12 +89,12 @@ export default function SearchContent({ products }: SearchContentProps) {
 
         {/* Popular Tags */}
         <div className="flex flex-wrap items-center justify-center gap-2 text-xs">
-          <span className="text-zinc-500 font-semibold uppercase tracking-wider">Popular Searches:</span>
+          <span className="text-muted-foreground font-semibold uppercase tracking-wider">Popular Searches:</span>
           {popularSuggestions.map((tag) => (
             <button
               key={tag}
               onClick={() => handleTagClick(tag)}
-              className="bg-white/[0.03] hover:bg-primary/20 text-zinc-400 hover:text-white border border-white/[0.06] hover:border-primary/30 rounded-lg px-3 py-1 font-semibold transition-all cursor-pointer"
+              className="bg-secondary hover:bg-primary/20 text-muted-foreground hover:text-foreground border border-border hover:border-primary/30 rounded-lg px-3 py-1 font-semibold transition-all cursor-pointer"
             >
               {tag}
             </button>
@@ -105,11 +105,11 @@ export default function SearchContent({ products }: SearchContentProps) {
       {/* Results Block */}
       {query ? (
         <div className="space-y-6">
-          <div className="border-b border-white/[0.06] pb-4">
-            <h2 className="text-xl font-bold text-white tracking-tight">
+          <div className="border-b border-border pb-4">
+            <h2 className="text-xl font-bold text-foreground tracking-tight">
               Search Results
             </h2>
-            <p className="text-zinc-500 text-sm mt-1">
+            <p className="text-muted-foreground text-sm mt-1">
               Found {matchedProducts.length} results for "{query}"
             </p>
           </div>
@@ -117,8 +117,8 @@ export default function SearchContent({ products }: SearchContentProps) {
           {matchedProducts.length === 0 ? (
             <div className="glass-card p-12 rounded-3xl text-center space-y-4 max-w-xl mx-auto">
               <p className="text-3xl">🕵️‍♂️👟</p>
-              <h3 className="text-xl font-extrabold text-white">No results found</h3>
-              <p className="text-zinc-500 text-sm leading-relaxed">
+              <h3 className="text-xl font-extrabold text-foreground">No results found</h3>
+              <p className="text-muted-foreground text-sm leading-relaxed">
                 We couldn't find anything matching your keywords. Double-check your spelling or click one of the popular search tags above.
               </p>
             </div>
@@ -130,10 +130,10 @@ export default function SearchContent({ products }: SearchContentProps) {
                 const salePrice = product.sale_price;
 
                 return (
-                  <div key={product.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative border border-white/[0.04] group">
+                  <div key={product.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative border border-border group">
                     <button 
                       onClick={() => toggleWishlist(product.id)}
-                      className="absolute top-4 right-4 z-20 p-2.5 bg-zinc-900/60 hover:bg-zinc-900 text-zinc-400 hover:text-white rounded-full border border-white/[0.04] transition-colors cursor-pointer"
+                      className="absolute top-4 right-4 z-20 p-2.5 bg-background/60 hover:bg-background text-muted-foreground hover:text-foreground rounded-full border border-border transition-colors cursor-pointer"
                       aria-label="Toggle Wishlist"
                     >
                       <Heart className={`h-4.5 w-4.5 ${isWishlisted ? 'fill-accent text-accent' : ''}`} />
@@ -145,7 +145,7 @@ export default function SearchContent({ products }: SearchContentProps) {
                       </span>
                     )}
 
-                    <Link href={`/product/${product.slug}`} className="block aspect-square w-full bg-zinc-950/40 relative overflow-hidden">
+                    <Link href={`/product/${product.slug}`} className="block aspect-square w-full bg-background/40 relative overflow-hidden">
                       <ShimmerImage
                         src={product.images[0]}
                         alt={product.title}
@@ -155,7 +155,7 @@ export default function SearchContent({ products }: SearchContentProps) {
 
                     <div className="p-4 flex-grow flex flex-col justify-between">
                       <div>
-                        <div className="flex justify-between items-center text-[10px] text-zinc-500 mb-1">
+                        <div className="flex justify-between items-center text-[10px] text-muted-foreground mb-1">
                           <span>{product.brand_name}</span>
                           <div className="flex items-center gap-0.5 text-accent font-semibold">
                             <Star className="h-3 w-3 fill-accent" />
@@ -164,26 +164,26 @@ export default function SearchContent({ products }: SearchContentProps) {
                         </div>
 
                         <Link href={`/product/${product.slug}`}>
-                          <h3 className="font-bold text-white text-sm hover:text-primary transition-colors line-clamp-1">
+                          <h3 className="font-bold text-foreground text-sm hover:text-primary transition-colors line-clamp-1">
                             {product.title}
                           </h3>
                         </Link>
                       </div>
 
-                      <div className="flex justify-between items-center mt-3 pt-2 border-t border-white/[0.04]">
+                      <div className="flex justify-between items-center mt-3 pt-2 border-t border-border">
                         <div>
                           {salePrice ? (
                             <div className="flex items-center gap-1.5">
-                              <span className="text-xs line-through text-zinc-500">₹{price}</span>
-                              <span className="text-sm font-black text-white">₹{salePrice}</span>
+                              <span className="text-xs line-through text-muted-foreground">₹{price}</span>
+                              <span className="text-sm font-black text-foreground">₹{salePrice}</span>
                             </div>
                           ) : (
-                            <span className="text-sm font-black text-white">₹{price}</span>
+                            <span className="text-sm font-black text-foreground">₹{price}</span>
                           )}
                         </div>
                         <Link 
                           href={`/product/${product.slug}`}
-                          className="bg-white/[0.05] hover:bg-primary text-white p-2 rounded-xl border border-white/[0.06] hover:border-primary transition-all"
+                          className="bg-secondary hover:bg-primary text-foreground p-2 rounded-xl border border-border hover:border-primary transition-all"
                         >
                           <ArrowRight className="h-3.5 w-3.5" />
                         </Link>
@@ -197,12 +197,12 @@ export default function SearchContent({ products }: SearchContentProps) {
         </div>
       ) : (
         /* Empty Search State: Recommendations */
-        <div className="space-y-6 pt-6 border-t border-white/[0.06]">
-          <h2 className="text-xl font-bold text-white text-center mb-6">Trending In Store</h2>
+        <div className="space-y-6 pt-6 border-t border-border">
+          <h2 className="text-xl font-bold text-foreground text-center mb-6">Trending In Store</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-6 max-w-4xl mx-auto">
             {recommendations.map((product) => (
-              <div key={product.id} className="glass-card rounded-2xl overflow-hidden flex flex-col border border-white/[0.04] p-4 group">
-                <Link href={`/product/${product.slug}`} className="block aspect-[4/3] bg-zinc-950/20 rounded-xl overflow-hidden">
+              <div key={product.id} className="glass-card rounded-2xl overflow-hidden flex flex-col border border-border p-4 group">
+                <Link href={`/product/${product.slug}`} className="block aspect-[4/3] bg-background/20 rounded-xl overflow-hidden">
                   <ShimmerImage
                     src={product.images[0]}
                     alt={product.title}
@@ -211,14 +211,14 @@ export default function SearchContent({ products }: SearchContentProps) {
                 </Link>
                 <div className="mt-3 flex justify-between items-start gap-2">
                   <div>
-                    <h3 className="font-bold text-white text-sm line-clamp-1">{product.title}</h3>
-                    <p className="text-[10px] text-zinc-500 mt-0.5">{product.brand_name}</p>
+                    <h3 className="font-bold text-foreground text-sm line-clamp-1">{product.title}</h3>
+                    <p className="text-[10px] text-muted-foreground mt-0.5">{product.brand_name}</p>
                   </div>
                   <span className="text-sm font-black text-primary">₹{product.sale_price || product.price}</span>
                 </div>
                 <Link
                   href={`/product/${product.slug}`}
-                  className="w-full bg-white/[0.04] hover:bg-primary hover:text-white text-zinc-300 py-2 rounded-xl text-xs font-bold text-center mt-4 border border-white/[0.06] transition-colors"
+                  className="w-full bg-secondary hover:bg-primary hover:text-foreground text-muted-foreground py-2 rounded-xl text-xs font-bold text-center mt-4 border border-border transition-colors"
                 >
                   View Shoe
                 </Link>

@@ -75,33 +75,33 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
         <div>
           <Link
             href={`/store/${storeSlug}/manage`}
-            className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
           >
             <ArrowLeft className="h-3 w-3" /> Dashboard
           </Link>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">Reviews</h1>
-          <p className="text-zinc-400 text-sm mt-1">{filteredReviews.length} of {reviews.length} reviews • {pendingCount} pending approval</p>
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Reviews</h1>
+          <p className="text-muted-foreground text-sm mt-1">{filteredReviews.length} of {reviews.length} reviews • {pendingCount} pending approval</p>
         </div>
       </div>
 
       {/* Search and Filter */}
       <div className="flex flex-col sm:flex-row gap-4 mb-6">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-zinc-500" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <input
             type="text"
             placeholder="Search by customer, product, or review text..."
             value={searchQuery}
             onChange={e => setSearchQuery(e.target.value)}
-            className="w-full bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="w-full bg-card/50 text-foreground border border-border rounded-xl pl-10 pr-4 py-2.5 text-sm outline-none focus:border-primary"
           />
         </div>
         <div className="flex items-center gap-2">
-          <Filter className="h-4 w-4 text-zinc-500" />
+          <Filter className="h-4 w-4 text-muted-foreground" />
           <select
             value={statusFilter}
             onChange={e => setStatusFilter(e.target.value as any)}
-            className="bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="bg-card/50 text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
           >
             <option value="all">All Status</option>
             <option value="approved">Approved</option>
@@ -110,7 +110,7 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
           <select
             value={ratingFilter}
             onChange={e => setRatingFilter(e.target.value as any)}
-            className="bg-zinc-900/50 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+            className="bg-card/50 text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
           >
             <option value="all">All Ratings</option>
             <option value="5">5 Stars</option>
@@ -125,8 +125,8 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
       {/* Reviews List */}
       {filteredReviews.length === 0 ? (
         <div className="glass-card rounded-2xl p-12 text-center">
-          <MessageSquare className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400 text-sm">No reviews found</p>
+          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground text-sm">No reviews found</p>
         </div>
       ) : (
         <div className="space-y-3">
@@ -139,19 +139,19 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
                   </div>
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 mb-1">
-                      <p className="text-sm font-semibold text-white">{review.user_name}</p>
+                      <p className="text-sm font-semibold text-foreground">{review.user_name}</p>
                       <div className="flex items-center gap-0.5">
                         {[...Array(5)].map((_, i) => (
                           <Star
                             key={i}
-                            className={`h-3.5 w-3.5 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-zinc-600'}`}
+                            className={`h-3.5 w-3.5 ${i < review.rating ? 'text-yellow-400 fill-yellow-400' : 'text-muted-foreground'}`}
                           />
                         ))}
                       </div>
                     </div>
-                    <p className="text-xs text-zinc-500 mb-2">{review.product_title}</p>
-                    <p className="text-sm text-zinc-300 leading-relaxed">{review.review_text}</p>
-                    <p className="text-xs text-zinc-500 mt-2">{new Date(review.created_at).toLocaleDateString()}</p>
+                    <p className="text-xs text-muted-foreground mb-2">{review.product_title}</p>
+                    <p className="text-sm text-muted-foreground leading-relaxed">{review.review_text}</p>
+                    <p className="text-xs text-muted-foreground mt-2">{new Date(review.created_at).toLocaleDateString()}</p>
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
@@ -175,7 +175,7 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
                 </div>
               </div>
               {review.approved && (
-                <div className="mt-3 pt-3 border-t border-white/[0.06]">
+                <div className="mt-3 pt-3 border-t border-border">
                   <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/20">
                     <Check className="h-3 w-3" /> Approved
                   </span>

@@ -171,10 +171,10 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
     <div className="max-w-5xl mx-auto">
       <div className="mb-6 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight">
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">
             {mode === 'create' ? 'Create Blog Post' : 'Edit Blog Post'}
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Craft an article and publish it to your store's magazine.
           </p>
         </div>
@@ -182,7 +182,7 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
           <button
             type="button"
             onClick={() => setShowPreview((v) => !v)}
-            className="inline-flex items-center gap-2 px-4 py-2.5 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] rounded-xl text-sm text-zinc-300 hover:text-white transition-colors"
+            className="inline-flex items-center gap-2 px-4 py-2.5 bg-secondary hover:bg-muted border border-border rounded-xl text-sm text-muted-foreground hover:text-foreground transition-colors"
           >
             <Eye className="h-4 w-4" /> {showPreview ? 'Edit' : 'Preview'}
           </button>
@@ -202,12 +202,12 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
       )}
 
       {showPreview ? (
-        <div className="glass-card rounded-2xl p-8 border border-white/[0.04]">
+        <div className="glass-card rounded-2xl p-8 border border-border">
           <span className="px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary text-xs font-extrabold uppercase rounded-lg">
             {category || 'Category'}
           </span>
-          <h2 className="text-3xl font-black text-white mt-3">{title || 'Untitled Post'}</h2>
-          {readTime && <p className="text-zinc-500 text-xs mt-2">{readTime}</p>}
+          <h2 className="text-3xl font-black text-foreground mt-3">{title || 'Untitled Post'}</h2>
+          {readTime && <p className="text-muted-foreground text-xs mt-2">{readTime}</p>}
           {imageUrl && (
             // eslint-disable-next-line @next/next/no-img-element
             <img
@@ -219,7 +219,7 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
           <p className="text-lg text-white font-semibold border-l-2 border-primary pl-4 mb-4">
             {summary}
           </p>
-          <div className="prose prose-invert max-w-none text-zinc-300 space-y-4">
+          <div className="prose prose-invert max-w-none text-muted-foreground space-y-4">
             {content.split('\n\n').map((para, i) => (
               <p key={i}>{para}</p>
             ))}
@@ -229,7 +229,7 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
               {tags.map((t) => (
                 <span
                   key={t}
-                  className="bg-zinc-900 border border-white/[0.05] text-zinc-300 px-3 py-1 rounded-lg text-xs font-semibold"
+                  className="bg-zinc-900 border border-border text-muted-foreground px-3 py-1 rounded-lg text-xs font-semibold"
                 >
                   {t}
                 </span>
@@ -243,24 +243,24 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
           <div className="lg:col-span-2 space-y-6">
             <div className="glass-card rounded-2xl p-6 space-y-4">
               <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Title
                 </label>
                 <input
                   type="text"
                   value={title}
                   onChange={(e) => setTitle(e.target.value)}
-                  className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                  className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   placeholder="e.g., Sneaker Care 101"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Slug
                 </label>
-                <div className="flex items-center bg-zinc-900 border border-white/[0.06] rounded-xl px-3 focus-within:border-primary">
-                  <span className="text-zinc-500 text-sm">/blog/</span>
+                <div className="flex items-center bg-zinc-900 border border-border rounded-xl px-3 focus-within:border-primary">
+                  <span className="text-muted-foreground text-sm">/blog/</span>
                   <input
                     type="text"
                     value={slug}
@@ -275,30 +275,30 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Summary
                 </label>
                 <textarea
                   value={summary}
                   onChange={(e) => setSummary(e.target.value)}
                   rows={2}
-                  className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary resize-none"
+                  className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary resize-none"
                   placeholder="A short, catchy excerpt shown on the magazine grid."
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Content
                 </label>
                 <textarea
                   value={content}
                   onChange={(e) => setContent(e.target.value)}
                   rows={16}
-                  className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-3 text-sm outline-none focus:border-primary resize-y font-mono leading-relaxed"
+                  className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary resize-y font-mono leading-relaxed"
                   placeholder="Write your article here. Use blank lines to separate paragraphs."
                 />
-                <p className="text-[11px] text-zinc-500">
+                <p className="text-[11px] text-muted-foreground">
                   {content.trim().split(/\s+/).filter(Boolean).length} words · auto read time:{' '}
                   {readTime || '—'}
                 </p>
@@ -309,36 +309,36 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
           {/* Sidebar */}
           <div className="space-y-6">
             <div className="glass-card rounded-2xl p-6 space-y-4">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <FileText className="h-4 w-4 text-primary" /> Publish
               </h3>
               <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Category
                 </label>
                 <input
                   type="text"
                   value={category}
                   onChange={(e) => setCategory(e.target.value)}
-                  className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                  className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   placeholder="Guides"
                 />
               </div>
               <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Read Time
                 </label>
                 <input
                   type="text"
                   value={readTime}
                   onChange={(e) => setReadTime(e.target.value)}
-                  className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                  className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                   placeholder="auto"
                 />
               </div>
 
               <div className="space-y-1">
-                <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+                <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                   Tags
                 </label>
                 <div className="flex gap-2">
@@ -352,13 +352,13 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
                         addTag();
                       }
                     }}
-                    className="flex-grow bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
+                    className="flex-grow bg-card text-foreground border border-border rounded-xl px-3 py-2 text-sm outline-none focus:border-primary"
                     placeholder="Add tag"
                   />
                   <button
                     type="button"
                     onClick={addTag}
-                    className="px-3 py-2 bg-white/[0.05] hover:bg-white/[0.08] rounded-xl text-zinc-300"
+                    className="px-3 py-2 bg-secondary hover:bg-muted rounded-xl text-muted-foreground"
                   >
                     <TagIcon className="h-4 w-4" />
                   </button>
@@ -393,7 +393,7 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
                   type="button"
                   disabled={saving}
                   onClick={() => handleSave(false)}
-                  className="inline-flex items-center justify-center gap-2 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] text-zinc-200 px-5 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50"
+                  className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted border border-border text-zinc-200 px-5 py-2.5 rounded-xl font-bold text-sm transition-all disabled:opacity-50"
                 >
                   <Save className="h-4 w-4" /> Save Draft
                 </button>
@@ -401,7 +401,7 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
             </div>
 
             <div className="glass-card rounded-2xl p-6 space-y-3">
-              <h3 className="text-sm font-bold text-white flex items-center gap-2">
+              <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
                 <ImageIcon className="h-4 w-4 text-primary" /> Featured Image
               </h3>
               <div className="relative aspect-[16/9] w-full bg-zinc-900 rounded-xl overflow-hidden">
@@ -409,7 +409,7 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
                   // eslint-disable-next-line @next/next/no-img-element
                   <img src={imageUrl} alt="" className="w-full h-full object-cover" />
                 ) : (
-                  <div className="w-full h-full flex items-center justify-center text-zinc-600">
+                  <div className="w-full h-full flex items-center justify-center text-muted-foreground">
                     <ImageIcon className="h-10 w-10" />
                   </div>
                 )}
@@ -424,7 +424,7 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
               <button
                 type="button"
                 onClick={() => fileInputRef.current?.click()}
-                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-white/[0.05] hover:bg-white/[0.08] border border-white/[0.06] rounded-xl text-sm text-zinc-300 hover:text-white transition-colors"
+                className="w-full inline-flex items-center justify-center gap-2 px-4 py-2.5 bg-secondary hover:bg-muted border border-border rounded-xl text-sm text-muted-foreground hover:text-foreground transition-colors"
               >
                 <Upload className="h-4 w-4" /> Upload Image
               </button>
@@ -432,7 +432,7 @@ export default function BlogEditorClient({ mode, post }: BlogEditorClientProps) 
                 <button
                   type="button"
                   onClick={() => setImageUrl('')}
-                  className="w-full text-xs text-zinc-500 hover:text-red-400 transition-colors"
+                  className="w-full text-xs text-muted-foreground hover:text-red-400 transition-colors"
                 >
                   Remove image
                 </button>

@@ -111,14 +111,14 @@ export default function TestimonialsClient({ initialTestimonials }: Testimonials
         <div>
           <Link
             href="/admin"
-            className="inline-flex items-center gap-1 text-xs text-zinc-500 hover:text-white mb-2 transition-colors"
+            className="inline-flex items-center gap-1 text-xs text-muted-foreground hover:text-foreground mb-2 transition-colors"
           >
             <ArrowLeft className="h-3 w-3" /> Dashboard
           </Link>
-          <h1 className="text-3xl font-extrabold text-white tracking-tight flex items-center gap-2">
+          <h1 className="text-3xl font-extrabold text-foreground tracking-tight flex items-center gap-2">
             <MessageSquare className="h-7 w-7 text-primary" /> Testimonials
           </h1>
-          <p className="text-zinc-400 text-sm mt-1">
+          <p className="text-muted-foreground text-sm mt-1">
             Manage the "Verified Buyer Feedback" shown on the home page.
           </p>
         </div>
@@ -147,11 +147,11 @@ export default function TestimonialsClient({ initialTestimonials }: Testimonials
       {editing && (
         <form onSubmit={handleSave} className="glass-card rounded-2xl p-6 mb-6 space-y-4">
           <div className="flex items-center justify-between">
-            <h2 className="text-lg font-bold text-white">{form.id ? 'Edit Testimonial' : 'New Testimonial'}</h2>
+            <h2 className="text-lg font-bold text-foreground">{form.id ? 'Edit Testimonial' : 'New Testimonial'}</h2>
             <button
               type="button"
               onClick={() => { setEditing(false); setForm(emptyForm); }}
-              className="text-zinc-500 hover:text-white"
+              className="text-muted-foreground hover:text-foreground"
             >
               <X className="h-5 w-5" />
             </button>
@@ -159,60 +159,60 @@ export default function TestimonialsClient({ initialTestimonials }: Testimonials
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div className="space-y-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">Name</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Name</label>
               <input
                 value={form.name}
                 onChange={(e) => setForm({ ...form, name: e.target.value })}
-                className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                 placeholder="e.g., Marcus Vance"
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Initials (optional)
               </label>
               <input
                 value={form.initials}
                 onChange={(e) => setForm({ ...form, initials: e.target.value })}
                 maxLength={3}
-                className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                 placeholder="MV"
               />
             </div>
           </div>
 
           <div className="space-y-1">
-            <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">Review</label>
+            <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Review</label>
             <textarea
               value={form.review}
               onChange={(e) => setForm({ ...form, review: e.target.value })}
               rows={3}
-              className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary resize-none"
+              className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary resize-none"
               placeholder="What did the customer say?"
             />
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 items-end">
             <div className="space-y-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
                 Product (optional)
               </label>
               <input
                 value={form.product}
                 onChange={(e) => setForm({ ...form, product: e.target.value })}
-                className="w-full bg-zinc-900 text-white border border-white/[0.06] rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
+                className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
                 placeholder="e.g., Volt Velocity Runner v4"
               />
             </div>
             <div className="space-y-1">
-              <label className="block text-xs font-bold uppercase tracking-wider text-zinc-400">Rating</label>
+              <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Rating</label>
               <div className="flex gap-1">
                 {[1, 2, 3, 4, 5].map((n) => (
                   <button
                     key={n}
                     type="button"
                     onClick={() => setForm({ ...form, rating: n })}
-                    className={n <= form.rating ? 'text-accent' : 'text-zinc-600'}
+                    className={n <= form.rating ? 'text-accent' : 'text-muted-foreground'}
                   >
                     <Star className="h-6 w-6" fill={n <= form.rating ? 'currentColor' : 'none'} />
                   </button>
@@ -225,7 +225,7 @@ export default function TestimonialsClient({ initialTestimonials }: Testimonials
             <button
               type="button"
               onClick={() => { setEditing(false); setForm(emptyForm); }}
-              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-zinc-300 hover:text-white"
+              className="px-5 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground"
             >
               Cancel
             </button>
@@ -242,8 +242,8 @@ export default function TestimonialsClient({ initialTestimonials }: Testimonials
 
       {testimonials.length === 0 && !editing ? (
         <div className="glass-card rounded-2xl p-12 text-center">
-          <MessageSquare className="h-12 w-12 text-zinc-600 mx-auto mb-3" />
-          <p className="text-zinc-400">No testimonials yet.</p>
+          <MessageSquare className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
+          <p className="text-muted-foreground">No testimonials yet.</p>
           <button
             onClick={openNew}
             className="inline-flex items-center gap-2 mt-4 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl font-bold text-sm transition-all"
@@ -254,34 +254,34 @@ export default function TestimonialsClient({ initialTestimonials }: Testimonials
       ) : (
         <div className="space-y-3">
           {testimonials.map((t) => (
-            <div key={t.id} className="glass-card rounded-2xl p-5 flex items-start gap-4 border border-white/[0.04]">
+            <div key={t.id} className="glass-card rounded-2xl p-5 flex items-start gap-4 border border-border">
               <div className="h-10 w-10 bg-primary/20 rounded-full flex items-center justify-center text-sm font-bold text-primary flex-shrink-0">
                 {t.initials || t.name.slice(0, 2).toUpperCase()}
               </div>
               <div className="flex-grow min-w-0">
                 <div className="flex items-center gap-2 flex-wrap">
-                  <span className="font-bold text-white">{t.name}</span>
+                  <span className="font-bold text-foreground">{t.name}</span>
                   <span className="flex gap-0.5 text-accent">
                     {Array.from({ length: t.rating }).map((_, i) => (
                       <Star key={i} className="h-3 w-3 fill-accent" />
                     ))}
                   </span>
                 </div>
-                <p className="text-sm text-zinc-400 italic mt-1">"{t.review}"</p>
+                <p className="text-sm text-muted-foreground italic mt-1">"{t.review}"</p>
                 {t.product && <p className="text-xs text-primary font-semibold mt-1">Product: {t.product}</p>}
               </div>
               <div className="flex items-center gap-1 flex-shrink-0">
                 <button
                   onClick={() => openEdit(t)}
                   title="Edit"
-                  className="p-2 rounded-lg text-zinc-400 hover:text-white hover:bg-white/[0.06] transition-colors"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
                 >
                   <Pencil className="h-4 w-4" />
                 </button>
                 <button
                   onClick={() => handleDelete(t)}
                   title="Delete"
-                  className="p-2 rounded-lg text-zinc-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-red-400 hover:bg-red-500/10 transition-colors"
                 >
                   <Trash2 className="h-4 w-4" />
                 </button>

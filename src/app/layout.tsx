@@ -3,6 +3,7 @@ import { Suspense } from "react";
 import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { CartProvider } from "../context/CartContext";
+import { ThemeProvider } from "../context/ThemeContext";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
@@ -26,19 +27,20 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="h-full antialiased dark"
-      style={{ colorScheme: 'dark' }}
+      className="h-full antialiased"
     >
       <body className="min-h-full flex flex-col bg-background text-foreground antialiased">
-        <AuthProvider>
-          <CartProvider>
-            <Suspense fallback={null}>
-              <Header />
-            </Suspense>
-            <main className="flex-grow flex flex-col">{children}</main>
-            <Footer />
-          </CartProvider>
-        </AuthProvider>
+        <ThemeProvider>
+          <AuthProvider>
+            <CartProvider>
+              <Suspense fallback={null}>
+                <Header />
+              </Suspense>
+              <main className="flex-grow flex flex-col">{children}</main>
+              <Footer />
+            </CartProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
