@@ -62,7 +62,7 @@ export default async function StoreProductsPage({ params }: { params: Promise<{ 
           </div>
           <a
             href={`/store/${store.slug}`}
-            className="inline-flex items-center gap-2 bg-secondary hover:bg-primary text-white px-4 py-2.5 rounded-xl font-semibold text-sm border border-border hover:border-primary transition-all"
+            className="inline-flex items-center gap-2 bg-secondary hover:bg-primary text-foreground px-4 py-2.5 rounded-xl font-semibold text-sm border border-border hover:border-primary transition-all"
           >
             <StoreIcon className="h-4 w-4" />
             View My Store

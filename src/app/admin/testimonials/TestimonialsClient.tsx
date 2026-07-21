@@ -274,7 +274,7 @@ export default function TestimonialsClient({ initialTestimonials }: Testimonials
                 <button
                   onClick={() => openEdit(t)}
                   title="Edit"
-                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                 >
                   <Pencil className="h-4 w-4" />
                 </button>

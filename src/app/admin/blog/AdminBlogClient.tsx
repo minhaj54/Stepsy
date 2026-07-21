@@ -204,7 +204,7 @@ export default function AdminBlogClient({ initialPosts }: AdminBlogClientProps) 
                       href={`/blog/${post.slug}`}
                       target="_blank"
                       title="View live"
-                      className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+                      className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                     >
                       <ExternalLink className="h-4 w-4" />
                     </Link>
@@ -213,14 +213,14 @@ export default function AdminBlogClient({ initialPosts }: AdminBlogClientProps) 
                     onClick={() => togglePublish(post)}
                     disabled={busyId === post.id}
                     title={isPublished ? 'Unpublish' : 'Publish'}
-                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors disabled:opacity-40"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors disabled:opacity-40"
                   >
                     {isPublished ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                   <Link
                     href={`/admin/blog/${post.id}`}
                     title="Edit"
-                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-white/[0.06] transition-colors"
+                    className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-secondary transition-colors"
                   >
                     <Pencil className="h-4 w-4" />
                   </Link>

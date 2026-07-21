@@ -130,33 +130,33 @@ export default function ShopContent({ products, brands, categories }: ShopConten
   });
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow">
       {/* Top Title & Controls */}
-      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4 mb-6">
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
-          <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Zarwinto Footwear Catalog</h1>
-          <p className="text-muted-foreground text-sm mt-1">Showing {sortedProducts.length} premium products</p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Zarwinto Footwear Catalog</h1>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1">Showing {sortedProducts.length} premium products</p>
         </div>
 
-        <div className="flex w-full md:w-auto items-center justify-between sm:justify-end gap-3 self-stretch md:self-auto">
+        <div className="flex w-full md:w-auto items-center justify-between sm:justify-end gap-2 sm:gap-3 self-stretch md:self-auto">
           {/* Mobile Filter Button */}
           <button
             onClick={() => setIsFilterDrawerOpen(true)}
-            className="flex md:hidden items-center gap-2 px-4 py-2.5 bg-card border border-border hover:border-muted-foreground/50 text-muted-foreground rounded-xl text-sm font-semibold transition-all cursor-pointer"
+            className="flex md:hidden items-center gap-2 px-3 py-2 sm:px-4 sm:py-2.5 bg-card border border-border hover:border-muted-foreground/50 text-muted-foreground rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer"
           >
             <SlidersHorizontal className="h-4 w-4" />
             Filters
           </button>
 
           {/* Sorting Dropdown */}
-          <div className="flex items-center gap-2 bg-card border border-border hover:border-muted-foreground/50 rounded-xl px-3 py-2 text-sm text-muted-foreground transition-all w-full sm:w-auto justify-between sm:justify-start">
-            <span className="text-muted-foreground text-xs flex items-center gap-1 font-medium">
-              <ArrowUpDown className="h-3.5 w-3.5" /> Sort:
+          <div className="flex items-center gap-2 bg-card border border-border hover:border-muted-foreground/50 rounded-xl px-2.5 py-2 sm:px-3 sm:py-2 text-xs sm:text-sm text-muted-foreground transition-all w-full sm:w-auto justify-between sm:justify-start">
+            <span className="text-muted-foreground text-[10px] sm:text-xs flex items-center gap-1 font-medium">
+              <ArrowUpDown className="h-3 w-3 sm:h-3.5 sm:w-3.5" /> Sort:
             </span>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="bg-transparent text-foreground outline-none border-none pr-6 cursor-pointer font-semibold text-xs"
+              className="bg-transparent text-foreground outline-none border-none pr-6 cursor-pointer font-semibold text-[10px] sm:text-xs"
             >
               <option value="newest" className="bg-zinc-900">Newest Drops</option>
               <option value="price-low" className="bg-zinc-900">Price: Low to High</option>
@@ -323,7 +323,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
               </button>
             </div>
           ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
+            <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
               {sortedProducts.map((product) => {
                 const isWishlisted = wishlist.includes(product.id);
                 const price = product.price;
@@ -357,7 +357,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                     </Link>
 
                     {/* Details */}
-                    <div className="p-5 flex-grow flex flex-col justify-between">
+                    <div className="p-3 sm:p-5 flex-grow flex flex-col justify-between">
                       <div>
                         <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
                           <span>{product.brand_name}</span>
@@ -374,7 +374,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                         </Link>
                       </div>
 
-                      <div className="flex justify-between items-center mt-4 pt-3 border-t border-border">
+                      <div className="flex justify-between items-center mt-3 pt-2.5 sm:mt-4 sm:pt-3 border-t border-border">
                         <div>
                           {salePrice ? (
                             <div className="flex items-center gap-2">
@@ -385,9 +385,9 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                             <span className="text-base font-black text-foreground">₹{price}</span>
                           )}
                         </div>
-                        <Link 
+                        <Link
                           href={`/product/${product.slug}`}
-                          className="bg-secondary hover:bg-primary text-primary-foreground p-2 rounded-xl border border-border hover:border-primary transition-all duration-300"
+                          className="bg-primary hover:bg-primary-hover text-primary-foreground p-2.5 rounded-xl border border-primary hover:border-primary-hover transition-all duration-300"
                           aria-label="View Details"
                         >
                           <ArrowRight className="h-4 w-4" />

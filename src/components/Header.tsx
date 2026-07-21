@@ -157,8 +157,8 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-50 w-full glass-panel border-b border-border backdrop-blur-md">
-      <div className="px-4 sm:px-6 lg:px-8">
-        <div className="flex h-16 items-center justify-between gap-4">
+      <div className="px-3 sm:px-4 md:px-6 lg:px-8">
+        <div className="flex h-14 sm:h-16 items-center justify-between gap-3 sm:gap-4">
           {/* Logo */}
           <div className="flex-shrink-0">
             <Link href="/" className="flex items-center gap-2 group">
@@ -293,46 +293,46 @@ export const Header: React.FC = () => {
           </nav>
 
           {/* Utility Icons */}
-          <div className="flex items-center gap-2 sm:gap-4">
+          <div className="flex items-center gap-1.5 sm:gap-2 md:gap-4">
             {/* Mobile Search Trigger */}
             <Link
               href="/search"
-              className="p-2 text-muted-foreground hover:text-foreground md:hidden transition-colors rounded-full hover:bg-secondary"
+              className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground md:hidden transition-colors rounded-full hover:bg-secondary"
               aria-label="Search"
             >
-              <Search className="h-5 w-5" />
+              <Search className="h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
 
             {/* Theme Toggle */}
             <button
               onClick={toggleTheme}
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary"
+              className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary"
               aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
             >
-              {themeMounted ? (theme === 'light' ? <Moon className="h-5 w-5" /> : <Sun className="h-5 w-5" />) : <Sun className="h-5 w-5" />}
+              {themeMounted ? (theme === 'light' ? <Moon className="h-4 w-4 sm:h-5 sm:w-5" /> : <Sun className="h-4 w-4 sm:h-5 sm:w-5" />) : <span className="h-4 w-4 sm:h-5 sm:w-5 block" />}
             </button>
 
             {/* Wishlist */}
             <Link
               href="/account?tab=wishlist"
-              className="p-2 text-muted-foreground hover:text-foreground relative transition-colors rounded-full hover:bg-secondary"
+              className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground relative transition-colors rounded-full hover:bg-secondary"
               aria-label="Wishlist"
             >
-              <Heart className="h-5 w-5" />
+              <Heart className="h-4 w-4 sm:h-5 sm:w-5" />
               {mounted && wishlist.length > 0 && (
-                <span className="absolute top-1.5 right-1.5 h-2 w-2 bg-accent rounded-full animate-ping" />
+                <span className="absolute top-1 right-1 h-1.5 w-1.5 sm:top-1.5 sm:right-1.5 sm:h-2 sm:w-2 bg-accent rounded-full animate-ping" />
               )}
             </Link>
 
             {/* Cart */}
             <Link
               href="/cart"
-              className="p-2 text-muted-foreground hover:text-foreground relative transition-colors rounded-full hover:bg-secondary"
+              className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground relative transition-colors rounded-full hover:bg-secondary"
               aria-label="Shopping Cart"
             >
-              <ShoppingBag className="h-5 w-5" />
+              <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
               {mounted && cartCount > 0 && (
-                <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[10px] font-bold h-4 w-4 rounded-full flex items-center justify-center border border-background">
+                <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[9px] sm:text-[10px] font-bold h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full flex items-center justify-center border border-background">
                   {cartCount}
                 </span>
               )}
@@ -341,11 +341,11 @@ export const Header: React.FC = () => {
             {/* Profile */}
             <Link
               href={sessionUser ? '/account' : '/auth/login'}
-              className="p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary flex items-center gap-1.5"
+              className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary flex items-center gap-1"
               aria-label="Account"
             >
-              <User className="h-5 w-5" />
-              <span className="hidden xl:inline text-xs font-semibold max-w-[80px] truncate">
+              <User className="h-4 w-4 sm:h-5 sm:w-5" />
+              <span className="hidden xl:inline text-[10px] sm:text-xs font-semibold max-w-[80px] truncate">
                 {sessionUser ? sessionUser.full_name.split(' ')[0] : 'Sign In'}
               </span>
             </Link>
@@ -362,10 +362,10 @@ export const Header: React.FC = () => {
             {/* Mobile Menu Button */}
             <button
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="p-2 text-muted-foreground hover:text-foreground lg:hidden transition-colors rounded-full hover:bg-secondary"
+              className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground lg:hidden transition-colors rounded-full hover:bg-secondary"
               aria-label="Toggle Menu"
             >
-              {isMobileMenuOpen ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+              {isMobileMenuOpen ? <X className="h-5 w-5 sm:h-6 w-6" /> : <Menu className="h-5 w-5 sm:h-6 w-6" />}
             </button>
           </div>
         </div>

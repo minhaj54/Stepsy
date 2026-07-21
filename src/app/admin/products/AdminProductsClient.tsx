@@ -433,7 +433,7 @@ export default function AdminProductsClient({
                 <th className="text-center p-4 font-semibold">Actions</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-white/[0.04]">
+            <tbody className="divide-y divide-border">
               {filteredProducts.length === 0 ? (
                 <tr>
                   <td colSpan={6} className="text-center p-8 text-muted-foreground italic">
@@ -444,7 +444,7 @@ export default function AdminProductsClient({
                 filteredProducts.map(product => (
                   <tr
                     key={product.id}
-                    className="hover:bg-white/[0.01] transition-colors"
+                    className="hover:bg-muted/50 transition-colors"
                   >
                     <td className="p-4">
                       <div className="flex items-center gap-3">
@@ -467,7 +467,7 @@ export default function AdminProductsClient({
                       </div>
                     </td>
                     <td className="p-4 text-muted-foreground font-mono text-xs">{product.sku}</td>
-                    <td className="p-4 text-white">
+                    <td className="p-4 text-foreground">
                       {product.sale_price ? (
                         <span>
                           <span className="line-through text-muted-foreground mr-2">
@@ -544,14 +544,14 @@ export default function AdminProductsClient({
                       <div className="flex items-center justify-center gap-2">
                         <button
                           onClick={() => openEditModal(product)}
-                          className="p-1.5 text-muted-foreground hover:text-foreground bg-secondary hover:bg-white/5 border border-border rounded-lg transition-all cursor-pointer"
+                          className="p-1.5 text-muted-foreground hover:text-foreground bg-secondary hover:bg-muted border border-border rounded-lg transition-all cursor-pointer"
                           title="Edit Product"
                         >
                           <Edit className="h-4 w-4" />
                         </button>
                         <button
                           onClick={() => handleDelete(product.id)}
-                          className="p-1.5 text-red-400 hover:text-red-300 bg-red-500/5 hover:bg-red-500/10 border border-red-500/10 rounded-lg transition-all cursor-pointer"
+                          className="p-1.5 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all cursor-pointer"
                           title="Delete Product"
                         >
                           <Trash2 className="h-4 w-4" />
@@ -577,7 +577,7 @@ export default function AdminProductsClient({
                 </h2>
                 <button
                   onClick={() => setIsModalOpen(false)}
-                  className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-white/5 cursor-pointer"
+                  className="p-1.5 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary cursor-pointer"
                 >
                   <X className="h-5 w-5" />
                 </button>

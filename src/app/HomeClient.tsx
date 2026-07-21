@@ -37,7 +37,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
   return (
     <div className="w-full flex flex-col">
       {/* Hero Section */}
-      <section className="relative w-full overflow-hidden bg-background py-16 lg:py-24 flex items-center">
+      <section className="relative w-full overflow-hidden bg-background py-10 sm:py-16 lg:py-24 flex items-center">
         {/* Background glow effects */}
         <div className="absolute top-1/4 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[500px] h-[500px] bg-primary/20 rounded-full blur-[120px] pointer-events-none" />
         <div className="absolute bottom-10 right-10 w-[400px] h-[400px] bg-accent/10 rounded-full blur-[100px] pointer-events-none" />
@@ -55,24 +55,24 @@ export default function HomeClient({ products, categories, brands, bannerProduct
               Explore performance athletic sneakers, hand-burnished luxury dress shoes, and rugged outdoor boots. Crafted for comfort, curated for the streets.
             </p>
 
-            <div className="flex flex-wrap gap-4 pt-2">
+            <div className="flex flex-wrap gap-3 pt-2">
               <Link
                 href="/shop"
-                className="bg-primary hover:bg-primary-hover text-white px-8 py-3.5 rounded-xl font-bold tracking-wide transition-all duration-300 transform active:scale-95 flex items-center gap-2 glow-btn text-sm cursor-pointer"
+                className="bg-primary hover:bg-primary-hover text-white px-6 py-3 sm:px-8 sm:py-3.5 rounded-xl font-bold tracking-wide transition-all duration-300 transform active:scale-95 flex items-center gap-2 glow-btn text-sm cursor-pointer"
               >
                 Shop Collection
                 <ArrowRight className="h-4 w-4" />
               </Link>
               <Link
                 href="/shop?category=sneakers"
-                className="bg-secondary hover:bg-muted text-foreground border border-border hover:border-muted-foreground/50 px-8 py-3.5 rounded-xl font-semibold transition-all duration-300 text-sm"
+                className="bg-secondary hover:bg-muted text-foreground border border-border hover:border-muted-foreground/50 px-6 py-3 sm:px-8 sm:py-3.5 rounded-xl font-semibold transition-all duration-300 text-sm"
               >
                 Explore Sneakers
               </Link>
             </div>
 
             {/* Micro badges */}
-            <div className="grid grid-cols-3 gap-4 border-t border-border pt-8 max-w-lg">
+            <div className="grid grid-cols-2 sm:grid-cols-3 gap-3 sm:gap-4 border-t border-border pt-6 sm:pt-8 max-w-lg">
               <div>
                 <p className="text-2xl font-black text-foreground">100%</p>
                 <p className="text-xs text-muted-foreground uppercase tracking-wider font-semibold">Authentic Brands</p>
@@ -197,7 +197,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
             <Link
               key={cat.id}
               href={`/shop?category=${cat.slug}`}
-              className="group relative w-[40%] sm:w-[25%] lg:w-[16%] aspect-[3/4] rounded-md sm:rounded-lg overflow-hidden border border-border hover:border-primary/40 transition-all duration-300 cursor-pointer"
+              className="group relative w-[45%] sm:w-[25%] lg:w-[16%] aspect-[3/4] rounded-md sm:rounded-lg overflow-hidden border border-border hover:border-primary/40 transition-all duration-300 cursor-pointer"
             >
               <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent z-10 transition-opacity duration-300" />
               <img
@@ -206,8 +206,8 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                 className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
               />
               <div className="absolute bottom-2 left-2 right-2 sm:bottom-2.5 sm:left-2.5 sm:right-2.5 z-20">
-                <span className="text-[8px] sm:text-[9px] text-primary font-bold uppercase tracking-wider">Explore</span>
-                <h3 className="text-[10px] sm:text-xs font-extrabold text-foreground tracking-tight mt-0.5 group-hover:text-primary transition-colors">
+                <span className="text-[9px] sm:text-[9px] text-primary font-bold uppercase tracking-wider">Explore</span>
+                <h3 className="text-[11px] sm:text-xs font-extrabold text-foreground tracking-tight mt-0.5 group-hover:text-primary transition-colors">
                   {cat.name}
                 </h3>
               </div>
@@ -267,7 +267,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                   </Link>
 
                   {/* Details */}
-                  <div className="p-5 flex-grow flex flex-col justify-between">
+                  <div className="p-3 sm:p-5 flex-grow flex flex-col justify-between">
                     <div>
                       <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
                         <span>{product.brand_name}</span>
@@ -284,7 +284,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                       </Link>
                     </div>
 
-                    <div className="flex justify-between items-center mt-4 pt-3 border-t border-border">
+                    <div className="flex justify-between items-center mt-3 pt-2.5 sm:mt-4 sm:pt-3 border-t border-border">
                       <div>
                         {salePrice ? (
                           <div className="flex items-center gap-2">
@@ -297,7 +297,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
                       </div>
                       <Link
                         href={`/product/${product.slug}`}
-                        className="bg-secondary hover:bg-primary text-foreground p-2 rounded-xl border border-border hover:border-primary transition-all duration-300"
+                        className="bg-secondary hover:bg-primary text-foreground p-2.5 rounded-xl border border-border hover:border-primary transition-all duration-300"
                         aria-label="View Details"
                       >
                         <ArrowRight className="h-4 w-4" />

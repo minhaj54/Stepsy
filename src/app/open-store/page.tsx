@@ -146,21 +146,21 @@ export default function OpenStorePage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 max-w-3xl mx-auto">
-      <div className="mb-8 text-center">
-        <div className="p-4 bg-primary/10 rounded-2xl w-fit mx-auto mb-4">
-          <StoreIcon className="h-8 w-8 text-primary" />
+    <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-10 max-w-3xl mx-auto">
+      <div className="mb-6 sm:mb-8 text-center">
+        <div className="p-3 sm:p-4 bg-primary/10 rounded-2xl w-fit mx-auto mb-3 sm:mb-4">
+          <StoreIcon className="h-6 w-6 sm:h-8 sm:w-8 text-primary" />
         </div>
-        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Open Your Store</h1>
-        <p className="text-muted-foreground text-sm mt-2">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Open Your Store</h1>
+        <p className="text-muted-foreground text-xs sm:text-sm mt-1 sm:mt-2">
           Set up your storefront and start selling your footwear to the world.
         </p>
       </div>
 
-      <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-6 sm:p-8 space-y-6">
+      <form onSubmit={handleSubmit} className="glass-card rounded-2xl p-4 sm:p-6 lg:p-8 space-y-4 sm:space-y-6">
         {/* Banner */}
         <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">Store Banner</label>
+          <label className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">Store Banner</label>
           <input ref={bannerInputRef} type="file" accept="image/*" onChange={pickBanner} className="hidden" />
           {bannerPreview ? (
             <div className="relative rounded-xl overflow-hidden border border-border">
@@ -188,7 +188,7 @@ export default function OpenStorePage() {
 
         {/* Logo */}
         <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">Store Logo</label>
+          <label className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">Store Logo</label>
           <input ref={logoInputRef} type="file" accept="image/*" onChange={pickLogo} className="hidden" />
           <div className="flex items-center gap-4">
             {logoPreview ? (
@@ -225,32 +225,32 @@ export default function OpenStorePage() {
 
         {/* Name */}
         <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">Store Name *</label>
+          <label className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">Store Name *</label>
           <input
             type="text"
             required
             value={name}
             onChange={(e) => setName(e.target.value)}
             placeholder="e.g. Sole Society"
-            className="w-full bg-secondary text-foreground border border-border hover:border-muted-foreground/50 focus:border-primary focus:bg-white/[0.06] rounded-xl px-4 py-3 text-sm outline-none transition-all"
+            className="w-full bg-secondary text-foreground border border-border hover:border-muted-foreground/50 focus:border-primary focus:bg-muted rounded-xl px-4 py-3 text-sm outline-none transition-all"
           />
         </div>
 
         {/* Description */}
         <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">Store Description</label>
+          <label className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">Store Description</label>
           <textarea
             value={description}
             onChange={(e) => setDescription(e.target.value)}
             rows={3}
             placeholder="Tell customers what makes your store special..."
-            className="w-full bg-secondary text-foreground border border-border hover:border-muted-foreground/50 focus:border-primary focus:bg-white/[0.06] rounded-xl px-4 py-3 text-sm outline-none transition-all resize-none"
+            className="w-full bg-secondary text-foreground border border-border hover:border-muted-foreground/50 focus:border-primary focus:bg-muted rounded-xl px-4 py-3 text-sm outline-none transition-all resize-none"
           />
         </div>
 
         {/* Social handle */}
         <div>
-          <label className="block text-sm font-semibold text-foreground mb-2">Social Handle (optional)</label>
+          <label className="block text-xs sm:text-sm font-semibold text-foreground mb-1.5 sm:mb-2">Social Handle (optional)</label>
           <div className="flex items-center bg-secondary border border-border focus-within:border-primary rounded-xl px-4 transition-all">
             <span className="text-muted-foreground text-sm">@</span>
             <input
@@ -270,7 +270,7 @@ export default function OpenStorePage() {
         <button
           type="submit"
           disabled={submitting}
-          className="w-full bg-primary hover:bg-primary-hover text-white px-6 py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-60"
+          className="w-full bg-primary hover:bg-primary-hover text-white px-6 py-3 sm:py-3.5 rounded-xl font-semibold flex items-center justify-center gap-2 transition-all disabled:opacity-60"
         >
           {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
           {submitting ? 'Creating your store...' : 'Create Store'}

@@ -65,10 +65,10 @@ export default function SearchContent({ products }: SearchContentProps) {
   const recommendations = products.slice(0, 3);
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow">
       {/* Search Bar Block */}
-      <div className="max-w-2xl mx-auto text-center space-y-6 mb-10">
-        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Explore Zarwinto Marketplace</h1>
+      <div className="max-w-2xl mx-auto text-center space-y-4 sm:space-y-6 mb-8 sm:mb-10">
+        <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Explore Zarwinto Marketplace</h1>
         
         <form onSubmit={handleSearchSubmit} className="relative group">
           <input
@@ -76,14 +76,14 @@ export default function SearchContent({ products }: SearchContentProps) {
             placeholder="Search footwear by brand, color, purpose..."
             value={searchInput}
             onChange={(e) => setSearchInput(e.target.value)}
-            className="w-full bg-card text-foreground placeholder:text-muted-foreground border border-border group-hover:border-muted-foreground/50 focus:border-primary focus:bg-muted focus:ring-1 focus:ring-primary rounded-2xl py-4 pl-5 pr-14 outline-none transition-all duration-300 text-sm font-medium"
+            className="w-full bg-card text-foreground placeholder:text-muted-foreground border border-border group-hover:border-muted-foreground/50 focus:border-primary focus:bg-muted focus:ring-1 focus:ring-primary rounded-2xl py-3 sm:py-4 pl-4 sm:pl-5 pr-12 sm:pr-14 outline-none transition-all duration-300 text-sm font-medium"
           />
           <button
             type="submit"
-            className="absolute right-3 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary-hover p-2.5 rounded-xl text-white transition-all cursor-pointer"
+            className="absolute right-2.5 sm:right-3 top-1/2 -translate-y-1/2 bg-primary hover:bg-primary-hover p-2 sm:p-2.5 rounded-xl text-white transition-all cursor-pointer"
             aria-label="Search Submit"
           >
-            <Search className="h-4.5 w-4.5" />
+            <Search className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
           </button>
         </form>
 
@@ -123,7 +123,7 @@ export default function SearchContent({ products }: SearchContentProps) {
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
               {matchedProducts.map((product) => {
                 const isWishlisted = wishlist.includes(product.id);
                 const price = product.price;
@@ -181,9 +181,9 @@ export default function SearchContent({ products }: SearchContentProps) {
                             <span className="text-sm font-black text-foreground">₹{price}</span>
                           )}
                         </div>
-                        <Link 
+                        <Link
                           href={`/product/${product.slug}`}
-                          className="bg-secondary hover:bg-primary text-foreground p-2 rounded-xl border border-border hover:border-primary transition-all"
+                          className="bg-secondary hover:bg-primary text-foreground p-2.5 rounded-xl border border-border hover:border-primary transition-all"
                         >
                           <ArrowRight className="h-3.5 w-3.5" />
                         </Link>

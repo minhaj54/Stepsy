@@ -54,17 +54,17 @@ export default function TermsPage() {
   return (
     <div className="min-h-screen">
       {/* Hero */}
-      <div className="relative py-12 sm:py-20 overflow-hidden border-b border-border">
+      <div className="relative py-8 sm:py-12 lg:py-20 overflow-hidden border-b border-border">
         <div className="absolute inset-0 bg-gradient-to-b from-primary/10 via-transparent to-transparent" />
         <div className="relative px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
-          <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold mb-6">
+          <div className="inline-flex items-center gap-2 px-3 py-1.5 sm:px-4 sm:py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-xs sm:text-sm font-semibold mb-4 sm:mb-6">
             <FileText className="h-4 w-4" />
             The Fine Print, Made Clear
           </div>
-          <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight mb-6">
+          <h1 className="text-3xl sm:text-4xl lg:text-5xl font-black text-foreground tracking-tight mb-4 sm:mb-6">
             Terms of <span className="text-primary">Service</span>
           </h1>
-          <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
             These terms outline your rights and responsibilities when using the Zarwinto
             marketplace. Please read them carefully.
           </p>
@@ -73,33 +73,33 @@ export default function TermsPage() {
       </div>
 
       {/* Content */}
-      <div className="px-4 sm:px-6 lg:px-8 py-12 max-w-3xl mx-auto">
-        <div className="space-y-8">
+      <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-3xl mx-auto">
+        <div className="space-y-6 sm:space-y-8">
           {sections.map((s) => (
             <section key={s.title}>
-              <h2 className="text-xl font-bold text-foreground tracking-tight mb-3">{s.title}</h2>
+              <h2 className="text-lg sm:text-xl font-bold text-foreground tracking-tight mb-2 sm:mb-3">{s.title}</h2>
               <p className="text-sm text-muted-foreground leading-relaxed">{s.body}</p>
             </section>
           ))}
         </div>
 
         {/* CTA */}
-        <div className="mt-12 rounded-3xl border border-border bg-gradient-to-r from-primary/10 via-zinc-950 to-primary/10 p-8 text-center">
-          <h2 className="text-2xl font-bold text-foreground tracking-tight mb-2">Still have questions?</h2>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
+        <div className="mt-8 sm:mt-12 rounded-2xl sm:rounded-3xl border border-border bg-gradient-to-r from-primary/10 via-zinc-950 to-primary/10 p-6 sm:p-8 text-center">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight mb-2">Still have questions?</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto mb-4 sm:mb-6">
             Our support team is here to help clarify anything about your orders or account.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
             <a
               href="mailto:support@zarwinto.com"
-              className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all"
+              className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm transition-all"
             >
               Contact Support
               <ArrowRight className="h-4 w-4" />
             </a>
             <Link
               href="/privacy"
-              className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted text-white border border-border px-6 py-3 rounded-xl font-semibold text-sm transition-all"
+              className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted text-foreground border border-border px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm transition-all"
             >
               Privacy Policy
             </Link>

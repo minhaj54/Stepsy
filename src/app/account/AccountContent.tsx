@@ -236,11 +236,11 @@ export default function AccountContent({ products }: { products: Product[] }) {
   const wishlistedProducts = products.filter(p => wishlist.includes(p.id));
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
       {/* Sidebar Controls */}
-      <aside className="lg:col-span-3 space-y-4">
+      <aside className="lg:col-span-3 space-y-3 sm:space-y-4">
         {/* User Card */}
-        <div className="glass-card p-6 rounded-2xl border border-border text-center space-y-3">
+        <div className="glass-card p-4 sm:p-6 rounded-2xl border border-border text-center space-y-2 sm:space-y-3">
           <div className="h-16 w-16 bg-primary/20 text-primary font-bold text-2xl rounded-full flex items-center justify-center mx-auto border border-primary/20">
             {user.full_name.split(' ').map(n => n[0]).join('').slice(0, 2).toUpperCase()}
           </div>
@@ -254,10 +254,10 @@ export default function AccountContent({ products }: { products: Product[] }) {
         </div>
 
         {/* Tab Buttons */}
-        <div className="glass-card p-3 rounded-2xl border border-border flex flex-col gap-1">
+        <div className="glass-card p-2 sm:p-3 rounded-2xl border border-border flex flex-col gap-0.5 sm:gap-1">
           <button
             onClick={() => handleTabChange('profile')}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'profile' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
@@ -266,7 +266,7 @@ export default function AccountContent({ products }: { products: Product[] }) {
           </button>
           <button
             onClick={() => handleTabChange('orders')}
-            className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+            className={`flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'orders' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
@@ -282,7 +282,7 @@ export default function AccountContent({ products }: { products: Product[] }) {
           </button>
           <button
             onClick={() => handleTabChange('wishlist')}
-            className={`flex items-center justify-between px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+            className={`flex items-center justify-between px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'wishlist' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >
@@ -298,7 +298,7 @@ export default function AccountContent({ products }: { products: Product[] }) {
           </button>
           <button
             onClick={() => handleTabChange('addresses')}
-            className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold transition-all cursor-pointer ${
+            className={`flex items-center gap-3 px-3 sm:px-4 py-2.5 sm:py-3 rounded-xl text-xs sm:text-sm font-semibold transition-all cursor-pointer ${
               activeTab === 'addresses' ? 'bg-primary text-white' : 'text-muted-foreground hover:text-foreground hover:bg-secondary'
             }`}
           >

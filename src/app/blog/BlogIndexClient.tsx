@@ -30,13 +30,13 @@ export default function BlogIndexClient({ posts }: { posts: BlogPost[] }) {
   const [featured, ...rest] = filtered;
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-8">
-      <div className="text-center max-w-xl mx-auto space-y-3">
-        <span className="text-xs font-bold text-primary uppercase tracking-widest bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow space-y-6 sm:space-y-8">
+      <div className="text-center max-w-xl mx-auto space-y-2 sm:space-y-3">
+        <span className="text-[10px] sm:text-xs font-bold text-primary uppercase tracking-widest bg-primary/10 border border-primary/20 px-2.5 sm:px-3 py-0.5 sm:py-1 rounded-full">
           Zarwinto Editorial
         </span>
-        <h1 className="text-3xl sm:text-5xl font-black text-foreground tracking-tight">The Footwear Magazine</h1>
-        <p className="text-muted-foreground text-sm">Your primary source for sneaker trends, care guides, and industry logs.</p>
+        <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-foreground tracking-tight">The Footwear Magazine</h1>
+        <p className="text-muted-foreground text-xs sm:text-sm">Your primary source for sneaker trends, care guides, and industry logs.</p>
       </div>
 
       {/* Search + category filter */}
@@ -81,7 +81,7 @@ export default function BlogIndexClient({ posts }: { posts: BlogPost[] }) {
                   className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
                 />
               </div>
-              <div className="md:col-span-5 p-6 sm:p-8 space-y-4">
+              <div className="md:col-span-5 p-4 sm:p-6 lg:p-8 space-y-3 sm:space-y-4">
                 <div className="flex items-center gap-3 text-xs font-semibold text-muted-foreground">
                   <span className="text-primary font-bold">{featured.category}</span>
                   <span className="h-3 w-[1px] bg-border" />
@@ -109,7 +109,7 @@ export default function BlogIndexClient({ posts }: { posts: BlogPost[] }) {
             </div>
           )}
 
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 sm:gap-6">
             {rest.map((post) => (
               <div key={post.id} className="glass-card rounded-2xl overflow-hidden border border-border flex flex-col group">
                 <div className="aspect-[16/10] overflow-hidden bg-background/20">
@@ -120,7 +120,7 @@ export default function BlogIndexClient({ posts }: { posts: BlogPost[] }) {
                   />
                 </div>
 
-                <div className="p-5 flex-grow flex flex-col justify-between space-y-4">
+                <div className="p-3 sm:p-5 flex-grow flex flex-col justify-between space-y-3 sm:space-y-4">
                   <div className="space-y-2">
                     <div className="flex items-center gap-3 text-xs font-semibold text-muted-foreground">
                       <span className="text-primary font-bold">{post.category}</span>

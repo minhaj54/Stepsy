@@ -41,16 +41,16 @@ export default async function BlogPostPage({ params }: PageProps) {
     : allPosts.filter((p) => p.slug !== post.slug).slice(0, 3);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-10 flex-grow space-y-8 animate-in fade-in duration-500">
+    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 flex-grow space-y-6 sm:space-y-8 animate-in fade-in duration-500">
       <Link href="/blog" className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="h-4 w-4" /> Back to Magazine
       </Link>
 
-      <div className="space-y-4">
-        <span className="px-2.5 py-1 bg-primary/10 border border-primary/20 text-primary text-xs font-extrabold uppercase rounded-lg">
+      <div className="space-y-3 sm:space-y-4">
+        <span className="px-2 py-0.5 sm:px-2.5 sm:py-1 bg-primary/10 border border-primary/20 text-primary text-[10px] sm:text-xs font-extrabold uppercase rounded-md sm:rounded-lg">
           {post.category}
         </span>
-        <h1 className="text-3xl sm:text-5xl font-black text-foreground tracking-tight leading-tight">
+        <h1 className="text-2xl sm:text-3xl lg:text-5xl font-black text-foreground tracking-tight leading-tight">
           {post.title}
         </h1>
         
@@ -61,7 +61,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         </div>
       </div>
 
-      <div className="aspect-[16/9] w-full rounded-3xl overflow-hidden border border-border bg-background/20">
+      <div className="aspect-[16/9] w-full rounded-2xl sm:rounded-3xl overflow-hidden border border-border bg-background/20">
         <img
           src={post.featured_image}
           alt={post.title}
@@ -69,7 +69,7 @@ export default async function BlogPostPage({ params }: PageProps) {
         />
       </div>
 
-      <article className="prose prose-invert max-w-none text-muted-foreground text-base leading-relaxed space-y-6 pt-4">
+      <article className="prose prose-invert max-w-none text-muted-foreground text-sm sm:text-base leading-relaxed space-y-4 sm:space-y-6 pt-2 sm:pt-4">
         <p className="text-lg text-foreground font-semibold leading-relaxed border-l-2 border-primary pl-4">
           {post.summary}
         </p>

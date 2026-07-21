@@ -62,10 +62,10 @@ export default function CartPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-8 flex-grow space-y-6">
-      <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Your Shopping Cart</h1>
+    <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow space-y-4 sm:space-y-6">
+      <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Your Shopping Cart</h1>
 
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-4 sm:gap-6 items-start">
         {/* Cart items list */}
         <div className="lg:col-span-8 space-y-4">
           {cart.map((item) => {
@@ -73,7 +73,7 @@ export default function CartPage() {
             return (
               <div
                 key={item.variant.id}
-                className="glass-card p-4 sm:p-6 rounded-2xl flex flex-col sm:flex-row items-center sm:justify-between gap-6 border border-border relative group"
+                className="glass-card p-3 sm:p-4 lg:p-6 rounded-2xl flex flex-col sm:flex-row items-center sm:justify-between gap-4 sm:gap-6 border border-border relative group"
               >
                 {/* Product Image */}
                 <div className="h-24 w-24 bg-background/40 rounded-xl border border-border p-2 flex items-center justify-center flex-shrink-0">
@@ -119,8 +119,8 @@ export default function CartPage() {
                 </div>
 
                 {/* Price and Action */}
-                <div className="flex flex-col items-center sm:items-end gap-1.5 min-w-[80px]">
-                  <span className="font-black text-foreground text-base">₹{itemPrice * item.quantity}</span>
+                <div className="flex items-center justify-between w-full sm:flex-col sm:items-end sm:min-w-[80px] gap-2 sm:gap-1.5">
+                  <span className="font-black text-foreground text-base sm:text-lg">₹{itemPrice * item.quantity}</span>
                   <button
                     onClick={() => removeFromCart(item.variant.id)}
                     className="text-muted-foreground hover:text-destructive transition-colors flex items-center gap-1 text-xs font-semibold cursor-pointer"

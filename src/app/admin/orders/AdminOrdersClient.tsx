@@ -183,7 +183,7 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
                       <div className="flex items-center gap-2">
                         <button
                           onClick={() => setExpandedOrder(isExpanded ? null : order.id)}
-                          className="p-2 text-muted-foreground hover:text-foreground bg-secondary hover:bg-white/5 border border-border rounded-lg transition-all"
+                          className="p-2 text-muted-foreground hover:text-foreground bg-secondary hover:bg-muted border border-border rounded-lg transition-all"
                         >
                           {isExpanded ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </button>
@@ -222,7 +222,7 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
                           <MapPin className="h-4 w-4" /> Shipping Address
                         </h3>
                         <div className="p-3 bg-secondary rounded-lg text-sm">
-                          <p className="text-white">{shippingAddress.full_name || 'N/A'}</p>
+                          <p className="text-foreground">{shippingAddress.full_name || 'N/A'}</p>
                           <p className="text-muted-foreground">{shippingAddress.address_line1 || 'N/A'}</p>
                           <p className="text-muted-foreground">{shippingAddress.city}, {shippingAddress.state} {shippingAddress.pincode}</p>
                           <p className="text-muted-foreground">{shippingAddress.phone || 'N/A'}</p>

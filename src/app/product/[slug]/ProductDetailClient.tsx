@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { Star, Heart, ShoppingBag, Shield, Truck, RefreshCw, Send, Check, ArrowRight, Share2, MessageCircle, Zap, X, ZoomIn, Ruler, Store as StoreIcon } from 'lucide-react';
 import { Product, ProductVariant, Review, Store } from '../../../types';
 import { useCart } from '../../../context/CartContext';
@@ -40,6 +40,10 @@ export default function ProductDetailClient({ product, store, initialReviews, re
   
   // Image gallery state
   const [activeImageIndex, setActiveImageIndex] = useState(0);
+  
+  // Related products carousel state
+  const relatedScrollRef = useRef<HTMLDivElement>(null);
+  const [relatedActiveDot, setRelatedActiveDot] = useState(0);
   
   // Selection states
   const [selectedSize, setSelectedSize] = useState('');
@@ -482,8 +486,8 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       )}
 
       {/* Details Tabs */}
-      <section className="mt-12 border-t border-border pt-8">
-        <div className="flex gap-6 border-b border-border pb-2 text-sm">
+      <section className="mt-8 sm:mt-12 border-t border-border pt-6 sm:pt-8">
+        <div className="flex gap-3 sm:gap-6 border-b border-border pb-2 text-xs sm:text-sm overflow-x-auto">
           <button
             onClick={() => setActiveTab('description')}
             className={`pb-3.5 font-bold tracking-wide transition-all ${
@@ -521,13 +525,13 @@ export default function ProductDetailClient({ product, store, initialReviews, re
             <div className="max-w-xl bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
               {product.specifications ? (
                 Object.entries(product.specifications).map(([key, val]) => (
-                  <div key={key} className="grid grid-cols-2 p-4">
-                    <span className="font-semibold text-white">{key}</span>
-                    <span>{val}</span>
+                  <div key={key} className="grid grid-cols-1 sm:grid-cols-2 p-3 sm:p-4">
+                    <span className="font-semibold text-foreground text-xs sm:text-sm">{key}</span>
+                    <span className="text-xs sm:text-sm">{val}</span>
                   </div>
                 ))
               ) : (
-                <p className="p-4 text-muted-foreground italic">No specifications available for this product.</p>
+                <p className="p-4 text-muted-foreground italic text-sm">No specifications available for this product.</p>
               )}
             </div>
           )}
@@ -543,10 +547,10 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       </section>
 
       {/* Reviews Tab */}
-      <section className="mt-16 border-t border-border pt-10">
-        <h2 className="text-2xl font-extrabold text-foreground tracking-tight mb-8">Customer Reviews ({localReviews.length})</h2>
+      <section className="mt-10 sm:mt-16 border-t border-border pt-8 sm:pt-10">
+        <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight mb-6 sm:mb-8">Customer Reviews ({localReviews.length})</h2>
 
-        <div className="grid grid-cols-1 lg:grid-cols-3 gap-10 items-start">
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10 items-start">
           {/* Review Grid */}
           <div className="lg:col-span-2 space-y-6">
             {localReviews.length === 0 ? (
@@ -645,9 +649,69 @@ export default function ProductDetailClient({ product, store, initialReviews, re
 
       {/* Related Products */}
       {relatedProducts.length > 0 && (
-        <section className="mt-20 border-t border-border pt-10">
-          <h2 className="text-2xl font-extrabold text-foreground tracking-tight mb-8">Related Footwear</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        <section className="mt-10 sm:mt-20 border-t border-border pt-6 sm:pt-10">
+          <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight mb-4 sm:mb-8">Related Footwear</h2>
+          
+          {/* Mobile Carousel */}
+          <div className="lg:hidden">
+            <div
+              ref={relatedScrollRef}
+              onScroll={() => {
+                const el = relatedScrollRef.current;
+                if (!el) return;
+                const step = el.scrollWidth / relatedProducts.length;
+                setRelatedActiveDot(Math.round(el.scrollLeft / step));
+              }}
+              className="flex gap-3 overflow-x-auto snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden -mx-4 px-4"
+            >
+              {relatedProducts.map((p) => (
+                <div key={p.id} className="flex-shrink-0 w-[70%] snap-center">
+                  <div className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative border border-border group">
+                    <Link href={`/product/${p.slug}`} className="block aspect-square w-full bg-background/40 relative overflow-hidden">
+                      <img
+                        src={p.images[0]}
+                        alt={p.title}
+                        className="w-full h-full object-cover"
+                      />
+                    </Link>
+                    <div className="p-3 flex-grow flex flex-col justify-between">
+                      <div>
+                        <span className="text-[10px] text-muted-foreground uppercase font-bold">{p.brand_name}</span>
+                        <Link href={`/product/${p.slug}`}>
+                          <h3 className="font-bold text-foreground text-sm hover:text-primary transition-colors line-clamp-1 mt-0.5">
+                            {p.title}
+                          </h3>
+                        </Link>
+                      </div>
+                      <div className="flex justify-between items-center mt-2 pt-2 border-t border-border">
+                        <span className="text-sm font-black text-foreground">₹{p.sale_price || p.price}</span>
+                        <Link href={`/product/${p.slug}`} className="text-xs font-bold text-primary flex items-center gap-0.5">
+                          Details <ArrowRight className="h-3 w-3" />
+                        </Link>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              ))}
+            </div>
+            
+            {/* Carousel Dots */}
+            <div className="flex justify-center gap-1.5 mt-4">
+              {relatedProducts.map((_, i) => (
+                <button
+                  key={i}
+                  onClick={() => {
+                    const el = relatedScrollRef.current;
+                    if (el) el.scrollTo({ left: (el.scrollWidth / relatedProducts.length) * i, behavior: 'smooth' });
+                  }}
+                  className={`h-1.5 rounded-full transition-all duration-300 ${i === relatedActiveDot ? 'w-4 bg-primary' : 'w-1.5 bg-muted'}`}
+                />
+              ))}
+            </div>
+          </div>
+          
+          {/* Desktop Grid */}
+          <div className="hidden lg:grid grid-cols-4 gap-6">
             {relatedProducts.map((p) => (
               <div key={p.id} className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative border border-border group">
                 <Link href={`/product/${p.slug}`} className="block aspect-square w-full bg-background/40 relative overflow-hidden">
@@ -708,7 +772,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                     setActiveImageIndex(idx);
                   }}
                   className={`w-16 h-16 rounded-xl border-2 overflow-hidden transition-all ${
-                    activeImageIndex === idx ? 'border-primary scale-110' : 'border-white/20 opacity-60 hover:opacity-100'
+                    activeImageIndex === idx ? 'border-primary scale-110' : 'border-border opacity-60 hover:opacity-100'
                   }`}
                 >
                   <ShimmerImage src={img} alt="" className="w-full h-full" />

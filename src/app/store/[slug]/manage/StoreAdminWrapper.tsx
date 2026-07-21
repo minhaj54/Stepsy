@@ -81,10 +81,10 @@ export default function StoreAdminWrapper({ children, storeName, storeSlug, stor
                   key={item.href}
                   href={href}
                   className={`flex items-center gap-1.5 px-3 py-3 text-xs font-semibold whitespace-nowrap transition-all border-b-2 ${
-                    isActive
-                      ? 'text-white border-primary'
-                      : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary'
-                  }`}
+                        isActive
+                          ? 'text-foreground border-primary'
+                          : 'text-muted-foreground border-transparent hover:text-foreground hover:bg-secondary'
+                      }`}
                 >
                   <item.icon className="h-3.5 w-3.5" />
                   {item.label}

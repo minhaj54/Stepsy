@@ -18,9 +18,9 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
   const isOwner = user?.id === store.owner_id;
 
   return (
-    <div className="min-h-screen pb-16">
+    <div className="min-h-screen pb-8 sm:pb-16">
       {/* Hero Banner */}
-      <div className="relative h-64 sm:h-80 lg:h-96 w-full bg-zinc-900 overflow-hidden">
+      <div className="relative h-48 sm:h-64 md:h-80 lg:h-96 w-full bg-zinc-900 overflow-hidden">
         {store.banner_url ? (
           <img src={store.banner_url} alt={`${store.name} banner`} className="w-full h-full object-cover" />
         ) : (
@@ -31,9 +31,9 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
         {/* Store Info Overlay */}
         <div className="absolute bottom-0 left-0 right-0">
           <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-8">
-            <div className="flex flex-col sm:flex-row sm:items-end gap-4 sm:gap-6">
+            <div className="flex flex-col sm:flex-row sm:items-end gap-3 sm:gap-4 lg:gap-6">
               {/* Store Logo */}
-              <div className="h-24 w-24 sm:h-32 sm:w-32 rounded-2xl overflow-hidden border-4 border-background bg-card shrink-0 shadow-2xl -mt-16 sm:-mt-20">
+              <div className="h-20 w-20 sm:h-24 sm:w-24 md:h-32 md:w-32 rounded-2xl overflow-hidden border-4 border-background bg-card shrink-0 shadow-2xl -mt-12 sm:-mt-16 md:-mt-20">
                 {store.logo_url ? (
                   <img src={store.logo_url} alt={`${store.name} logo`} className="w-full h-full object-cover" />
                 ) : (
@@ -44,7 +44,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
               </div>
 
               {/* Store Details */}
-              <div className="flex-1 min-w-0 pt-4 sm:pt-0">
+              <div className="flex-1 min-w-0 pt-3 sm:pt-4 md:pt-0">
                 <div className="flex items-center gap-3 mb-2">
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight truncate">
                     {store.name}
@@ -68,7 +68,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
                 )}
 
                 {/* Stats */}
-                <div className="flex items-center gap-6 mt-3">
+                <div className="flex items-center gap-3 sm:gap-4 md:gap-6 mt-2 sm:mt-3">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Package className="h-4 w-4 text-primary" />
                     <span className="font-semibold text-foreground">{products.length}</span> Products
@@ -85,7 +85,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-3 shrink-0">
+              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                 {isOwner ? (
                   <Link
                     href={`/store/${store.slug}/manage`}
@@ -112,14 +112,14 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
       <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
         {/* Description */}
         {store.description && (
-          <div className="mt-8 mb-8">
+          <div className="mt-6 sm:mt-8 mb-6 sm:mb-8">
             <h2 className="text-lg font-bold text-foreground mb-3">About This Store</h2>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-3xl">{store.description}</p>
           </div>
         )}
 
         {/* Products Section */}
-        <div className="flex items-center justify-between mb-6">
+        <div className="flex items-center justify-between mb-4 sm:mb-6">
           <div className="flex items-center gap-2">
             <Package className="h-5 w-5 text-primary" />
             <h2 className="text-xl font-bold text-foreground">Products</h2>
@@ -141,7 +141,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
             )}
           </div>
         ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
             {products.map((product) => (
               <Link
                 key={product.id}

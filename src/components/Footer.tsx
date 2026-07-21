@@ -20,11 +20,11 @@ export const Footer: React.FC = () => {
   return (
     <footer className="w-full bg-background border-t border-border text-muted-foreground mt-auto">
       {/* Newsletter Banner */}
-      <div className="border-b border-border py-8 bg-gradient-to-r from-background via-primary/5 to-background">
+      <div className="border-b border-border py-6 sm:py-8 bg-gradient-to-r from-background via-primary/5 to-background">
         <div className="px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-8 items-center">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6 sm:gap-8 items-center">
             <div>
-              <h3 className="text-xl font-bold text-foreground tracking-tight sm:text-2xl">
+              <h3 className="text-lg sm:text-xl font-bold text-foreground tracking-tight sm:text-2xl">
                 Join the Sneaker Club
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
@@ -32,7 +32,7 @@ export const Footer: React.FC = () => {
               </p>
             </div>
             <div>
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-3">
+              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                 <input
                   type="email"
                   required
@@ -60,8 +60,8 @@ export const Footer: React.FC = () => {
       </div>
 
       {/* Directory Columns */}
-      <div className="px-4 sm:px-6 lg:px-8 py-12">
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-10">
+      <div className="px-4 sm:px-6 lg:px-8 py-8 sm:py-12">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 sm:gap-8 lg:gap-10">
           {/* Brand Info */}
           <div className="space-y-4">
             <Link href="/" className="text-xl font-black tracking-tighter text-foreground">
@@ -166,7 +166,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Lower Banner */}
-        <div className="border-t border-border mt-8 pt-6 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
+        <div className="border-t border-border mt-6 sm:mt-8 pt-4 sm:pt-6 flex flex-col md:flex-row justify-between items-center gap-3 sm:gap-4 text-[10px] sm:text-xs">
           <p>© {new Date().getFullYear()} Zarwinto Inc. All rights reserved.</p>
           <div className="flex items-center gap-6">
             <Link href="/open-store" className="inline-flex items-center gap-1.5 text-primary hover:text-primary-hover font-semibold transition-colors">

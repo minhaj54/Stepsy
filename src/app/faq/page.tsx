@@ -183,22 +183,22 @@ export default function FaqPage() {
         )}
 
         {/* Contact CTA */}
-        <div className="glass-card rounded-2xl p-8 text-center border border-border">
-          <MessageCircle className="h-10 w-10 text-primary mx-auto mb-3" />
-          <h3 className="text-lg font-bold text-foreground">Still have questions?</h3>
-          <p className="text-sm text-muted-foreground mt-1 mb-4">
+        <div className="glass-card rounded-2xl p-6 sm:p-8 text-center border border-border">
+          <MessageCircle className="h-8 w-8 sm:h-10 sm:w-10 text-primary mx-auto mb-2 sm:mb-3" />
+          <h3 className="text-lg sm:text-xl font-bold text-foreground">Still have questions?</h3>
+          <p className="text-xs sm:text-sm text-muted-foreground mt-1 mb-4">
             Our support team is happy to help you with anything.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
             <a
               href="mailto:support@zarwinto.com"
-              className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-2.5 rounded-xl font-bold text-sm transition-all active:scale-95"
+              className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 sm:px-6 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95"
             >
               Email Support
             </a>
             <Link
               href="/returns"
-              className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted border border-border text-zinc-200 px-6 py-2.5 rounded-xl font-bold text-sm transition-all"
+              className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted border border-border text-foreground px-5 py-2.5 sm:px-6 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all"
             >
               Returns & Exchanges
             </Link>

@@ -195,7 +195,7 @@ export default function CheckoutPage() {
   }
 
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow relative space-y-8">
+    <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-grow relative space-y-6 sm:space-y-8">
       {/* Loading Overlay */}
       {isProcessing && (
         <div className="fixed inset-0 z-50 bg-background/90 flex flex-col items-center justify-center text-center p-4 animate-in fade-in duration-300">
@@ -209,13 +209,13 @@ export default function CheckoutPage() {
         <Link href="/cart" className="text-muted-foreground hover:text-foreground p-2 border border-border bg-card/40 rounded-xl transition-all">
           <ArrowLeft className="h-4 w-4" />
         </Link>
-        <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Express Checkout</h1>
+        <h1 className="text-xl sm:text-3xl font-extrabold text-foreground tracking-tight">Express Checkout</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+      <form onSubmit={handleSubmit} className="grid grid-cols-1 lg:grid-cols-12 gap-6 sm:gap-8 items-start">
         {/* Left: Fields */}
-        <div className="lg:col-span-8 space-y-6">
-          <div className="glass-card p-6 rounded-2xl border border-border space-y-4">
+        <div className="lg:col-span-8 space-y-4 sm:space-y-6">
+          <div className="glass-card p-4 sm:p-6 rounded-2xl border border-border space-y-4">
             <h2 className="font-extrabold text-foreground text-base tracking-tight mb-2 uppercase text-primary">1. Shipping Address</h2>
             
             {/* Saved Addresses Selector */}
@@ -269,8 +269,8 @@ export default function CheckoutPage() {
             )}
             
             {/* Address Form */}
-            <div className="space-y-4">
-              <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div className="space-y-3 sm:space-y-4">
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                 <div className="space-y-1">
                   <label htmlFor="name-input" className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Full Name</label>
                   <input

@@ -59,11 +59,11 @@ export default function ReturnsPage() {
         </div>
       </div>
 
-      <div className="px-4 sm:px-6 lg:px-8 py-12 max-w-5xl mx-auto space-y-16">
+      <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-12 max-w-5xl mx-auto space-y-8 sm:space-y-12 lg:space-y-16">
         {/* How it works */}
         <section>
-          <h2 className="text-2xl font-bold text-foreground tracking-tight mb-8">How it works</h2>
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight mb-4 sm:mb-6 lg:mb-8">How it works</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
             {steps.map((step, i) => (
               <div
                 key={step.title}
@@ -82,7 +82,7 @@ export default function ReturnsPage() {
 
         {/* Policy list */}
         <section>
-          <h2 className="text-2xl font-bold text-foreground tracking-tight mb-6">Return policy</h2>
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight mb-4 sm:mb-6">Return policy</h2>
           <ul className="space-y-3">
             {policies.map((p) => (
               <li
@@ -97,28 +97,28 @@ export default function ReturnsPage() {
         </section>
 
         {/* CTA */}
-        <section className="rounded-3xl border border-border bg-gradient-to-r from-primary/10 via-zinc-950 to-primary/10 p-8 text-center">
+        <section className="rounded-2xl sm:rounded-3xl border border-border bg-gradient-to-r from-primary/10 via-zinc-950 to-primary/10 p-6 sm:p-8 text-center">
           <div className="flex justify-center mb-4">
             <div className="h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center text-primary">
               <MessageCircle className="h-6 w-6" />
             </div>
           </div>
-          <h2 className="text-2xl font-bold text-foreground tracking-tight mb-2">Need a hand?</h2>
-          <p className="text-sm text-muted-foreground max-w-md mx-auto mb-6">
+          <h2 className="text-xl sm:text-2xl font-bold text-foreground tracking-tight mb-2">Need a hand?</h2>
+          <p className="text-xs sm:text-sm text-muted-foreground max-w-md mx-auto mb-4 sm:mb-6">
             Our support team is happy to help with sizing, defects, or starting a return. Reach out
             and we'll take care of the rest.
           </p>
-          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+          <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
             <Link
               href="/account"
-              className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all"
+              className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm transition-all"
             >
               Go to My Orders
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a
               href="mailto:support@zarwinto.com"
-              className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted text-white border border-border px-6 py-3 rounded-xl font-semibold text-sm transition-all"
+              className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted text-foreground border border-border px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm transition-all"
             >
               Contact Support
             </a>
