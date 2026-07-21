@@ -303,15 +303,16 @@ export const Header: React.FC = () => {
               <Search className="h-4 w-4 sm:h-5 sm:w-5" />
             </Link>
 
-            {/* Theme Toggle */}
-            <button
-              onClick={toggleTheme}
-              className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary"
-              aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
-              suppressHydrationWarning
-            >
-              {themeMounted ? (theme === 'light' ? <Moon className="h-4 w-4 sm:h-5 sm:w-5" /> : <Sun className="h-4 w-4 sm:h-5 sm:w-5" />) : <span className="h-4 w-4 sm:h-5 sm:w-5 block" />}
-            </button>
+            {/* Theme Toggle - only render after mount to avoid hydration mismatch */}
+            {mounted && (
+              <button
+                onClick={toggleTheme}
+                className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground transition-colors rounded-full hover:bg-secondary"
+                aria-label={theme === 'light' ? 'Switch to dark mode' : 'Switch to light mode'}
+              >
+                {theme === 'light' ? <Moon className="h-4 w-4 sm:h-5 sm:w-5" /> : <Sun className="h-4 w-4 sm:h-5 sm:w-5" />}
+              </button>
+            )}
 
             {/* Wishlist */}
             <Link

@@ -14,7 +14,7 @@ export default function AccountContent({ products }: { products: Product[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const { wishlist, toggleWishlist, orders } = useCart();
-  const { user, signOut, updateProfile } = useAuth();
+  const { user, signOut, updateProfile, supabaseReachable } = useAuth();
 
   // Selected tab (default is 'profile')
   const initialTab = searchParams.get('tab') || 'profile';
@@ -31,12 +31,13 @@ export default function AccountContent({ products }: { products: Product[] }) {
   }, [user]);
 
   const configured = isSupabaseConfigured();
+  const supabaseOk = configured && supabaseReachable;
 
   // Address book state
   const [addresses, setAddresses] = useState<any[]>([]);
 
-  // Current user's store (if they are a vendor)
-  const [myStore, setMyStore] = useState<any>(null);
+  // Current user's stores (if they are a vendor)
+  const [myStores, setMyStores] = useState<any[]>([]);
   const [isAddingAddress, setIsAddingAddress] = useState(false);
   const [addrError, setAddrError] = useState<string | null>(null);
   const [newAddrName, setNewAddrName] = useState('');
@@ -91,21 +92,23 @@ export default function AccountContent({ products }: { products: Product[] }) {
     fetchAddresses();
   }, [configured, user]);
 
-  // Fetch the current user's store (vendor storefront)
+  // Fetch the current user's stores (vendor storefronts)
   useEffect(() => {
-    if (!user || !configured) return;
-    const fetchStore = async () => {
+    if (!user || !supabaseOk) return;
+    const fetchStores = async () => {
       const supabase = createClient();
-      const { data } = await supabase
+      const { data, error } = await supabase
         .from('stores')
-        .select('id, slug, name, logo_url')
+        .select('id, slug, name, logo_url, status')
         .eq('owner_id', user.id)
-        .eq('status', 'active')
-        .maybeSingle();
-      setMyStore(data);
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error('[AccountContent] Error fetching stores:', JSON.stringify(error));
+      }
+      setMyStores(data || []);
     };
-    fetchStore();
-  }, [configured, user]);
+    fetchStores();
+  }, [supabaseOk, user]);
 
   // Sync tab with URL parameter changes
   useEffect(() => {
@@ -306,14 +309,38 @@ export default function AccountContent({ products }: { products: Product[] }) {
             Saved Addresses
           </button>
 
-          {myStore ? (
-            <Link
-              href={`/store/${myStore.slug}`}
-              className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-primary hover:text-primary-hover hover:bg-primary/10 transition-all"
-            >
+          {!supabaseOk ? (
+            <div className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-semibold text-yellow-400 bg-yellow-500/10 border border-yellow-500/20">
               <Store className="h-4 w-4" />
-              My Store
-            </Link>
+              Supabase Unreachable
+            </div>
+          ) : myStores.length > 0 ? (
+            <div className="space-y-1">
+              {myStores.map((store) => (
+                <Link
+                  key={store.id}
+                  href={`/store/${store.slug}`}
+                  className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-primary hover:text-primary-hover hover:bg-primary/10 transition-all"
+                >
+                  <Store className="h-4 w-4" />
+                  {store.name}
+                  <span className={`ml-auto px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
+                    store.status === 'active' ? 'bg-green-500/10 text-green-400' :
+                    store.status === 'pending' ? 'bg-yellow-500/10 text-yellow-400' :
+                    'bg-red-500/10 text-red-400'
+                  }`}>
+                    {store.status}
+                  </span>
+                </Link>
+              ))}
+              <Link
+                href="/open-store"
+                className="flex items-center gap-3 px-4 py-2.5 rounded-xl text-sm font-semibold text-muted-foreground hover:text-foreground hover:bg-secondary transition-all"
+              >
+                <Plus className="h-4 w-4" />
+                Open New Store
+              </Link>
+            </div>
           ) : (
             <Link
               href="/open-store"

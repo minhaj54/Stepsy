@@ -48,6 +48,22 @@ export interface Category {
   image?: string;
 }
 
+export interface SocialHandle {
+  platform: string; // e.g., "instagram", "facebook", "twitter", "youtube"
+  handle: string;    // e.g., "zarwinto"
+  url?: string;      // optional full URL
+}
+
+export interface PickupAddress {
+  addressLine1: string;
+  addressLine2?: string;
+  city: string;
+  state: string;
+  pincode: string;
+  country?: string;
+  landmark?: string;
+}
+
 export interface Store {
   id: string;
   owner_id: string;
@@ -57,6 +73,16 @@ export interface Store {
   banner_url: string;
   logo_url: string;
   social_handle: string;
+  social_handles?: SocialHandle[];
+  customer_support_phone?: string;
+  government_id_url?: string;
+  government_id_type?: string;
+  pickup_address?: PickupAddress;
+  pickup_pincode?: string;
+  pickup_city?: string;
+  pickup_state?: string;
+  gst_number?: string;
+  business_name?: string;
   status: 'pending' | 'active' | 'suspended';
   created_at: string;
   updated_at: string;

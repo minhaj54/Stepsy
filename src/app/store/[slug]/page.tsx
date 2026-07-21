@@ -1,10 +1,20 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Store as StoreIcon, AtSign, Package, ArrowRight, Settings, ExternalLink, Star, TrendingUp } from 'lucide-react';
+import { Store as StoreIcon, AtSign, Package, ArrowRight, Settings, Star, TrendingUp, Phone } from 'lucide-react';
 import { getStoreBySlug, getProductsByStore } from '../../../lib/data/stores';
 import { getCurrentUser } from '../../../lib/supabase/server';
 import ShimmerImage from '../../../components/ShimmerImage';
+
+const SOCIAL_PLATFORMS: Record<string, { icon: string; label: string }> = {
+  instagram: { icon: '📷', label: 'Instagram' },
+  facebook: { icon: '📘', label: 'Facebook' },
+  twitter: { icon: '🐦', label: 'Twitter / X' },
+  youtube: { icon: '▶️', label: 'YouTube' },
+  whatsapp: { icon: '💬', label: 'WhatsApp' },
+  linkedin: { icon: '💼', label: 'LinkedIn' },
+  other: { icon: '🌐', label: 'Other' },
+};
 
 export const dynamic = 'force-dynamic';
 
@@ -27,7 +37,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
           <div className="w-full h-full bg-gradient-to-br from-primary/20 via-zinc-900 to-accent/20" />
         )}
         <div className="absolute inset-0 bg-gradient-to-t from-zinc-950 via-zinc-950/60 to-transparent" />
-        
+
         {/* Store Info Overlay */}
         <div className="absolute bottom-0 left-0 right-0">
           <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto pb-8">
@@ -55,20 +65,27 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
                     </span>
                   )}
                 </div>
-                
-                {store.social_handle && (
-                  <a
-                    href={`https://instagram.com/${store.social_handle}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                    className="inline-flex items-center gap-1.5 text-sm text-primary hover:text-primary-hover transition-colors"
-                  >
-                    <AtSign className="h-4 w-4" />@{store.social_handle}
-                  </a>
+
+                {/* Social Handles */}
+                {store.social_handles && store.social_handles.length > 0 && (
+                  <div className="flex flex-wrap items-center gap-2 mb-2">
+                    {store.social_handles.map((handle, index) => (
+                      <a
+                        key={index}
+                        href={handle.url || `https://${handle.platform}.com/${handle.handle}`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary-hover transition-colors bg-primary/10 px-2 py-1 rounded-lg"
+                      >
+                        <span>{SOCIAL_PLATFORMS[handle.platform]?.icon || '🌐'}</span>
+                        <span className="capitalize">{handle.platform}</span>
+                      </a>
+                    ))}
+                  </div>
                 )}
 
                 {/* Stats */}
-                <div className="flex items-center gap-3 sm:gap-4 md:gap-6 mt-2 sm:mt-3">
+                <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6 mt-2 sm:mt-3">
                   <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
                     <Package className="h-4 w-4 text-primary" />
                     <span className="font-semibold text-foreground">{products.length}</span> Products
@@ -81,12 +98,18 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
                     <TrendingUp className="h-4 w-4 text-green-400" />
                     <span className="font-semibold text-foreground">Active</span>
                   </div>
+                  {store.customer_support_phone && (
+                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                      <Phone className="h-4 w-4 text-blue-400" />
+                      <span className="font-semibold text-foreground">{store.customer_support_phone}</span>
+                    </div>
+                  )}
                 </div>
               </div>
 
               {/* Action Buttons */}
-              <div className="flex items-center gap-2 sm:gap-3 shrink-0">
-                {isOwner ? (
+              {isOwner && (
+                <div className="flex items-center gap-2 sm:gap-3 shrink-0">
                   <Link
                     href={`/store/${store.slug}/manage`}
                     className="inline-flex items-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 rounded-xl font-semibold text-sm transition-all active:scale-95"
@@ -94,16 +117,8 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
                     <Settings className="h-4 w-4" />
                     Manage Store
                   </Link>
-                ) : (
-                  <Link
-                    href={`/store/${store.slug}/manage`}
-                    className="inline-flex items-center gap-2 bg-secondary hover:bg-muted text-foreground px-5 py-2.5 rounded-xl font-semibold text-sm border border-border hover:border-primary transition-all"
-                  >
-                    <ExternalLink className="h-4 w-4" />
-                    Visit Store
-                  </Link>
-                )}
-              </div>
+                </div>
+              )}
             </div>
           </div>
         </div>
