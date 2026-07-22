@@ -1,10 +1,27 @@
 import React, { Suspense } from 'react';
 import ShopContent from './ShopContent';
 import { getProducts, getBrands, getCategories } from '../../lib/data/products';
+import { BreadcrumbSchema } from '../../components/JsonLd';
 
 export const metadata = {
-  title: "Shop Footwear - Zarwinto Marketplace",
-  description: "Browse sneakers, boots, loafers and formal footwear. Filter by size, brand, and color."
+  title: "Shop Footwear Online | Sneakers, Boots, Loafers - Zarwinto",
+  description: "Shop premium footwear at Zarwinto. Browse sneakers, boots, loafers, formal shoes, and athletic runners from top brands. Free shipping on orders above ₹999. COD available.",
+  keywords: ["buy shoes online", "footwear store", "sneakers", "boots", "loafers", "formal shoes", "athletic shoes", "Zarwinto", "online shoe store", "best footwear brand"],
+  openGraph: {
+    title: "Shop Footwear Online | Sneakers, Boots, Loafers - Zarwinto",
+    description: "Shop premium footwear at Zarwinto. Browse sneakers, boots, loafers, formal shoes, and athletic runners from top brands.",
+    url: "https://zarwinto.com/shop",
+    siteName: "Zarwinto",
+    type: "website",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "Shop Footwear Online | Sneakers, Boots, Loafers - Zarwinto",
+    description: "Shop premium footwear at Zarwinto. Browse sneakers, boots, loafers, formal shoes, and athletic runners from top brands.",
+  },
+  alternates: {
+    canonical: "https://zarwinto.com/shop",
+  },
 };
 
 export const dynamic = 'force-dynamic';
@@ -17,9 +34,17 @@ export default async function ShopPage() {
   ]);
 
   return (
-    <Suspense fallback={<ShopSkeleton />}>
-      <ShopContent products={products} brands={brands} categories={categories} />
-    </Suspense>
+    <>
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: 'https://zarwinto.com' },
+          { name: 'Shop', url: 'https://zarwinto.com/shop' },
+        ]}
+      />
+      <Suspense fallback={<ShopSkeleton />}>
+        <ShopContent products={products} brands={brands} categories={categories} />
+      </Suspense>
+    </>
   );
 }
 

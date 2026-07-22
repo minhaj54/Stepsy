@@ -47,7 +47,7 @@ export default function HomeClient({ products, categories, brands, bannerProduct
             <h1 className="text-4xl sm:text-6xl font-extrabold tracking-tight leading-none text-foreground">
               STEP INTO THE <br className="hidden sm:inline" />
               <span className="bg-gradient-to-r from-primary via-indigo-400 to-accent bg-clip-text text-transparent">
-                FUTURE OF STYLE
+                RIGHT CHOICE
               </span>
             </h1>
 

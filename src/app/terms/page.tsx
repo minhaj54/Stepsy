@@ -1,10 +1,22 @@
 import React from 'react';
 import Link from 'next/link';
 import { FileText, ArrowRight } from 'lucide-react';
+import { BreadcrumbSchema } from '../../components/JsonLd';
 
 export const metadata = {
-  title: "Terms of Service - Zarwinto",
-  description: "The terms and conditions governing your use of the Zarwinto marketplace, including orders, accounts, and seller relationships."
+  title: "Terms of Service | User Agreement & Policies - Zarwinto",
+  description: "The terms and conditions governing your use of the Zarwinto marketplace, including orders, accounts, and seller relationships. Read our user agreement.",
+  keywords: ['terms of service', 'user agreement', 'policies', 'Zarwinto terms', 'marketplace terms', 'buyer agreement', 'seller agreement'],
+  openGraph: {
+    title: "Terms of Service | User Agreement & Policies - Zarwinto",
+    description: "The terms and conditions governing your use of the Zarwinto marketplace.",
+    url: 'https://zarwinto.com/terms',
+    siteName: "Zarwinto",
+    type: "website",
+  },
+  alternates: {
+    canonical: 'https://zarwinto.com/terms',
+  },
 };
 
 const sections = [

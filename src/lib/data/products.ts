@@ -465,7 +465,7 @@ export async function getAdminStats() {
 
     const orders = ordersRes.data ?? [];
     const revenue = orders
-      .filter(o => o.payment_status === 'paid')
+      .filter(o => o.payment_status === 'paid' || o.payment_status === 'cod_pending')
       .reduce((sum, o) => sum + Number(o.total_amount), 0);
 
     return {
@@ -742,7 +742,7 @@ export async function getStoreStats(storeId: string) {
 
     const ordersList = orders ?? [];
     const revenue = ordersList
-      .filter(o => o.payment_status === 'paid')
+      .filter(o => o.payment_status === 'paid' || o.payment_status === 'cod_pending')
       .reduce((sum, o) => sum + Number(o.total_amount), 0);
 
     const uniqueCustomers = new Set(ordersList.map(o => o.user_id));

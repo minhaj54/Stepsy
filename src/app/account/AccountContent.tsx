@@ -435,7 +435,9 @@ export default function AccountContent({ products }: { products: Product[] }) {
                         </p>
                       </div>
                       <div>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Total Debited</p>
+                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                          {order.payment_method === 'cod' ? 'Amount to Pay' : 'Total Debited'}
+                        </p>
                         <p className="text-sm font-black text-primary mt-0.5">₹{order.total_amount}</p>
                       </div>
                       <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-500 rounded-lg text-xs font-bold uppercase tracking-wide">

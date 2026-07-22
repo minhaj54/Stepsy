@@ -5,8 +5,19 @@ import { getStores, getProductsByStore } from '../../lib/data/stores';
 import ShimmerImage from '../../components/ShimmerImage';
 
 export const metadata = {
-  title: "Our Partners & Sellers - Zarwinto Marketplace",
-  description: "Discover our trusted partner stores and sellers on Zarwinto. Browse top footwear brands and independent sellers offering premium sneakers, boots, and more."
+  title: "Partner Stores | Independent Sellers & Premium Brands - Zarwinto",
+  description: "Discover unique footwear collections from independent sellers and premium brands on Zarwinto. Shop authentic sneakers, boots, and designer shoes from trusted partner stores.",
+  keywords: ["partner stores", "independent sellers", "premium brands", "footwear stores", "sneaker brands", "shoe sellers", "Zarwinto partners", "authentic footwear"],
+  openGraph: {
+    title: "Partner Stores | Independent Sellers & Premium Brands - Zarwinto",
+    description: "Discover unique footwear collections from independent sellers and premium brands on Zarwinto.",
+    url: "https://zarwinto.com/partners",
+    siteName: "Zarwinto",
+    type: "website",
+  },
+  alternates: {
+    canonical: "https://zarwinto.com/partners",
+  },
 };
 
 export default async function PartnersPage() {

@@ -4,18 +4,44 @@ import "./globals.css";
 import { AuthProvider } from "../context/AuthContext";
 import { CartProvider } from "../context/CartContext";
 import { ThemeProvider } from "../context/ThemeContext";
+import { ToastProvider } from "../components/Toast";
+import { OrganizationSchema, WebSiteSchema } from "../components/JsonLd";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
 
 export const metadata: Metadata = {
   title: "Zarwinto - Premium Footwear & Sneaker Marketplace",
   description: "Discover the ultimate marketplace for elite athletic runners, custom leather boots, designer sneakers, and comfort footwear.",
+  icons: {
+    icon: "/favicon.ico",
+    apple: "/apple-touch-icon.png",
+    other: [
+      {
+        rel: "icon",
+        type: "image/svg+xml",
+        url: "/favicon.svg",
+      },
+      {
+        rel: "icon",
+        type: "image/png",
+        sizes: "96x96",
+        url: "/favicon-96x96.png",
+      },
+      {
+        rel: "manifest",
+        url: "/site.webmanifest",
+      },
+    ],
+  },
   openGraph: {
     title: "Zarwinto - Premium Footwear Marketplace",
     description: "Discover the ultimate marketplace for elite athletic runners, custom leather boots, designer sneakers, and comfort footwear.",
-    url: "https://zarwinto-footwear.vercel.app",
+    url: "https://zarwinto.com",
     siteName: "Zarwinto",
     type: "website"
+  },
+  other: {
+    "google-site-verification": "google13b395b9b31ac820"
   }
 };
 
@@ -32,13 +58,17 @@ export default function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground antialiased">
         <ThemeProvider>
           <AuthProvider>
-            <CartProvider>
-              <Suspense fallback={null}>
-                <Header />
-              </Suspense>
-              <main className="flex-grow flex flex-col">{children}</main>
-              <Footer />
-            </CartProvider>
+            <ToastProvider>
+              <CartProvider>
+                <OrganizationSchema />
+                <WebSiteSchema />
+                <Suspense fallback={null}>
+                  <Header />
+                </Suspense>
+                <main className="flex-grow flex flex-col">{children}</main>
+                <Footer />
+              </CartProvider>
+            </ToastProvider>
           </AuthProvider>
         </ThemeProvider>
       </body>

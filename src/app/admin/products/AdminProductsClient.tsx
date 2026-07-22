@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Plus, Edit, Trash2, X, Save, Eye, Layers, Upload, Image as ImageIcon, Search, Filter, ChevronDown, Star, Sparkles, Trophy } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '../../../lib/supabase/client';
 import { Product, Brand, Category } from '../../../types';
+import { useToast } from '../../../components/Toast';
 
 interface AdminProductsClientProps {
   initialProducts: any[];
@@ -19,6 +20,7 @@ export default function AdminProductsClient({
   categories,
   storeId,
 }: AdminProductsClientProps) {
+  const { addToast } = useToast();
   const [products, setProducts] = useState<any[]>(initialProducts);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [editingProduct, setEditingProduct] = useState<any | null>(null);
@@ -206,7 +208,7 @@ export default function AdminProductsClient({
 
         if (error) {
           console.error('Error updating product in Supabase:', error);
-          alert('Error updating product: ' + error.message);
+          addToast('Error updating product: ' + error.message, 'error');
         } else {
           console.log('Product updated successfully');
         }
@@ -299,13 +301,13 @@ export default function AdminProductsClient({
             prev.map(p => (p.sku === sku ? { ...p, id: data.id } : p))
           );
           
-          alert('Product saved successfully to Supabase!');
+          addToast('Product saved successfully to Supabase!', 'success');
         } else {
           console.error('Error inserting product in Supabase:', error);
-          alert('Error saving product: ' + (error?.message || 'Unknown error'));
+          addToast('Error saving product: ' + (error?.message || 'Unknown error'), 'error');
         }
       } else {
-        alert('ERROR: Supabase not configured. Products will NOT sync to database.');
+        addToast('ERROR: Supabase not configured. Products will NOT sync to database.', 'error');
       }
     }
 

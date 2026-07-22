@@ -1,10 +1,22 @@
 import React from 'react';
 import Link from 'next/link';
 import { RefreshCw, ArrowRight, CheckCircle2, Package, Clock, ShieldCheck, MessageCircle } from 'lucide-react';
+import { BreadcrumbSchema } from '../../components/JsonLd';
 
 export const metadata = {
-  title: "Returns & Exchanges - Zarwinto",
-  description: "Easy 30-day returns and exchanges on all Zarwinto footwear. Learn how to return or exchange your shoes with a free return label."
+  title: 'Returns & Exchanges Policy | Easy 30-Day Returns - Zarwinto',
+  description: 'Easy 30-day returns and exchanges on all Zarwinto footwear. Learn how to return or exchange your shoes with a free return label. Start a return online in minutes.',
+  keywords: ['return policy', 'exchange policy', 'easy returns', 'shoe returns', 'refund policy', 'Zarwinto returns', '30-day return', 'free replacement'],
+  openGraph: {
+    title: 'Returns & Exchanges Policy | Easy 30-Day Returns - Zarwinto',
+    description: 'Easy 30-day returns and exchanges on all Zarwinto footwear. Learn how to return or exchange your shoes with a free return label.',
+    url: 'https://zarwinto.com/returns',
+    siteName: 'Zarwinto',
+    type: 'website',
+  },
+  alternates: {
+    canonical: 'https://zarwinto.com/returns',
+  },
 };
 
 const steps = [

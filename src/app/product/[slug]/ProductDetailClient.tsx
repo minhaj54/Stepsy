@@ -7,6 +7,8 @@ import { useCart } from '../../../context/CartContext';
 import { useAuth } from '../../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../../lib/supabase/client';
 import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useToast } from '../../../components/Toast';
 import ShimmerImage from '../../../components/ShimmerImage';
 
 interface ProductDetailClientProps {
@@ -77,25 +79,32 @@ export default function ProductDetailClient({ product, store, initialReviews, re
 
   const handleAddToCart = () => {
     if (!selectedSize) {
-      alert('Please select a size first.');
+      addToast('Please select a size first.', 'warning');
       return;
     }
     if (activeVariant) {
       addToCart(product, activeVariant, quantity);
       setCartSuccess(true);
       setTimeout(() => setCartSuccess(false), 3000);
+      addToast('Added to cart!', 'success', {
+        label: 'View Cart',
+        onClick: () => router.push('/cart'),
+      });
     }
   };
 
+  const router = useRouter();
+  const { addToast } = useToast();
+
   const handleBuyNow = () => {
     if (!selectedSize) {
-      alert('Please select a size first.');
+      addToast('Please select a size first.', 'warning');
       return;
     }
     if (activeVariant) {
       addToCart(product, activeVariant, quantity);
-      // Redirect to cart page
-      window.location.href = '/cart';
+      // Redirect directly to checkout page
+      router.push('/checkout');
     }
   };
 
@@ -112,7 +121,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       } else {
         // Fallback: copy to clipboard
         await navigator.clipboard.writeText(`${shareData.title}\n${shareData.text}\n${shareData.url}`);
-        alert('Product link copied to clipboard!');
+        addToast('Product link copied to clipboard!', 'success');
       }
     } catch (err) {
       console.error('Share failed:', err);

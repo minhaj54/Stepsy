@@ -132,7 +132,8 @@ export interface Order {
   id: string;
   user_id: string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  payment_status: 'unpaid' | 'paid' | 'refunded';
+  payment_status: 'unpaid' | 'paid' | 'refunded' | 'cod_pending';
+  payment_method: 'prepaid' | 'cod';
   total_amount: number;
   shipping_address: ShippingAddress;
   items: {
@@ -146,4 +147,8 @@ export interface Order {
     price: number;
   }[];
   created_at: string;
+  shiprocket_order_id?: number;
+  awb_code?: string;
+  courier_name?: string;
+  shipment_id?: number;
 }

@@ -4,6 +4,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import { Product, ProductVariant, CartItem, Order, ShippingAddress } from '../types';
 import { useAuth } from './AuthContext';
 import { createClient, isSupabaseConfigured, checkSupabaseConnectivity } from '../lib/supabase/client';
+import { useToast } from '../components/Toast';
 
 interface Coupon {
   code: string;
@@ -27,12 +28,13 @@ interface CartContextType {
   wishlist: string[];
   toggleWishlist: (productId: string) => void;
   orders: Order[];
-  placeOrder: (address: ShippingAddress) => Promise<Order | null>;
+  placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod') => Promise<Order | null>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
+  const { addToast } = useToast();
   const { user, supabaseReachable } = useAuth();
   const [cart, setCart] = useState<CartItem[]>([]);
   const [wishlist, setWishlist] = useState<string[]>([]);
@@ -129,6 +131,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             total_amount: Number(o.total_amount),
             shipping_address,
             created_at: o.created_at,
+            shiprocket_order_id: o.shiprocket_order_id,
+            awb_code: o.awb_code,
+            courier_name: o.courier_name,
+            shipment_id: o.shipment_id,
             items: (o.order_items || []).map((item: any) => {
               const images = (item.products?.product_images || [])
                 .sort((a: any, b: any) => a.sort_order - b.sort_order)
@@ -267,7 +273,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   // Place order
-  const placeOrder = async (address: ShippingAddress): Promise<Order | null> => {
+  const placeOrder = async (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' = 'prepaid'): Promise<Order | null> => {
     if (cart.length === 0 || !user) return null;
 
     const orderId = `ord_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
@@ -276,7 +282,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       id: orderId,
       user_id: user.id,
       status: 'processing',
-      payment_status: 'paid',
+      payment_status: paymentMethod === 'cod' ? 'cod_pending' : 'paid',
+      payment_method: paymentMethod,
       total_amount: discountedTotal,
       shipping_address: address,
       items: cart.map(item => ({
@@ -335,7 +342,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           id: orderId,
           user_id: user.id,
           status: 'processing',
-          payment_status: 'paid',
+          payment_status: newOrder.payment_status,
+          payment_method: newOrder.payment_method,
           total_amount: discountedTotal,
           shipping_address: address,
           coupon_code: appliedCoupon?.code ?? null,
@@ -376,7 +384,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       } else {
         console.error('Error creating order in database:', orderError);
-        alert('Order placed locally but failed to sync with database. Please contact support if the order does not appear in your history.');
+        addToast('Order placed locally but failed to sync with database. Please contact support if the order does not appear in your history.', 'error');
       }
     }
 

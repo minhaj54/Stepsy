@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation';
 import { getBlogPostBySlug, getBlogPosts } from '../../../lib/data/products';
 import Link from 'next/link';
 import { ArrowLeft, Clock, Calendar, Tag, ArrowRight } from 'lucide-react';
+import { ArticleSchema, BreadcrumbSchema } from '../../../components/JsonLd';
 
 interface PageProps {
   params: Promise<{ slug: string }>;
@@ -18,9 +19,38 @@ export async function generateMetadata({ params }: PageProps) {
     };
   }
 
+  const title = `${post.title} | Zarwinto Footwear Blog`;
+  const description = post.summary;
+
   return {
-    title: `${post.title} | Zarwinto Magazine`,
-    description: post.summary
+    title,
+    description,
+    keywords: [post.title, post.category, ...post.tags, 'footwear blog', 'sneaker trends', 'shoe care', 'Zarwinto'],
+    openGraph: {
+      title,
+      description,
+      images: [
+        {
+          url: post.featured_image,
+          width: 1200,
+          height: 630,
+          alt: post.title
+        }
+      ],
+      type: 'article',
+      publishedTime: post.published_at,
+      authors: ['Zarwinto'],
+      url: `https://zarwinto.com/blog/${post.slug}`,
+    },
+    twitter: {
+      card: 'summary_large_image',
+      title,
+      description,
+      images: [post.featured_image],
+    },
+    alternates: {
+      canonical: `https://zarwinto.com/blog/${post.slug}`,
+    },
   };
 }
 
@@ -41,7 +71,23 @@ export default async function BlogPostPage({ params }: PageProps) {
     : allPosts.filter((p) => p.slug !== post.slug).slice(0, 3);
 
   return (
-    <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 flex-grow space-y-6 sm:space-y-8 animate-in fade-in duration-500">
+    <>
+      <ArticleSchema
+        title={post.title}
+        description={post.summary}
+        image={post.featured_image}
+        publishedAt={post.published_at}
+        author="Zarwinto"
+        url={`https://zarwinto.com/blog/${post.slug}`}
+      />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: 'https://zarwinto.com' },
+          { name: 'Blog', url: 'https://zarwinto.com/blog' },
+          { name: post.title, url: `https://zarwinto.com/blog/${post.slug}` },
+        ]}
+      />
+      <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8 lg:py-10 flex-grow space-y-6 sm:space-y-8 animate-in fade-in duration-500">
       <Link href="/blog" className="inline-flex items-center gap-1.5 text-xs font-bold text-muted-foreground hover:text-foreground transition-colors">
         <ArrowLeft className="h-4 w-4" /> Back to Magazine
       </Link>
@@ -125,5 +171,6 @@ export default async function BlogPostPage({ params }: PageProps) {
         </div>
       )}
     </div>
+    </>
   );
 }

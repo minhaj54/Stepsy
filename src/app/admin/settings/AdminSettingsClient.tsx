@@ -3,8 +3,10 @@
 import React, { useState } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Save, Upload, Image as ImageIcon, Globe, Mail, Phone, MapPin, Palette, LayoutGrid } from 'lucide-react';
+import { useToast } from '../../../components/Toast';
 
 export default function AdminSettingsClient() {
+  const { addToast } = useToast();
   const [saving, setSaving] = useState(false);
   
   // Website Settings
@@ -35,7 +37,7 @@ export default function AdminSettingsClient() {
     // Simulate saving - in production, this would save to database
     setTimeout(() => {
       setSaving(false);
-      alert('Settings saved successfully!');
+      addToast('Settings saved successfully!', 'success');
     }, 1000);
   };
 

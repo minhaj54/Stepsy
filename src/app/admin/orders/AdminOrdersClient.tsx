@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, RefreshCw, ShoppingBag, Eye, Search, Filter, Package, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ShoppingBag, Eye, Search, Filter, Package, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '../../../lib/supabase/client';
+import { useToast } from '../../../components/Toast';
 
 interface AdminOrdersClientProps {
   initialOrders: any[];
@@ -17,6 +18,7 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
   
   const configured = isSupabaseConfigured();
+  const { addToast } = useToast();
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
@@ -62,8 +64,61 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
     setUpdatingId(null);
   };
 
+  const handleGenerateAWB = async (orderId: string, shipmentId: number) => {
+    setUpdatingId(orderId);
+    try {
+      const response = await fetch('/api/shiprocket/awb', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shipmentId, orderId }),
+      });
+      const data = await response.json();
+      if (!response.ok || data.status !== 1) {
+        throw new Error(data.error || 'Failed to generate AWB');
+      }
+      
+      // Update local orders state
+      setOrders(prev =>
+        prev.map(o => (o.id === orderId ? { ...o, awb_code: data.data.awb_code, courier_name: `Courier ID: ${data.data.courier_company_id}` } : o))
+      );
+      addToast('AWB generated successfully!', 'success');
+    } catch (err) {
+      console.error(err);
+      addToast(err instanceof Error ? err.message : 'Failed to generate AWB', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
+  const handleCancelShipment = async (orderId: string, shipmentId: number) => {
+    if (!confirm('Are you sure you want to cancel the shipment in Shiprocket?')) return;
+    setUpdatingId(orderId);
+    try {
+      const response = await fetch('/api/shiprocket/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ shipmentId, orderId }),
+      });
+      const data = await response.json();
+      if (!response.ok || data.status !== 1) {
+        throw new Error(data.error || 'Failed to cancel shipment');
+      }
+      
+      // Update local orders state
+      setOrders(prev =>
+        prev.map(o => (o.id === orderId ? { ...o, shiprocket_order_id: undefined, shipment_id: undefined, awb_code: undefined, courier_name: undefined } : o))
+      );
+      addToast('Shipment cancelled successfully!', 'success');
+    } catch (err) {
+      console.error(err);
+      addToast(err instanceof Error ? err.message : 'Failed to cancel shipment', 'error');
+    } finally {
+      setUpdatingId(null);
+    }
+  };
+
   const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
-  const paymentStatuses = ['unpaid', 'paid', 'refunded'];
+  const paymentStatuses = ['unpaid', 'paid', 'refunded', 'cod_pending'];
 
   const filteredOrders = orders.filter(order => {
     const users = order.users as { full_name: string; email: string } | null;
@@ -90,6 +145,7 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
       case 'paid': return 'bg-green-500/10 text-green-400';
       case 'unpaid': return 'bg-red-500/10 text-red-400';
       case 'refunded': return 'bg-yellow-500/10 text-yellow-400';
+      case 'cod_pending': return 'bg-orange-500/10 text-orange-400';
       default: return 'bg-zinc-500/10 text-muted-foreground';
     }
   };
@@ -228,6 +284,75 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
                           <p className="text-muted-foreground">{shippingAddress.phone || 'N/A'}</p>
                         </div>
                       </div>
+
+                      {/* Shiprocket Tracking Info */}
+                      {(order as any).shiprocket_order_id && (
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+                            <Package className="h-4 w-4" /> Shiprocket Tracking
+                          </h3>
+                          <div className="p-3 bg-secondary rounded-lg text-sm space-y-2">
+                            <div className="flex items-center justify-between">
+                              <span className="text-muted-foreground">Shiprocket Order ID</span>
+                              <span className="font-mono text-foreground">#{(order as any).shiprocket_order_id}</span>
+                            </div>
+                            {(order as any).awb_code && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">AWB Code</span>
+                                <span className="font-mono text-foreground">{(order as any).awb_code}</span>
+                              </div>
+                            )}
+                            {(order as any).courier_name && (
+                              <div className="flex items-center justify-between">
+                                <span className="text-muted-foreground">Courier</span>
+                                <span className="text-foreground">{(order as any).courier_name}</span>
+                              </div>
+                            )}
+                            {(order as any).shiprocket_order_id && (
+                              <div className="flex flex-wrap gap-2 pt-2 border-t border-border mt-2">
+                                <a
+                                  href={`https://app.shiprocket.in/orders/${(order as any).shiprocket_order_id}`}
+                                  target="_blank"
+                                  rel="noopener noreferrer"
+                                  className="inline-flex items-center gap-1 text-xs text-primary hover:text-primary-hover transition-colors font-bold mr-auto"
+                                >
+                                  View in Dashboard <ExternalLink className="h-3 w-3" />
+                                </a>
+
+                                {!(order as any).awb_code && (
+                                  <button
+                                    onClick={() => handleGenerateAWB(order.id, (order as any).shipment_id)}
+                                    disabled={updatingId === order.id}
+                                    className="bg-primary hover:bg-primary-hover text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                                  >
+                                    Assign Courier & Generate AWB
+                                  </button>
+                                )}
+
+                                {(order as any).awb_code && (
+                                  <>
+                                    <a
+                                      href={`/api/shiprocket/label?shipmentId=${(order as any).shipment_id}`}
+                                      target="_blank"
+                                      rel="noopener noreferrer"
+                                      className="bg-zinc-800 hover:bg-zinc-700 text-white text-xs font-bold px-3 py-1.5 rounded-lg transition-all"
+                                    >
+                                      Download Label
+                                    </a>
+                                    <button
+                                      onClick={() => handleCancelShipment(order.id, (order as any).shipment_id)}
+                                      disabled={updatingId === order.id}
+                                      className="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-xs font-bold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                                    >
+                                      Cancel Shipment
+                                    </button>
+                                  </>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        </div>
+                      )}
 
                       {/* Status Updates */}
                       <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

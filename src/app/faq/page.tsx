@@ -3,6 +3,7 @@
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
 import { ChevronDown, Search, HelpCircle, MessageCircle } from 'lucide-react';
+import { FaqSchema, BreadcrumbSchema } from '../../components/JsonLd';
 
 interface Faq {
   question: string;
@@ -92,9 +93,19 @@ export default function FaqPage() {
     });
   }, [query, activeCategory]);
 
+  const faqQuestions = filtered.map(f => ({ question: f.question, answer: f.answer }));
+
   return (
-    <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow">
-      <div className="max-w-3xl mx-auto space-y-8">
+    <>
+      <FaqSchema questions={faqQuestions} />
+      <BreadcrumbSchema
+        items={[
+          { name: 'Home', url: 'https://zarwinto.com' },
+          { name: 'FAQ', url: 'https://zarwinto.com/faq' },
+        ]}
+      />
+      <div className="px-4 sm:px-6 lg:px-8 py-10 flex-grow">
+        <div className="max-w-3xl mx-auto space-y-8">
         {/* Header */}
         <div className="text-center space-y-3">
           <span className="inline-flex items-center gap-2 text-xs font-bold text-primary uppercase tracking-widest bg-primary/10 border border-primary/20 px-3 py-1 rounded-full">
@@ -206,5 +217,6 @@ export default function FaqPage() {
         </div>
       </div>
     </div>
+    </>
   );
 }

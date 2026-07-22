@@ -1,10 +1,22 @@
 import React from 'react';
 import Link from 'next/link';
 import { ShieldCheck, ArrowRight } from 'lucide-react';
+import { BreadcrumbSchema } from '../../components/JsonLd';
 
 export const metadata = {
-  title: "Privacy Policy - Zarwinto",
-  description: "How Zarwinto collects, uses, and protects your personal information. Read our privacy policy to understand your data rights."
+  title: "Privacy Policy | Data Protection & GDPR Compliance - Zarwinto",
+  description: "How Zarwinto collects, uses, and protects your personal information. Read our privacy policy to understand your data rights and GDPR compliance.",
+  keywords: ['privacy policy', 'data protection', 'GDPR', 'personal data', 'data security', 'Zarwinto privacy', 'cookie policy', 'data rights'],
+  openGraph: {
+    title: "Privacy Policy | Data Protection & GDPR Compliance - Zarwinto",
+    description: "How Zarwinto collects, uses, and protects your personal information.",
+    url: 'https://zarwinto.com/privacy',
+    siteName: "Zarwinto",
+    type: "website",
+  },
+  alternates: {
+    canonical: 'https://zarwinto.com/privacy',
+  },
 };
 
 const sections = [

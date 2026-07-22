@@ -52,6 +52,7 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
       case 'paid': return 'bg-green-500/10 text-green-400';
       case 'unpaid': return 'bg-red-500/10 text-red-400';
       case 'refunded': return 'bg-yellow-500/10 text-yellow-400';
+      case 'cod_pending': return 'bg-orange-500/10 text-orange-400';
       default: return 'bg-zinc-500/10 text-muted-foreground';
     }
   };
