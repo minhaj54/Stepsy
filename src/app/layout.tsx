@@ -8,6 +8,7 @@ import { ToastProvider } from "../components/Toast";
 import { OrganizationSchema, WebSiteSchema } from "../components/JsonLd";
 import Header from "../components/Header";
 import Footer from "../components/Footer";
+import NavigationProgress from "../components/NavigationProgress";
 
 export const metadata: Metadata = {
   title: "Zarwinto - Premium Footwear & Sneaker Marketplace",
@@ -60,6 +61,9 @@ export default function RootLayout({
           <AuthProvider>
             <ToastProvider>
               <CartProvider>
+                <Suspense fallback={null}>
+                  <NavigationProgress />
+                </Suspense>
                 <OrganizationSchema />
                 <WebSiteSchema />
                 <Suspense fallback={null}>
