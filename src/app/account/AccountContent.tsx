@@ -450,6 +450,27 @@ export default function AccountContent({ products }: { products: Product[] }) {
 
                   const canCancel = order.status === 'pending' || order.status === 'processing';
 
+                  const getPaymentStatusColor = (status: string) => {
+                    switch (status) {
+                      case 'paid': return 'bg-green-500/10 text-green-400 border border-green-500/20';
+                      case 'unpaid': return 'bg-red-500/10 text-red-400 border border-red-500/20';
+                      case 'refunded': return 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20';
+                      case 'cod_pending': return 'bg-orange-500/10 text-orange-400 border border-orange-500/20';
+                      default: return 'bg-zinc-500/10 text-muted-foreground border border-zinc-500/20';
+                    }
+                  };
+
+                  const getPaymentMethodDisplay = (method: string) => {
+                    switch (method) {
+                      case 'cod': return 'Cash on Delivery';
+                      case 'cashfree_upi': return 'UPI Payment';
+                      case 'cashfree_card': return 'Card Payment';
+                      case 'cashfree_netbanking': return 'Net Banking';
+                      case 'prepaid': return 'Online Payment';
+                      default: return method;
+                    }
+                  };
+
                   return (
                     <div key={order.id} className="bg-background/30 border border-border rounded-2xl overflow-hidden divide-y divide-border">
                       {/* Header */}
@@ -470,9 +491,30 @@ export default function AccountContent({ products }: { products: Product[] }) {
                           </p>
                           <p className="text-sm font-black text-primary mt-0.5">₹{order.total_amount}</p>
                         </div>
-                        <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${getStatusColor(order.status)}`}>
-                          {order.status}
-                        </span>
+                        <div className="flex flex-col gap-1">
+                          <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${getStatusColor(order.status)}`}>
+                            {order.status}
+                          </span>
+                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${getPaymentStatusColor(order.payment_status)}`}>
+                            {order.payment_status}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Payment Info */}
+                      <div className="p-4 sm:p-5 bg-background/20">
+                        <div className="flex flex-wrap items-center gap-4 text-xs">
+                          <div className="flex items-center gap-2">
+                            <span className="text-muted-foreground font-semibold">Payment Method:</span>
+                            <span className="text-foreground font-bold">{getPaymentMethodDisplay(order.payment_method)}</span>
+                          </div>
+                          {order.cashfree_payment_id && (
+                            <div className="flex items-center gap-2">
+                              <span className="text-muted-foreground font-semibold">Transaction ID:</span>
+                              <span className="text-foreground font-mono text-[10px]">{order.cashfree_payment_id}</span>
+                            </div>
+                          )}
+                        </div>
                       </div>
 
                       {/* Order Items */}

@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../lib/supabase/client';
-import { ArrowLeft, CheckCircle, CreditCard, ShieldCheck, ShoppingBag, Landmark, Sparkles, MapPin, Truck, Loader2 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CreditCard, ShieldCheck, ShoppingBag, Landmark, Sparkles, MapPin, Truck, Loader2, Smartphone, XCircle, RefreshCw } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useToast } from '../../components/Toast';
 import ShimmerImage from '../../components/ShimmerImage';
@@ -24,7 +24,7 @@ interface ShippingRate {
 }
 
 export default function CheckoutPage() {
-  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder } = useCart();
+  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, initiateCashfreePayment, verifyCashfreePayment } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
 
@@ -41,7 +41,12 @@ export default function CheckoutPage() {
   const [selectedAddressId, setSelectedAddressId] = useState<string | null>(null);
 
   // Payment Options
-  const [paymentMethod, setPaymentMethod] = useState<'card' | 'razorpay' | 'netbanking' | 'cod'>('razorpay');
+  const [paymentMethod, setPaymentMethod] = useState<'cashfree_upi' | 'card' | 'netbanking' | 'cod'>('cashfree_upi');
+
+  // Cashfree payment state
+  const [isCashfreeProcessing, setIsCashfreeProcessing] = useState(false);
+  const [cashfreeOrder, setCashfreeOrder] = useState<any>(null);
+  const [paymentVerifying, setPaymentVerifying] = useState(false);
 
   // Shipping Options
   const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
@@ -222,48 +227,148 @@ export default function CheckoutPage() {
     setIsProcessing(true);
     setProcessStep('Verifying stock levels...');
 
-    // Simulate Payment Processing
-    const processOrder = async () => {
-      const address = { fullName, phone, addressLine1, city, state, pincode };
-      const order = await placeOrder(address, paymentMethod === 'cod' ? 'cod' : 'prepaid');
-      
-      if (order) {
-        // Sync order with Shiprocket
-        try {
-          setProcessStep('Syncing with Shiprocket...');
-          await syncOrderWithShiprocket(order);
-        } catch (error) {
-          console.error('Failed to sync with Shiprocket:', error);
-          // Don't fail the order if Shiprocket sync fails
-        }
-
-        setCompletedOrder(order);
-        setIsProcessing(false);
-        
-        // Premium Confetti explosion!
-        triggerConfetti();
-      } else {
-        setIsProcessing(false);
-        addToast('Failed to place order. Please try again.', 'error');
-      }
-    };
+    const address = { fullName, phone, addressLine1, city, state, pincode };
 
     if (paymentMethod === 'cod') {
+      // COD flow - direct order placement
       setProcessStep('Preparing your Cash on Delivery order...');
-      setTimeout(() => {
-        processOrder();
+      setTimeout(async () => {
+        const order = await placeOrder(address, 'cod');
+        
+        if (order) {
+          try {
+            setProcessStep('Syncing with Shiprocket...');
+            await syncOrderWithShiprocket(order);
+          } catch (error) {
+            console.error('Failed to sync with Shiprocket:', error);
+          }
+
+          setCompletedOrder(order);
+          setIsProcessing(false);
+          triggerConfetti();
+        } else {
+          setIsProcessing(false);
+          addToast('Failed to place order. Please try again.', 'error');
+        }
       }, 1500);
+    } else if (paymentMethod === 'cashfree_upi') {
+      // Cashfree UPI flow
+      setProcessStep('Initializing secure payment gateway...');
+      
+      try {
+        const result = await initiateCashfreePayment(address);
+        
+        if (result && result.paymentSessionId) {
+          setCashfreeOrder(result);
+          setIsProcessing(false);
+          
+          // Open Cashfree payment in a new window or redirect
+          // For UPI, we'll use the payment session to open the Cashfree checkout
+          openCashfreePayment(result.paymentSessionId, result.order.id);
+        } else {
+          setIsProcessing(false);
+          addToast('Failed to initialize payment. Please try again.', 'error');
+        }
+      } catch (error) {
+        console.error('Cashfree payment initiation error:', error);
+        setIsProcessing(false);
+        addToast('Failed to initialize payment. Please try again.', 'error');
+      }
     } else {
-      setTimeout(() => {
-        setProcessStep('Initializing Razorpay secure portal...');
-        setTimeout(() => {
-          setProcessStep('Awaiting gateway payment validation...');
-          setTimeout(() => {
-            processOrder();
-          }, 1500);
-        }, 1500);
-      }, 1200);
+      // Card/Netbanking - simulated for now
+      setTimeout(async () => {
+        const order = await placeOrder(address, 'prepaid');
+        
+        if (order) {
+          try {
+            setProcessStep('Syncing with Shiprocket...');
+            await syncOrderWithShiprocket(order);
+          } catch (error) {
+            console.error('Failed to sync with Shiprocket:', error);
+          }
+
+          setCompletedOrder(order);
+          setIsProcessing(false);
+          triggerConfetti();
+        } else {
+          setIsProcessing(false);
+          addToast('Failed to place order. Please try again.', 'error');
+        }
+      }, 2000);
     }
+  };
+
+  // Open Cashfree payment page
+  const openCashfreePayment = (paymentSessionId: string, orderId: string) => {
+    // Cashfree hosted checkout URL
+    const cashfreeUrl = `https://payments.cashfree.com/checkout#/${paymentSessionId}`;
+    
+    // Open in a new window for payment
+    const paymentWindow = window.open(cashfreeUrl, '_blank', 'width=500,height=700,scrollbars=yes');
+    
+    if (!paymentWindow) {
+      addToast('Please allow popups for this site to complete payment', 'warning');
+      return;
+    }
+
+    // Poll for payment completion
+    const pollInterval = setInterval(async () => {
+      try {
+        if (paymentWindow.closed) {
+          clearInterval(pollInterval);
+          // Verify payment status when window closes
+          setPaymentVerifying(true);
+          const result = await verifyCashfreePayment(orderId);
+          setPaymentVerifying(false);
+          
+          if (result.success && result.paymentStatus === 'paid') {
+            // Payment successful - sync with Shiprocket and show success
+            const order = cashfreeOrder?.order;
+            if (order) {
+              try {
+                await syncOrderWithShiprocket(order);
+              } catch (error) {
+                console.error('Failed to sync with Shiprocket:', error);
+              }
+              setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
+              triggerConfetti();
+            }
+          } else if (result.success && result.paymentStatus === 'unpaid') {
+            addToast('Payment was not completed. Please try again.', 'error');
+          }
+          return;
+        }
+
+        // Also check via webhook - the webhook will update the order status
+        // We can poll our own API to check
+        const verifyResult = await verifyCashfreePayment(orderId);
+        if (verifyResult.success && verifyResult.paymentStatus === 'paid') {
+          clearInterval(pollInterval);
+          paymentWindow.close();
+          
+          const order = cashfreeOrder?.order;
+          if (order) {
+            try {
+              await syncOrderWithShiprocket(order);
+            } catch (error) {
+              console.error('Failed to sync with Shiprocket:', error);
+            }
+            setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
+            triggerConfetti();
+          }
+        }
+      } catch (error) {
+        console.error('Payment verification error:', error);
+      }
+    }, 3000);
+
+    // Cleanup after 5 minutes
+    setTimeout(() => {
+      clearInterval(pollInterval);
+      if (!paymentWindow.closed) {
+        paymentWindow.close();
+      }
+    }, 5 * 60 * 1000);
   };
 
   const syncOrderWithShiprocket = async (order: any) => {
@@ -405,10 +510,27 @@ export default function CheckoutPage() {
               <span>Payment Method</span>
               <span className="text-foreground">Cash on Delivery</span>
             </div>
+          ) : completedOrder.payment_method?.startsWith('cashfree') ? (
+            <>
+              <div className="flex justify-between text-xs font-semibold text-muted-foreground">
+                <span>Payment Gateway</span>
+                <span className="text-foreground">Cashfree Payments</span>
+              </div>
+              <div className="flex justify-between text-xs font-semibold text-muted-foreground">
+                <span>Payment Method</span>
+                <span className="text-foreground">{completedOrder.payment_method === 'cashfree_upi' ? 'UPI' : completedOrder.payment_method === 'cashfree_card' ? 'Card' : 'Net Banking'}</span>
+              </div>
+              {completedOrder.cashfree_payment_id && (
+                <div className="flex justify-between text-xs font-semibold text-muted-foreground">
+                  <span>Transaction ID</span>
+                  <span className="text-foreground font-mono text-[10px]">{completedOrder.cashfree_payment_id}</span>
+                </div>
+              )}
+            </>
           ) : (
             <div className="flex justify-between text-xs font-semibold text-muted-foreground">
-              <span>Gateway Merchant</span>
-              <span className="text-foreground">Razorpay Secure UPI</span>
+              <span>Payment Method</span>
+              <span className="text-foreground">Online Payment</span>
             </div>
           )}
           <div className="flex justify-between text-sm font-bold text-foreground border-t border-border pt-2">
@@ -449,11 +571,16 @@ export default function CheckoutPage() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-grow relative space-y-6 sm:space-y-8">
       {/* Loading Overlay */}
-      {isProcessing && (
+      {(isProcessing || paymentVerifying) && (
         <div className="fixed inset-0 z-50 bg-background/90 flex flex-col items-center justify-center text-center p-4 animate-in fade-in duration-300">
           <div className="h-14 w-14 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-          <h2 className="text-xl font-bold text-foreground tracking-tight">Processing Transactions</h2>
+          <h2 className="text-xl font-bold text-foreground tracking-tight">
+            {paymentVerifying ? 'Verifying Payment' : 'Processing Transactions'}
+          </h2>
           <p className="text-muted-foreground text-xs mt-1 animate-pulse font-medium">{processStep}</p>
+          {paymentVerifying && (
+            <p className="text-muted-foreground text-[10px] mt-2">Please wait while we confirm your payment with Cashfree...</p>
+          )}
         </div>
       )}
 
@@ -601,18 +728,18 @@ export default function CheckoutPage() {
             <h2 className="font-extrabold text-foreground text-base tracking-tight mb-2 uppercase text-primary">2. Payment Method</h2>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Razorpay Option */}
+              {/* Cashfree UPI Option */}
               <button
                 type="button"
-                onClick={() => setPaymentMethod('razorpay')}
+                onClick={() => setPaymentMethod('cashfree_upi')}
                 className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
-                  paymentMethod === 'razorpay'
+                  paymentMethod === 'cashfree_upi'
                     ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(99,102,241,0.2)]'
                     : 'border-border hover:border-muted-foreground/50 text-muted-foreground hover:text-foreground'
                 }`}
               >
-                <Landmark className="h-5 w-5" />
-                <span className="text-xs font-bold">Razorpay UPI</span>
+                <Smartphone className="h-5 w-5" />
+                <span className="text-xs font-bold">UPI Payment</span>
               </button>
 
               {/* Card Option */}
@@ -760,7 +887,7 @@ export default function CheckoutPage() {
               disabled={isProcessing || (pincode.length === 6 && !selectedShipping && shippingRates.length > 0)}
               className="w-full bg-primary hover:bg-primary-hover text-white py-3.5 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer glow-btn disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {isProcessing ? 'Processing...' : paymentMethod === 'cod' ? 'Place Order (COD)' : 'Pay & Place Order'}
+              {isProcessing ? 'Processing...' : paymentMethod === 'cod' ? 'Place Order (COD)' : paymentMethod === 'cashfree_upi' ? 'Pay with UPI' : 'Pay & Place Order'}
             </button>
           </div>
 

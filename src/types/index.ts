@@ -134,7 +134,7 @@ export interface Order {
   user_id: string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
   payment_status: 'unpaid' | 'paid' | 'refunded' | 'cod_pending';
-  payment_method: 'prepaid' | 'cod';
+  payment_method: 'prepaid' | 'cod' | 'cashfree_upi' | 'cashfree_card' | 'cashfree_netbanking';
   total_amount: number;
   shipping_address: ShippingAddress;
   items: {
@@ -152,4 +152,11 @@ export interface Order {
   awb_code?: string;
   courier_name?: string;
   shipment_id?: number;
+  // Cashfree payment fields
+  cashfree_order_id?: string;
+  cashfree_payment_id?: string;
+  cashfree_payment_status?: string;
+  cashfree_payment_method?: string;
+  cashfree_payment_message?: string;
+  cashfree_webhook_received?: boolean;
 }

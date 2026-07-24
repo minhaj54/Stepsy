@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, RefreshCw, ShoppingBag, Eye, Search, Filter, Package, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, ExternalLink } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ShoppingBag, Eye, Search, Filter, Package, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, ExternalLink, CreditCard } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
 import { useToast } from '@/components/Toast';
 
@@ -271,6 +271,39 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
                             {order.shipping_address.addressLine1}<br />
                             {order.shipping_address.city}, {order.shipping_address.state} - {order.shipping_address.pincode}
                           </p>
+                        </div>
+                      </div>
+                    )}
+
+                    {/* Cashfree Payment Info */}
+                    {(order as any).cashfree_order_id && (
+                      <div>
+                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Cashfree Payment</h4>
+                        <div className="p-3 bg-secondary rounded-xl space-y-2">
+                          <div className="flex items-center justify-between text-xs">
+                            <span className="text-muted-foreground">Order ID</span>
+                            <span className="font-mono text-foreground">#{(order as any).cashfree_order_id}</span>
+                          </div>
+                          {(order as any).cashfree_payment_id && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Payment ID</span>
+                              <span className="font-mono text-foreground">{(order as any).cashfree_payment_id}</span>
+                            </div>
+                          )}
+                          {(order as any).cashfree_payment_method && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Method</span>
+                              <span className="text-foreground">{(order as any).cashfree_payment_method}</span>
+                            </div>
+                          )}
+                          {(order as any).cashfree_payment_status && (
+                            <div className="flex items-center justify-between text-xs">
+                              <span className="text-muted-foreground">Status</span>
+                              <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${getPaymentStatusColor((order as any).cashfree_payment_status)}`}>
+                                {(order as any).cashfree_payment_status}
+                              </span>
+                            </div>
+                          )}
                         </div>
                       </div>
                     )}
