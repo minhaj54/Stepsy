@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../core/theme.dart';
 import '../models/shipping_address.dart';
 import '../providers/zarwinto_store.dart';
@@ -22,6 +23,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
   @override
   Widget build(BuildContext context) {
     final store = ZarwintoScope.of(context);
+    final money = NumberFormat.simpleCurrency();
 
     return Padding(
       padding: EdgeInsets.only(
@@ -75,6 +77,58 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
               decoration: const InputDecoration(labelText: 'Pincode'),
             ),
             const SizedBox(height: 16),
+            // Order Summary
+            Container(
+              padding: const EdgeInsets.all(14),
+              decoration: BoxDecoration(
+                color: ZarwintoColors.background,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: Column(
+                children: [
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Subtotal', style: TextStyle(fontWeight: FontWeight.w500)),
+                      Text(money.format(store.subtotal)),
+                    ],
+                  ),
+                  if (store.discount > 0) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        const Text('Discount', style: TextStyle(fontWeight: FontWeight.w500, color: ZarwintoColors.success)),
+                        Text(
+                          '-${money.format(store.discount)}',
+                          style: const TextStyle(color: ZarwintoColors.success, fontWeight: FontWeight.w600),
+                        ),
+                      ],
+                    ),
+                  ],
+                  const SizedBox(height: 6),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Shipping', style: TextStyle(fontWeight: FontWeight.w500)),
+                      const Text('Calculated next'),
+                    ],
+                  ),
+                  const Divider(height: 20),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                    children: [
+                      const Text('Total', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
+                      Text(
+                        money.format(store.total),
+                        style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: ZarwintoColors.primary),
+                      ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 16),
             FilledButton(
               onPressed: busy
                   ? null
@@ -93,11 +147,22 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                       setState(() => busy = false);
                       if (!context.mounted) return;
                       Navigator.pop(context);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        SnackBar(content: Text(message ?? 'Order placed.')),
-                      );
+                      if (message == null) {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          const SnackBar(
+                            content: Text('Order placed successfully!'),
+                            backgroundColor: ZarwintoColors.success,
+                          ),
+                        );
+                      } else {
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(content: Text(message)),
+                        );
+                      }
                     },
-              child: const Text('Place order'),
+              child: busy
+                  ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                  : const Text('Place Order'),
             ),
           ],
         ),

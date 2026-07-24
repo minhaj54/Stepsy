@@ -9,6 +9,12 @@ import '../models/cart_item.dart';
 import '../models/product_variant.dart';
 import '../models/user_profile.dart';
 import '../models/shipping_address.dart';
+import '../models/order.dart';
+import '../models/address.dart';
+import '../models/coupon.dart';
+import '../models/banner.dart';
+import '../models/review.dart';
+import '../models/testimonial.dart';
 import '../repositories/zarwinto_repository.dart';
 import '../data/mock_data.dart';
 import '../core/constants.dart';
@@ -29,7 +35,7 @@ class ZarwintoScope extends InheritedNotifier<ZarwintoStore> {
 
 class ZarwintoStore extends ChangeNotifier {
   ZarwintoStore(this.prefs)
-    : repository = ZarwintoRepository(_configuredSupabaseClient());
+    : repository = ZarwintoRepository(null); // client set during bootstrap
 
   final SharedPreferences prefs;
   final ZarwintoRepository repository;
@@ -42,13 +48,25 @@ class ZarwintoStore extends ChangeNotifier {
   List<CartItem> cart = [];
   Set<String> wishlist = {};
   UserProfile? profile;
+  List<Order> orders = [];
+  List<Address> addresses = [];
+  List<Coupon> coupons = [];
+  List<BannerModel> banners = [];
+  List<Testimonial> testimonials = [];
+  Coupon? appliedCoupon;
 
   bool get isSupabaseConfigured => repository.client != null;
   int get cartCount => cart.fold(0, (sum, item) => sum + item.quantity);
   double get subtotal => cart.fold(0, (sum, item) => sum + item.lineTotal);
+  double get discount => appliedCoupon?.calculateDiscount(subtotal) ?? 0;
+  double get total => subtotal - discount;
 
   Future<void> bootstrap() async {
     _loadCart();
+    _loadAppliedCoupon();
+    // Re-read the Supabase client now that initialization has had time to complete
+    repository.setClient(_configuredSupabaseClient());
+    debugPrint('[Stepzy] bootstrap() — client available: ${repository.client != null}');
     await refresh();
   }
 
@@ -57,13 +75,22 @@ class ZarwintoStore extends ChangeNotifier {
     error = null;
     notifyListeners();
 
+    debugPrint('[Stepzy] Supabase client available: ${repository.client != null}');
+
     try {
       final data = await repository.loadCatalog();
       products = data.products;
       categories = data.categories;
       brands = data.brands;
+      debugPrint('[Stepzy] Loaded ${products.length} products from ${repository.client != null ? "Supabase" : "mock data"}');
+      banners = await repository.loadBanners();
+      coupons = await repository.loadCoupons();
+      testimonials = await repository.loadTestimonials();
       await _loadProfileAndWishlist();
+      await _loadOrders();
+      await _loadAddresses();
     } catch (err) {
+      debugPrint('[Stepzy] refresh() error: $err');
       error = err.toString();
       products = mockProducts;
       categories = mockCategories;
@@ -76,6 +103,12 @@ class ZarwintoStore extends ChangeNotifier {
 
   List<Product> featuredProducts() =>
       products.where((product) => product.featured).take(6).toList();
+
+  List<Product> newArrivals() =>
+      products.where((product) => product.newArrival).take(6).toList();
+
+  List<Product> bestSellers() =>
+      products.where((product) => product.bestSeller).take(6).toList();
 
   void addToCart(Product product, ProductVariant variant, {int quantity = 1}) {
     final index = cart.indexWhere((item) => item.variant.id == variant.id);
@@ -105,7 +138,9 @@ class ZarwintoStore extends ChangeNotifier {
 
   void clearCart() {
     cart.clear();
+    appliedCoupon = null;
     _saveCart();
+    _saveAppliedCoupon();
     notifyListeners();
   }
 
@@ -140,6 +175,9 @@ class ZarwintoStore extends ChangeNotifier {
     await repository.signOut();
     profile = null;
     wishlist.clear();
+    orders.clear();
+    addresses.clear();
+    appliedCoupon = null;
     notifyListeners();
   }
 
@@ -158,14 +196,80 @@ class ZarwintoStore extends ChangeNotifier {
 
   Future<String?> placeOrder(ShippingAddress address) async {
     if (cart.isEmpty) return 'Your cart is empty.';
-    final message = await repository.placeOrder(cart, subtotal, address);
-    if (message == null) clearCart();
+    final message = await repository.placeOrder(cart, total, address);
+    if (message == null) {
+      clearCart();
+      await _loadOrders();
+    }
     return message;
   }
 
   Future<void> _loadProfileAndWishlist() async {
     profile = await repository.loadProfile();
     wishlist = await repository.loadWishlist();
+  }
+
+  Future<void> _loadOrders() async {
+    orders = await repository.loadOrders();
+  }
+
+  Future<void> _loadAddresses() async {
+    addresses = await repository.loadAddresses();
+  }
+
+  Future<void> loadAddresses() async {
+    await _loadAddresses();
+    notifyListeners();
+  }
+
+  Future<Address?> addAddress(Address address) async {
+    final newAddress = await repository.addAddress(address);
+    if (newAddress != null) {
+      await _loadAddresses();
+    }
+    return newAddress;
+  }
+
+  Future<void> updateAddress(Address address) async {
+    await repository.updateAddress(address);
+    await _loadAddresses();
+  }
+
+  Future<void> deleteAddress(String addressId) async {
+    await repository.deleteAddress(addressId);
+    await _loadAddresses();
+  }
+
+  Future<Coupon?> applyCoupon(String code) async {
+    final coupon = await repository.validateCoupon(code, subtotal);
+    if (coupon != null) {
+      appliedCoupon = coupon;
+      _saveAppliedCoupon();
+    }
+    notifyListeners();
+    return coupon;
+  }
+
+  void removeCoupon() {
+    appliedCoupon = null;
+    _saveAppliedCoupon();
+    notifyListeners();
+  }
+
+  Future<List<Review>> loadProductReviews(String productId) async {
+    return await repository.loadProductReviews(productId);
+  }
+
+  Future<void> addReview(String productId, int rating, String reviewText, {List<String> images = const []}) async {
+    await repository.addReview(Review(
+      id: '',
+      userId: '',
+      productId: productId,
+      rating: rating,
+      reviewText: reviewText,
+      images: images,
+      createdAt: DateTime.now(),
+    ));
   }
 
   void _loadCart() {
@@ -181,9 +285,34 @@ class ZarwintoStore extends ChangeNotifier {
     final encoded = jsonEncode(cart.map((item) => item.toJson()).toList());
     prefs.setString('zarwinto_mobile_cart', encoded);
   }
+
+  void _loadAppliedCoupon() {
+    final raw = prefs.getString('zarwinto_applied_coupon');
+    if (raw == null) return;
+    try {
+      final decoded = jsonDecode(raw) as Map<String, dynamic>;
+      appliedCoupon = Coupon.fromJson(decoded);
+    } catch (e) {
+      appliedCoupon = null;
+    }
+  }
+
+  void _saveAppliedCoupon() {
+    if (appliedCoupon == null) {
+      prefs.remove('zarwinto_applied_coupon');
+    } else {
+      final encoded = jsonEncode(appliedCoupon!.toJson());
+      prefs.setString('zarwinto_applied_coupon', encoded);
+    }
+  }
 }
 
 SupabaseClient? _configuredSupabaseClient() {
   if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) return null;
-  return Supabase.instance.client;
+  try {
+    return Supabase.instance.client;
+  } catch (_) {
+    // Supabase.initialize() was not called or failed
+    return null;
+  }
 }

@@ -128,7 +128,7 @@ export const mockProducts: Product[] = [
       'https://images.unsplash.com/photo-1600185365483-26d7a4cc7519?auto=format&fit=crop&q=80&w=800',
       'https://images.unsplash.com/photo-1549298916-b41d501d3772?auto=format&fit=crop&q=80&w=800'
     ],
-    rating: 4.7,
+    rating: 4.8,
     reviews_count: 89,
     featured: true,
     newArrival: false,
@@ -167,7 +167,7 @@ export const mockProducts: Product[] = [
       'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=800',
       'https://images.unsplash.com/photo-1607522370275-f14206abe5d3?auto=format&fit=crop&q=80&w=800'
     ],
-    rating: 4.9,
+    rating: 4.8,
     reviews_count: 211,
     featured: true,
     newArrival: true,
@@ -203,7 +203,7 @@ export const mockProducts: Product[] = [
       'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?auto=format&fit=crop&q=80&w=800',
       'https://images.unsplash.com/photo-1520639888713-7851133b1ed0?auto=format&fit=crop&q=80&w=800'
     ],
-    rating: 4.6,
+    rating: 4.8,
     reviews_count: 67,
     featured: false,
     newArrival: false,
@@ -275,7 +275,7 @@ export const mockProducts: Product[] = [
       'https://images.unsplash.com/photo-1603808033192-082d6919d3e1?auto=format&fit=crop&q=80&w=800',
       'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=800'
     ],
-    rating: 4.5,
+    rating: 4.8,
     reviews_count: 124,
     featured: false,
     newArrival: false,
@@ -311,7 +311,7 @@ export const mockProducts: Product[] = [
       'https://images.unsplash.com/photo-1460353581641-37baddab0fa2?auto=format&fit=crop&q=80&w=800',
       'https://images.unsplash.com/photo-1539185441755-769473a23570?auto=format&fit=crop&q=80&w=800'
     ],
-    rating: 4.7,
+    rating: 4.8,
     reviews_count: 98,
     featured: false,
     newArrival: true,
@@ -347,7 +347,7 @@ export const mockProducts: Product[] = [
       'https://images.unsplash.com/photo-1520639888713-7851133b1ed0?auto=format&fit=crop&q=80&w=800',
       'https://images.unsplash.com/photo-1608256246200-53e635b5b65f?auto=format&fit=crop&q=80&w=800'
     ],
-    rating: 4.9,
+    rating: 4.8,
     reviews_count: 53,
     featured: true,
     newArrival: false,

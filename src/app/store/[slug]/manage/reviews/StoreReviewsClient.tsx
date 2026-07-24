@@ -2,8 +2,9 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, Star, Check, Trash2, MessageSquare, AlertCircle, Search, Filter, Package } from 'lucide-react';
+import { ArrowLeft, Star, Trash2, MessageSquare, Search, Filter, Package } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
+import { recalculateProductRating } from '@/lib/data/products.client';
 
 interface StoreReviewsClientProps {
   initialReviews: any[];
@@ -14,35 +15,15 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
   const [reviews, setReviews] = useState<any[]>(initialReviews);
   const [updatingId, setUpdatingId] = useState<string | null>(null);
   const [searchQuery, setSearchQuery] = useState('');
-  const [statusFilter, setStatusFilter] = useState<'all' | 'approved' | 'pending'>('all');
   const [ratingFilter, setRatingFilter] = useState<'all' | '5' | '4' | '3' | '2' | '1'>('all');
 
   const configured = isSupabaseConfigured();
 
-  const handleApprove = async (id: string) => {
-    setUpdatingId(id);
+  const handleDelete = async (id: string) => {
+    if (!confirm('Are you sure you want to delete this review?')) return;
 
-    setReviews(prev =>
-      prev.map(r => (r.id === id ? { ...r, approved: true } : r))
-    );
-
-    if (configured) {
-      const supabase = createClient();
-      const { error } = await supabase
-        .from('reviews')
-        .update({ approved: true })
-        .eq('id', id);
-
-      if (error) {
-        console.error('Error approving review in Supabase:', error);
-      }
-    }
-
-    setUpdatingId(null);
-  };
-
-  const handleReject = async (id: string) => {
-    if (!confirm('Are you sure you want to reject this review?')) return;
+    const review = reviews.find(r => r.id === id);
+    const productId = review?.product_id;
 
     setReviews(prev => prev.filter(r => r.id !== id));
 
@@ -52,6 +33,9 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
 
       if (error) {
         console.error('Error deleting review in Supabase:', error);
+      } else if (productId) {
+        // Recalculate product rating after deletion
+        await recalculateProductRating(productId);
       }
     }
   };
@@ -60,14 +44,9 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
     const matchesSearch = review.user_name?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          review.product_title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          review.review_text?.toLowerCase().includes(searchQuery.toLowerCase());
-    const matchesStatus = statusFilter === 'all' || 
-                         (statusFilter === 'approved' && review.approved) ||
-                         (statusFilter === 'pending' && !review.approved);
     const matchesRating = ratingFilter === 'all' || review.rating === parseInt(ratingFilter);
-    return matchesSearch && matchesStatus && matchesRating;
+    return matchesSearch && matchesRating;
   });
-
-  const pendingCount = reviews.filter(r => !r.approved).length;
 
   return (
     <div>
@@ -80,7 +59,7 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
             <ArrowLeft className="h-3 w-3" /> Dashboard
           </Link>
           <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Reviews</h1>
-          <p className="text-muted-foreground text-sm mt-1">{filteredReviews.length} of {reviews.length} reviews • {pendingCount} pending approval</p>
+          <p className="text-muted-foreground text-sm mt-1">{filteredReviews.length} of {reviews.length} reviews</p>
         </div>
       </div>
 
@@ -98,15 +77,6 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
         </div>
         <div className="flex items-center gap-2">
           <Filter className="h-4 w-4 text-muted-foreground" />
-          <select
-            value={statusFilter}
-            onChange={e => setStatusFilter(e.target.value as any)}
-            className="bg-card/50 text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
-          >
-            <option value="all">All Status</option>
-            <option value="approved">Approved</option>
-            <option value="pending">Pending</option>
-          </select>
           <select
             value={ratingFilter}
             onChange={e => setRatingFilter(e.target.value as any)}
@@ -155,32 +125,16 @@ export default function StoreReviewsClient({ initialReviews, storeSlug }: StoreR
                   </div>
                 </div>
                 <div className="flex items-center gap-2 shrink-0">
-                  {!review.approved && (
-                    <button
-                      onClick={() => handleApprove(review.id)}
-                      disabled={updatingId === review.id}
-                      className="p-2 bg-green-500/10 hover:bg-green-500/20 text-green-400 rounded-lg transition-colors"
-                      title="Approve"
-                    >
-                      <Check className="h-4 w-4" />
-                    </button>
-                  )}
                   <button
-                    onClick={() => handleReject(review.id)}
-                    className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors"
-                    title="Delete"
+                    onClick={() => handleDelete(review.id)}
+                    disabled={updatingId === review.id}
+                    className="p-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 rounded-lg transition-colors disabled:opacity-50"
+                    title="Delete Review"
                   >
                     <Trash2 className="h-4 w-4" />
                   </button>
                 </div>
               </div>
-              {review.approved && (
-                <div className="mt-3 pt-3 border-t border-border">
-                  <span className="inline-flex items-center gap-1 px-2 py-1 rounded-md text-[10px] font-bold uppercase bg-green-500/10 text-green-400 border border-green-500/20">
-                    <Check className="h-3 w-3" /> Approved
-                  </span>
-                </div>
-              )}
             </div>
           ))}
         </div>

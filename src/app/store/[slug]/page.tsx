@@ -27,6 +27,44 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
   const user = await getCurrentUser();
   const isOwner = user?.id === store.owner_id;
 
+  // If store is pending approval, show a message instead of the storefront
+  if (store.status === 'pending') {
+    return (
+      <div className="min-h-screen flex items-center justify-center px-4">
+        <div className="glass-card p-8 sm:p-12 rounded-2xl border border-border max-w-lg w-full text-center space-y-6">
+          <div className="h-16 w-16 bg-yellow-500/10 text-yellow-400 rounded-full flex items-center justify-center mx-auto border border-yellow-500/20">
+            <StoreIcon className="h-8 w-8" />
+          </div>
+          <div className="space-y-2">
+            <h1 className="text-2xl font-extrabold text-foreground">Store Pending Approval</h1>
+            <p className="text-muted-foreground text-sm leading-relaxed">
+              Your store <span className="font-semibold text-foreground">{store.name}</span> has been submitted for review and is currently pending approval from our team.
+            </p>
+            <p className="text-muted-foreground text-sm">
+              You will be able to view your storefront once it is approved. In the meantime, you can manage your store settings and products from the dashboard.
+            </p>
+          </div>
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link
+              href={`/store/${store.slug}/manage`}
+              className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all"
+            >
+              <Settings className="h-4 w-4" />
+              Manage Store
+            </Link>
+            <Link
+              href="/account"
+              className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground px-6 py-3 rounded-xl font-semibold text-sm transition-all border border-border"
+            >
+              <ArrowRight className="h-4 w-4 rotate-180" />
+              Back to Account
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen pb-8 sm:pb-16">
       {/* Hero Banner */}

@@ -106,3 +106,43 @@ export async function getProductsClient(): Promise<Product[]> {
     return mockProducts;
   }
 }
+
+export async function recalculateProductRating(productId: string): Promise<{ rating: number; reviews_count: number } | null> {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const supabase = createClient();
+
+    // Get all approved reviews for this product
+    const { data: reviews, error } = await supabase
+      .from('reviews')
+      .select('rating')
+      .eq('product_id', productId)
+      .eq('approved', true);
+
+    if (error || !reviews) return null;
+
+    const reviewsCount = reviews.length;
+    const avgRating = reviewsCount > 0
+      ? reviews.reduce((sum: number, r: { rating: number }) => sum + r.rating, 0) / reviewsCount
+      : 0;
+
+    // Update product with new rating and count
+    const { error: updateError } = await supabase
+      .from('products')
+      .update({
+        rating: Math.round(avgRating * 10) / 10,
+        reviews_count: reviewsCount,
+      })
+      .eq('id', productId);
+
+    if (updateError) {
+      console.error('Error updating product rating:', updateError);
+      return null;
+    }
+
+    return { rating: Math.round(avgRating * 10) / 10, reviews_count: reviewsCount };
+  } catch {
+    return null;
+  }
+}

@@ -79,7 +79,6 @@ export async function getStoreBySlug(slug: string): Promise<Store | null> {
       .from('stores')
       .select('*')
       .eq('slug', slug)
-      .eq('status', 'active')
       .single();
 
     if (error || !data) return null;

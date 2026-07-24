@@ -24,6 +24,7 @@ interface AuthContextType {
   verifyOtp: (phone: string, code: string, fullName?: string) => Promise<{ error: string | null }>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<Pick<UserProfile, 'full_name'>>) => Promise<{ error: string | null }>;
+  refreshSession: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -285,6 +286,20 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [configured, user]);
 
+  const refreshSession = useCallback(async () => {
+    if (!configured) return;
+    try {
+      const supabase = createClient();
+      const { data: { session: currentSession } } = await supabase.auth.getSession();
+      setSession(currentSession);
+      if (currentSession?.user) {
+        applySession(setUser, supabase, currentSession.user);
+      }
+    } catch (err) {
+      console.error('[AuthContext] refreshSession error:', err);
+    }
+  }, [configured]);
+
   return (
     <AuthContext.Provider value={{
       user,
@@ -296,6 +311,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       verifyOtp,
       signOut,
       updateProfile,
+      refreshSession,
     }}>
       {children}
     </AuthContext.Provider>

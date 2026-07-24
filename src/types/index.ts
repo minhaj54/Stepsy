@@ -98,6 +98,7 @@ export interface Review {
   review_text: string;
   created_at: string;
   images?: string[];
+  approved?: boolean;
 }
 
 export interface BlogPost {

@@ -421,14 +421,13 @@ export async function getReviewsByProductId(productId: string): Promise<Review[]
       .from('reviews')
       .select('*, users(full_name)')
       .eq('product_id', productId)
-      .eq('approved', true)
       .order('created_at', { ascending: false });
 
     const result = await withTimeout(query, 4000);
 
     if (!result || result.error || !result.data) return mockReviews[productId] ?? [];
 
-    return result.data.map((r: { id: string; user_id: string; users: { full_name: string } | null; product_id: string; rating: number; review_text: string; created_at: string; images?: string[] }) => ({
+    return result.data.map((r: { id: string; user_id: string; users: { full_name: string } | null; product_id: string; rating: number; review_text: string; created_at: string; images?: string[]; approved: boolean }) => ({
       id: r.id,
       user_id: r.user_id,
       user_name: r.users?.full_name ?? 'Anonymous',
@@ -437,9 +436,51 @@ export async function getReviewsByProductId(productId: string): Promise<Review[]
       review_text: r.review_text,
       created_at: r.created_at,
       images: r.images ?? [],
+      approved: r.approved,
     }));
   } catch {
     return mockReviews[productId] ?? [];
+  }
+}
+
+export async function recalculateProductRating(productId: string): Promise<{ rating: number; reviews_count: number } | null> {
+  if (!isSupabaseConfigured()) return null;
+
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    // Get all approved reviews for this product
+    const { data: reviews, error } = await supabase
+      .from('reviews')
+      .select('rating')
+      .eq('product_id', productId)
+      .eq('approved', true);
+
+    if (error || !reviews) return null;
+
+    const reviewsCount = reviews.length;
+    const avgRating = reviewsCount > 0
+      ? reviews.reduce((sum, r) => sum + r.rating, 0) / reviewsCount
+      : 0;
+
+    // Update product with new rating and count
+    const { error: updateError } = await supabase
+      .from('products')
+      .update({
+        rating: Math.round(avgRating * 10) / 10, // Round to 1 decimal
+        reviews_count: reviewsCount,
+      })
+      .eq('id', productId);
+
+    if (updateError) {
+      console.error('Error updating product rating:', updateError);
+      return null;
+    }
+
+    return { rating: Math.round(avgRating * 10) / 10, reviews_count: reviewsCount };
+  } catch {
+    return null;
   }
 }
 

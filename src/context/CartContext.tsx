@@ -29,6 +29,7 @@ interface CartContextType {
   toggleWishlist: (productId: string) => void;
   orders: Order[];
   placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod') => Promise<Order | null>;
+  updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -396,7 +397,63 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearCart();
     }
 
+    // Send order alert notifications (non-blocking)
+    if (dbOrderCreated && orderId) {
+      sendOrderAlert(orderId).catch(err => {
+        console.error('Failed to send order alert notification:', err);
+      });
+    }
+
     return newOrder;
+  };
+
+  const sendOrderAlert = async (orderId: string) => {
+    try {
+      const response = await fetch('/api/notifications/order-alert', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ orderId }),
+      });
+
+      const responseText = await response.text();
+      console.log('[CartContext] Order alert response:', response.status, responseText);
+
+      if (!response.ok) {
+        console.error('[CartContext] Order alert API error:', response.status, responseText);
+      }
+    } catch (error) {
+      console.error('[CartContext] Error calling order alert API:', error);
+    }
+  };
+
+  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
+    // Update local state immediately for responsive UI
+    setOrders(prev =>
+      prev.map(o => (o.id === orderId ? { ...o, status } : o))
+    );
+    localStorage.setItem('zarwinto_orders', JSON.stringify(
+      orders.map(o => (o.id === orderId ? { ...o, status } : o))
+    ));
+
+    if (configured && user) {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('orders')
+        .update({ status })
+        .eq('id', orderId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating order status:', error);
+        addToast('Failed to update order status. Please try again.', 'error');
+        // Revert local state on error
+        setOrders(prev =>
+          prev.map(o => (o.id === orderId ? { ...o, status: orders.find(o => o.id === orderId)?.status || 'pending' } : o))
+        );
+      } else {
+        addToast('Order status updated successfully!', 'success');
+      }
+    }
   };
 
   return (
@@ -417,6 +474,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       toggleWishlist,
       orders,
       placeOrder,
+      updateOrderStatus,
     }}>
       {children}
     </CartContext.Provider>

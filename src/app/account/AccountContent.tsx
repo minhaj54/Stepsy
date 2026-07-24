@@ -7,13 +7,13 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../lib/supabase/client';
 import { Product } from '../../types';
-import { User, ShoppingBag, Heart, MapPin, Check, Plus, Edit3, LogOut, ArrowRight, Star, Store } from 'lucide-react';
+import { User, ShoppingBag, Heart, MapPin, Check, Plus, Edit3, LogOut, ArrowRight, Star, Store, XCircle, RefreshCw } from 'lucide-react';
 import ShimmerImage from '../../components/ShimmerImage';
 
 export default function AccountContent({ products }: { products: Product[] }) {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { wishlist, toggleWishlist, orders } = useCart();
+  const { wishlist, toggleWishlist, orders, updateOrderStatus } = useCart();
   const { user, signOut, updateProfile, supabaseReachable } = useAuth();
 
   // Selected tab (default is 'profile')
@@ -132,6 +132,11 @@ export default function AccountContent({ products }: { products: Product[] }) {
   const handleSignOut = async () => {
     await signOut();
     router.push('/');
+  };
+
+  const handleCancelOrder = async (orderId: string) => {
+    if (!confirm('Are you sure you want to cancel this order?')) return;
+    await updateOrderStatus(orderId, 'cancelled');
   };
 
   if (!user) return null;
@@ -420,61 +425,108 @@ export default function AccountContent({ products }: { products: Product[] }) {
               </div>
             ) : (
               <div className="space-y-6">
-                {orders.map((order) => (
-                  <div key={order.id} className="bg-background/30 border border-border rounded-2xl overflow-hidden divide-y divide-border">
-                    {/* Header */}
-                    <div className="p-4 sm:p-5 flex flex-wrap justify-between items-center gap-4 bg-background/50">
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Order Reference</p>
-                        <p className="text-sm font-bold text-foreground mt-0.5">{order.id}</p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Date Placed</p>
-                        <p className="text-sm font-semibold text-muted-foreground mt-0.5">
-                          {new Date(order.created_at).toLocaleDateString()}
-                        </p>
-                      </div>
-                      <div>
-                        <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                          {order.payment_method === 'cod' ? 'Amount to Pay' : 'Total Debited'}
-                        </p>
-                        <p className="text-sm font-black text-primary mt-0.5">₹{order.total_amount}</p>
-                      </div>
-                      <span className="px-3 py-1 bg-green-500/10 border border-green-500/20 text-green-500 rounded-lg text-xs font-bold uppercase tracking-wide">
-                        {order.status}
-                      </span>
-                    </div>
+                {orders.map((order) => {
+                  const getStatusColor = (status: string) => {
+                    switch (status) {
+                      case 'pending': return 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/20';
+                      case 'processing': return 'bg-blue-500/10 text-blue-400 border border-blue-500/20';
+                      case 'shipped': return 'bg-purple-500/10 text-purple-400 border border-purple-500/20';
+                      case 'delivered': return 'bg-green-500/10 text-green-400 border border-green-500/20';
+                      case 'cancelled': return 'bg-red-500/10 text-red-400 border border-red-500/20';
+                      default: return 'bg-zinc-500/10 text-muted-foreground border border-zinc-500/20';
+                    }
+                  };
 
-                    {/* Order Items */}
-                    <div className="p-4 sm:p-5 space-y-4">
-                      {order.items.map((item, idx) => (
-                        <div key={idx} className="flex justify-between items-center gap-4">
-                          <div className="flex items-center gap-3">
-                            <ShimmerImage src={item.product_image} alt="" className="h-10 w-10" />
-                            <div>
-                              <p className="font-bold text-foreground text-xs">{item.product_title}</p>
-                              <p className="text-[10px] text-muted-foreground mt-0.5">Size {item.size} • Color {item.color} • Qty {item.quantity}</p>
-                            </div>
-                          </div>
-                          <span className="font-bold text-foreground text-xs">₹{item.price * item.quantity}</span>
+                  const getProgressWidth = (status: string) => {
+                    switch (status) {
+                      case 'pending': return '0%';
+                      case 'processing': return '25%';
+                      case 'shipped': return '60%';
+                      case 'delivered': return '100%';
+                      case 'cancelled': return '0%';
+                      default: return '0%';
+                    }
+                  };
+
+                  const canCancel = order.status === 'pending' || order.status === 'processing';
+
+                  return (
+                    <div key={order.id} className="bg-background/30 border border-border rounded-2xl overflow-hidden divide-y divide-border">
+                      {/* Header */}
+                      <div className="p-4 sm:p-5 flex flex-wrap justify-between items-center gap-4 bg-background/50">
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Order Reference</p>
+                          <p className="text-sm font-bold text-foreground mt-0.5">{order.id}</p>
                         </div>
-                      ))}
-                    </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Date Placed</p>
+                          <p className="text-sm font-semibold text-muted-foreground mt-0.5">
+                            {new Date(order.created_at).toLocaleDateString()}
+                          </p>
+                        </div>
+                        <div>
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
+                            {order.payment_method === 'cod' ? 'Amount to Pay' : 'Total Debited'}
+                          </p>
+                          <p className="text-sm font-black text-primary mt-0.5">₹{order.total_amount}</p>
+                        </div>
+                        <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${getStatusColor(order.status)}`}>
+                          {order.status}
+                        </span>
+                      </div>
 
-                    {/* Progress tracking Bar */}
-                    <div className="p-4 sm:p-5 bg-background/20">
-                      <div className="flex justify-between text-[9px] uppercase font-bold text-muted-foreground mb-2">
-                        <span className="text-primary">Ordered</span>
-                        <span className="text-primary">Processing</span>
-                        <span>Shipped</span>
-                        <span>Delivered</span>
+                      {/* Order Items */}
+                      <div className="p-4 sm:p-5 space-y-4">
+                        {order.items.map((item, idx) => (
+                          <div key={idx} className="flex justify-between items-center gap-4">
+                            <div className="flex items-center gap-3">
+                              <ShimmerImage src={item.product_image} alt="" className="h-10 w-10" />
+                              <div>
+                                <p className="font-bold text-foreground text-xs">{item.product_title}</p>
+                                <p className="text-[10px] text-muted-foreground mt-0.5">Size {item.size} • Color {item.color} • Qty {item.quantity}</p>
+                              </div>
+                            </div>
+                            <span className="font-bold text-foreground text-xs">₹{item.price * item.quantity}</span>
+                          </div>
+                        ))}
                       </div>
-                      <div className="w-full bg-zinc-900 h-1.5 rounded-full relative overflow-hidden">
-                        <div className="absolute top-0 left-0 bg-primary h-full rounded-full w-[45%]" />
+
+                      {/* Actions */}
+                      {canCancel && (
+                        <div className="p-4 sm:p-5 bg-background/20 flex flex-wrap items-center gap-3">
+                          <button
+                            onClick={() => handleCancelOrder(order.id)}
+                            className="inline-flex items-center gap-2 bg-red-500/10 hover:bg-red-500/20 text-red-400 px-4 py-2 rounded-xl text-xs font-bold uppercase tracking-wider transition-all border border-red-500/20"
+                          >
+                            <XCircle className="h-4 w-4" />
+                            Cancel Order
+                          </button>
+                          <span className="text-[10px] text-muted-foreground">
+                            You can cancel this order while it is still pending or processing.
+                          </span>
+                        </div>
+                      )}
+
+                      {/* Progress tracking Bar */}
+                      <div className="p-4 sm:p-5 bg-background/20">
+                        <div className="flex justify-between text-[9px] uppercase font-bold text-muted-foreground mb-2">
+                          <span className={order.status === 'cancelled' ? 'text-red-400' : 'text-primary'}>Ordered</span>
+                          <span className={['processing', 'shipped', 'delivered'].includes(order.status) ? 'text-primary' : ''}>Processing</span>
+                          <span className={['shipped', 'delivered'].includes(order.status) ? 'text-primary' : ''}>Shipped</span>
+                          <span className={order.status === 'delivered' ? 'text-primary' : ''}>Delivered</span>
+                        </div>
+                        <div className="w-full bg-zinc-900 h-1.5 rounded-full relative overflow-hidden">
+                          <div
+                            className={`absolute top-0 left-0 h-full rounded-full transition-all duration-500 ${
+                              order.status === 'cancelled' ? 'bg-red-500' : 'bg-primary'
+                            }`}
+                            style={{ width: getProgressWidth(order.status) }}
+                          />
+                        </div>
                       </div>
                     </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

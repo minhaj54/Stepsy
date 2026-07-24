@@ -1,23 +1,26 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
 
-import 'core/constants.dart';
 import 'core/theme.dart';
 import 'providers/zarwinto_store.dart';
-import 'screens/shell.dart';
+import 'screens/onboarding.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  if (supabaseUrl.isNotEmpty && supabaseAnonKey.isNotEmpty) {
-    await Supabase.initialize(
-      url: supabaseUrl,
-      publishableKey: supabaseAnonKey,
-    );
+  // Load .env file (fast, local file read - safe to await)
+  try {
+    await dotenv.load(fileName: '.env');
+  } catch (e) {
+    debugPrint('[Stepzy] .env not loaded: $e');
   }
 
+  // Load shared preferences (fast, local - safe to await)
   final prefs = await SharedPreferences.getInstance();
+
+  // Launch the app immediately — do NOT block on network calls
   runApp(ZarwintoApp(prefs: prefs));
 }
 
@@ -36,7 +39,42 @@ class _ZarwintoAppState extends State<ZarwintoApp> {
   @override
   void initState() {
     super.initState();
-    store = ZarwintoStore(widget.prefs)..bootstrap();
+    store = ZarwintoStore(widget.prefs);
+    _initSupabaseThenBootstrap();
+  }
+
+  /// Initialize Supabase in the background AFTER the UI is rendered.
+  /// This way the app never freezes on launch, regardless of network state.
+  Future<void> _initSupabaseThenBootstrap() async {
+    final url = dotenv.env['SUPABASE_URL'] ?? '';
+    final key = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
+
+    debugPrint('[Stepzy] SUPABASE_URL = $url');
+    debugPrint('[Stepzy] SUPABASE_ANON_KEY = ${key.isNotEmpty ? "✓ present" : "✗ missing"}');
+
+    if (url.isNotEmpty && key.isNotEmpty) {
+      try {
+        await Supabase.initialize(
+          url: url,
+          publishableKey: key,
+        ).timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            debugPrint('[Stepzy] Supabase.initialize timed out — using mock data.');
+            return Supabase.instance; // return existing instance if any
+          },
+        );
+        debugPrint('[Stepzy] Supabase initialized ✓');
+      } catch (e) {
+        debugPrint('[Stepzy] Supabase init failed: $e — using mock data.');
+      }
+    } else {
+      debugPrint('[Stepzy] Supabase credentials missing — using mock data.');
+    }
+
+    // Bootstrap the store regardless of Supabase status
+    // It will use the live client if available, otherwise fall back to mock data
+    store.bootstrap();
   }
 
   @override
@@ -44,10 +82,10 @@ class _ZarwintoAppState extends State<ZarwintoApp> {
     return ZarwintoScope(
       store: store,
       child: MaterialApp(
-        title: 'Zarwinto',
+        title: 'Stepzy',
         debugShowCheckedModeBanner: false,
-        theme: ZarwintoTheme.dark,
-        home: const ZarwintoShell(),
+        theme: ZarwintoTheme.light,
+        home: const OnboardingScreen(),
       ),
     );
   }

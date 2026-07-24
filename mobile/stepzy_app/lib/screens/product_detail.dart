@@ -1,12 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
-import 'package:share_plus/share_plus.dart';
-import 'package:url_launcher/url_launcher.dart';
-import '../core/theme.dart';
 import '../models/product.dart';
-import '../models/product_variant.dart';
 import '../providers/zarwinto_store.dart';
-import '../widgets/common.dart';
 
 class ProductDetailPage extends StatefulWidget {
   const ProductDetailPage({super.key, required this.product});
@@ -18,421 +12,417 @@ class ProductDetailPage extends StatefulWidget {
 }
 
 class _ProductDetailPageState extends State<ProductDetailPage> {
-  ProductVariant? selected;
-  bool _showSizeChart = false;
-
-  // Standard shoe size chart (US to EU/UK/CM)
-  static const List<Map<String, String>> _sizeChart = [
-    {'us': '6', 'uk': '5.5', 'eu': '38.5', 'cm': '24.1'},
-    {'us': '6.5', 'uk': '6', 'eu': '39', 'cm': '24.6'},
-    {'us': '7', 'uk': '6.5', 'eu': '40', 'cm': '25.1'},
-    {'us': '7.5', 'uk': '7', 'eu': '40.5', 'cm': '25.6'},
-    {'us': '8', 'uk': '7.5', 'eu': '41', 'cm': '26.0'},
-    {'us': '8.5', 'uk': '8', 'eu': '42', 'cm': '26.5'},
-    {'us': '9', 'uk': '8.5', 'eu': '42.5', 'cm': '27.0'},
-    {'us': '9.5', 'uk': '9', 'eu': '43', 'cm': '27.5'},
-    {'us': '10', 'uk': '9.5', 'eu': '44', 'cm': '28.0'},
-    {'us': '10.5', 'uk': '10', 'eu': '44.5', 'cm': '28.5'},
-    {'us': '11', 'uk': '10.5', 'eu': '45', 'cm': '29.0'},
-    {'us': '11.5', 'uk': '11', 'eu': '45.5', 'cm': '29.5'},
-    {'us': '12', 'uk': '11.5', 'eu': '46', 'cm': '30.0'},
-  ];
-
-  @override
-  void initState() {
-    super.initState();
-    selected = widget.product.variants
-        .where((variant) => variant.stockQuantity > 0)
-        .firstOrNull;
-  }
-
-  Future<void> _shareProduct() async {
-    final product = widget.product;
-    final url = 'https://zarwinto.com/product/${product.slug}';
-    await Share.share(
-      'Check out ${product.title} by ${product.brandName} - ₹${product.currentPrice.toStringAsFixed(0)}\n\n$url',
-      subject: product.title,
-    );
-  }
-
-  Future<void> _openWhatsApp() async {
-    final product = widget.product;
-    final message = Uri.encodeComponent(
-      'Hi! I\'m interested in ${product.title} by ${product.brandName}.\n\nPrice: ₹${product.currentPrice.toStringAsFixed(0)}\n\nProduct Link: https://zarwinto.com/product/${product.slug}',
-    );
-    final uri = Uri.parse('https://wa.me/?text=$message');
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
-    }
-  }
-
-  void _buyNow() {
-    if (selected == null) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please select a size first.')),
-      );
-      return;
-    }
-    final store = ZarwintoScope.of(context);
-    store.addToCart(widget.product, selected!);
-    // Navigate to cart tab (index 1 in the shell)
-    // The shell uses a bottom nav, so we need to find the cart tab
-    // We'll use a callback approach or navigate via context
-    // For now, show a snackbar and let user navigate
-    if (mounted) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(
-          content: const Text('Added to cart! Go to Bag to checkout.'),
-          action: SnackBarAction(
-            label: 'VIEW BAG',
-            onPressed: () {
-              // Navigate to cart - we need to access the shell's navigation
-              // This is a limitation of the current architecture
-              // We'll show a dialog instead
-              _showCartDialog();
-            },
-          ),
-        ),
-      );
-    }
-  }
-
-  void _showCartDialog() {
-    showDialog(
-      context: context,
-      builder: (context) => AlertDialog(
-        backgroundColor: ZarwintoColors.card,
-        title: const Text('Proceed to Checkout?', style: titleStyle),
-        content: const Text('Your item has been added to the bag. Would you like to checkout now?'),
-        actions: [
-          TextButton(
-            onPressed: () => Navigator.pop(context),
-            child: const Text('CONTINUE SHOPPING'),
-          ),
-          FilledButton(
-            onPressed: () {
-              Navigator.pop(context);
-              // Navigate to cart tab
-              // We need to find the shell and switch to cart tab
-              // For now, we'll just show a message
-              ScaffoldMessenger.of(context).showSnackBar(
-                const SnackBar(content: Text('Please go to the Bag tab to checkout.')),
-              );
-            },
-            child: const Text('CHECKOUT'),
-          ),
-        ],
-      ),
-    );
-  }
+  int selectedImageIndex = 1;
+  String selectedSize = '34';
+  int quantity = 1;
 
   @override
   Widget build(BuildContext context) {
     final store = ZarwintoScope.of(context);
     final product = widget.product;
-    final money = NumberFormat.simpleCurrency();
+    final bool isFavorite = store.wishlist.contains(product.id);
 
     return Scaffold(
-      appBar: AppBar(title: Text(product.brandName)),
-      body: ListView(
-        padding: const EdgeInsets.fromLTRB(18, 8, 18, 28),
-        children: [
-          // Product Image with Zoom
-          GestureDetector(
-            onDoubleTap: () {
-              // Could implement zoom on double tap
-            },
-            child: ClipRRect(
-              borderRadius: BorderRadius.circular(24),
-              child: AspectRatio(
-                aspectRatio: 1,
-                child: InteractiveViewer(
-                  minScale: 1.0,
-                  maxScale: 3.0,
-                  child: ZarwintoRemoteImage(
-                    url: product.images.isNotEmpty ? product.images.first : '',
-                    seed: 'prod_detail_${product.id}',
-                  ),
-                ),
+      backgroundColor: const Color(0xFFF7F8F6),
+      appBar: AppBar(
+        backgroundColor: Colors.transparent,
+        elevation: 0,
+        centerTitle: true,
+        leading: Padding(
+          padding: const EdgeInsets.only(left: 16.0),
+          child: Center(
+            child: Container(
+              width: 38,
+              height: 38,
+              decoration: BoxDecoration(
+                color: Colors.white,
+                shape: BoxShape.circle,
+                border: Border.all(color: const Color(0xFFE5E5E5)),
+              ),
+              child: IconButton(
+                padding: EdgeInsets.zero,
+                icon: const Icon(Icons.arrow_back, color: Colors.black, size: 18),
+                onPressed: () => Navigator.pop(context),
               ),
             ),
           ),
-          const SizedBox(height: 18),
-          Text(
-            product.title,
-            style: const TextStyle(fontSize: 28, fontWeight: FontWeight.w900),
+        ),
+        title: const Text(
+          'Special Offers',
+          style: TextStyle(
+            color: Colors.black,
+            fontSize: 17,
+            fontWeight: FontWeight.bold,
           ),
-          const SizedBox(height: 8),
-          Row(
-            children: [
-              const Icon(Icons.star, color: ZarwintoColors.accent, size: 18),
-              Text(
-                ' ${product.rating} (${product.reviewsCount} reviews)',
-                style: mutedStyle,
-              ),
-              const Spacer(),
-              Text(
-                money.format(product.currentPrice),
-                style: const TextStyle(
-                  fontSize: 24,
-                  fontWeight: FontWeight.w900,
+        ),
+      ),
+      body: Column(
+        children: [
+          Expanded(
+            child: ListView(
+              padding: const EdgeInsets.symmetric(horizontal: 20),
+              children: [
+                const SizedBox(height: 10),
+
+                // 3D Stage / Podium Presentation Section
+                SizedBox(
+                  height: 240,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+                      // Podium Stage Base Oval Platform
+                      Positioned(
+                        bottom: 25,
+                        child: Container(
+                          width: 250,
+                          height: 75,
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.all(Radius.elliptical(250, 75)),
+                            border: Border.all(color: const Color(0xFFE0E0E0), width: 1.5),
+                            boxShadow: [
+                              BoxShadow(
+                                color: Colors.black.withValues(alpha: 0.05),
+                                blurRadius: 15,
+                                offset: const Offset(0, 10),
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Interactive 360 Degree Toggle Badge (< >)
+                      Positioned(
+                        bottom: 12,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 6),
+                          decoration: BoxDecoration(
+                            color: Colors.black,
+                            borderRadius: BorderRadius.circular(16),
+                          ),
+                          child: Row(
+                            mainAxisSize: MainAxisSize.min,
+                            children: const [
+                              Icon(Icons.chevron_left, color: Colors.white, size: 16),
+                              SizedBox(width: 2),
+                              Icon(Icons.chevron_right, color: Colors.white, size: 16),
+                            ],
+                          ),
+                        ),
+                      ),
+
+                      // Vertical Pagination Dots Paginator on Right Edge
+                      Positioned(
+                        right: 8,
+                        child: Column(
+                          children: List.generate(5, (idx) {
+                            final bool active = idx == 3;
+                            return Container(
+                              margin: const EdgeInsets.symmetric(vertical: 3),
+                              width: active ? 10 : 5,
+                              height: active ? 10 : 5,
+                              decoration: BoxDecoration(
+                                shape: BoxShape.circle,
+                                color: active ? Colors.black : const Color(0xFFC7C7CC),
+                                border: active ? Border.all(color: Colors.white, width: 1.5) : null,
+                              ),
+                            );
+                          }),
+                        ),
+                      ),
+
+                      // Floating Hero Shoe Image
+                      Positioned(
+                        top: 0,
+                        bottom: 35,
+                        child: Image.network(
+                          product.images.isNotEmpty
+                              ? product.images[selectedImageIndex % product.images.length]
+                              : '',
+                          width: 250,
+                          fit: BoxFit.contain,
+                          errorBuilder: (context, error, stackTrace) => const Icon(
+                            Icons.sports_basketball,
+                            size: 150,
+                            color: Colors.black12,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 18),
-          // Description with better formatting
-          Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: product.description
-                .split('\n')
-                .where((line) => line.trim().isNotEmpty)
-                .map((line) {
-                  final trimmed = line.trim();
-                  if (trimmed.startsWith('•') || trimmed.startsWith('-')) {
-                    return Padding(
-                      padding: const EdgeInsets.only(left: 12, bottom: 6),
-                      child: Row(
+
+                const SizedBox(height: 16),
+
+                // Multi-angle Thumbnail Selector Row
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: List.generate(
+                    product.images.length > 3 ? 3 : product.images.length,
+                    (index) {
+                      final bool isSelected = selectedImageIndex == index;
+                      return GestureDetector(
+                        onTap: () => setState(() => selectedImageIndex = index),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 150),
+                          margin: const EdgeInsets.symmetric(horizontal: 6),
+                          width: 60,
+                          height: 60,
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected ? Colors.black : const Color(0xFFE5E5E5),
+                              width: isSelected ? 1.8 : 1,
+                            ),
+                          ),
+                          child: Image.network(
+                            product.images[index],
+                            fit: BoxFit.contain,
+                          ),
+                        ),
+                      );
+                    },
+                  ),
+                ),
+
+                const SizedBox(height: 24),
+
+                // Title & Price Row
+                Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(
+                      child: Column(
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
-                          const Text('• ', style: TextStyle(color: ZarwintoColors.primary, fontWeight: FontWeight.w900)),
-                          Expanded(child: Text(trimmed.substring(1).trim(), style: mutedStyle.copyWith(height: 1.5))),
+                          Text(
+                            product.title,
+                            style: const TextStyle(
+                              fontSize: 18,
+                              fontWeight: FontWeight.bold,
+                              color: Colors.black,
+                              height: 1.2,
+                            ),
+                          ),
+                          const SizedBox(height: 4),
+                          const Text(
+                            'Sport Shoes',
+                            style: TextStyle(
+                              fontSize: 13,
+                              color: Color(0xFF8E8E93),
+                              fontWeight: FontWeight.w400,
+                            ),
+                          ),
                         ],
                       ),
-                    );
-                  }
-                  return Padding(
-                    padding: const EdgeInsets.only(bottom: 6),
-                    child: Text(trimmed, style: mutedStyle.copyWith(height: 1.5)),
-                  );
-                })
-                .toList(),
-          ),
-          const SizedBox(height: 22),
-          // Size Chart Button
-          OutlinedButton.icon(
-            onPressed: () => setState(() => _showSizeChart = true),
-            icon: const Icon(Icons.straighten, size: 18),
-            label: const Text('View Size Chart'),
-            style: OutlinedButton.styleFrom(
-              foregroundColor: ZarwintoColors.primary,
-              side: const BorderSide(color: ZarwintoColors.primary),
-            ),
-          ),
-          const SizedBox(height: 22),
-          Text('Select size and color', style: titleStyle),
-          const SizedBox(height: 12),
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: product.variants.map((variant) {
-              final available = variant.stockQuantity > 0;
-              return ChoiceChip(
-                selected: selected?.id == variant.id,
-                onSelected: available
-                    ? (_) => setState(() => selected = variant)
-                    : null,
-                label: Text('${variant.size} - ${variant.color}'),
-              );
-            }).toList(),
-          ),
-          const SizedBox(height: 24),
-          // Action Buttons Row
-          Row(
-            children: [
-              // Share Button
-              Expanded(
-                child: OutlinedButton.icon(
-                  onPressed: _shareProduct,
-                  icon: const Icon(Icons.share, size: 18),
-                  label: const Text('Share'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // WhatsApp Button
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: _openWhatsApp,
-                  icon: const Icon(Icons.chat, size: 18),
-                  label: const Text('WhatsApp'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: const Color(0xFF25D366),
-                  ),
-                ),
-              ),
-            ],
-          ),
-          const SizedBox(height: 12),
-          // Add to Cart and Buy Now
-          Row(
-            children: [
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: selected == null
-                      ? null
-                      : () {
-                          store.addToCart(product, selected!);
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            const SnackBar(content: Text('Added to cart.')),
-                          );
-                        },
-                  icon: const Icon(Icons.shopping_bag_outlined),
-                  label: const Text('Add to Cart'),
-                ),
-              ),
-              const SizedBox(width: 12),
-              // Buy Now Button
-              Expanded(
-                child: FilledButton.icon(
-                  onPressed: _buyNow,
-                  icon: const Icon(Icons.flash_on, size: 18),
-                  label: const Text('Buy Now'),
-                  style: FilledButton.styleFrom(
-                    backgroundColor: ZarwintoColors.accent,
-                  ),
-                ),
-              ),
-            ],
-          ),
-        ],
-      ),
-      // Size Chart Bottom Sheet
-      bottomSheet: _showSizeChart
-          ? Container(
-              height: MediaQuery.of(context).size.height * 0.7,
-              decoration: const BoxDecoration(
-                color: ZarwintoColors.card,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
-              ),
-              child: Column(
-                children: [
-                  // Handle bar
-                  Container(
-                    margin: const EdgeInsets.only(top: 12),
-                    width: 40,
-                    height: 4,
-                    decoration: BoxDecoration(
-                      color: ZarwintoColors.border,
-                      borderRadius: BorderRadius.circular(2),
                     ),
-                  ),
-                  // Header
-                  Padding(
-                    padding: const EdgeInsets.all(20),
-                    child: Row(
+                    Column(
+                      crossAxisAlignment: CrossAxisAlignment.end,
                       children: [
-                        Container(
-                          padding: const EdgeInsets.all(8),
-                          decoration: BoxDecoration(
-                            color: ZarwintoColors.primary.withValues(alpha: 0.15),
-                            borderRadius: BorderRadius.circular(12),
+                        Text(
+                          '\$${product.price.toStringAsFixed(2)}',
+                          style: const TextStyle(
+                            fontSize: 18,
+                            fontWeight: FontWeight.w900,
+                            color: Colors.black,
                           ),
-                          child: const Icon(Icons.straighten, color: ZarwintoColors.primary, size: 20),
                         ),
-                        const SizedBox(width: 12),
-                        const Text('Size Chart', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w900)),
-                        const Spacer(),
-                        IconButton(
-                          onPressed: () => setState(() => _showSizeChart = false),
-                          icon: const Icon(Icons.close),
+                        const SizedBox(height: 4),
+                        // Quantity Counter (- 1 +)
+                        Row(
+                          children: [
+                            GestureDetector(
+                              onTap: () {
+                                if (quantity > 1) setState(() => quantity--);
+                              },
+                              child: Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.black54),
+                                ),
+                                child: const Center(
+                                  child: Icon(Icons.remove, size: 12, color: Colors.black),
+                                ),
+                              ),
+                            ),
+                            Padding(
+                              padding: const EdgeInsets.symmetric(horizontal: 8.0),
+                              child: Text(
+                                '$quantity',
+                                style: const TextStyle(
+                                  fontWeight: FontWeight.bold,
+                                  fontSize: 13,
+                                ),
+                              ),
+                            ),
+                            GestureDetector(
+                              onTap: () => setState(() => quantity++),
+                              child: Container(
+                                width: 20,
+                                height: 20,
+                                decoration: BoxDecoration(
+                                  shape: BoxShape.circle,
+                                  border: Border.all(color: Colors.black54),
+                                ),
+                                child: const Center(
+                                  child: Icon(Icons.add, size: 12, color: Colors.black),
+                                ),
+                              ),
+                            ),
+                          ],
                         ),
                       ],
                     ),
+                  ],
+                ),
+
+                const SizedBox(height: 20),
+
+                // Select Size Section
+                const Text(
+                  'Select Size',
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
                   ),
-                  // Size table
-                  Expanded(
-                    child: SingleChildScrollView(
-                      padding: const EdgeInsets.symmetric(horizontal: 20),
-                      child: Column(
-                        children: [
-                          const Text(
-                            'All measurements are in centimeters (CM). Please refer to this chart when selecting your size.',
-                            style: TextStyle(color: ZarwintoColors.muted, fontSize: 12),
+                ),
+                const SizedBox(height: 12),
+                Row(
+                  children: ['34', '38', '42', '46'].map((size) {
+                    final bool isSelected = selectedSize == size;
+                    return Expanded(
+                      child: GestureDetector(
+                        onTap: () => setState(() => selectedSize = size),
+                        child: Container(
+                          margin: const EdgeInsets.only(right: 8),
+                          padding: const EdgeInsets.symmetric(vertical: 10),
+                          decoration: BoxDecoration(
+                            color: isSelected ? Colors.black : Colors.white,
+                            borderRadius: BorderRadius.circular(16),
+                            border: Border.all(
+                              color: isSelected ? Colors.black : const Color(0xFFE5E5E5),
+                            ),
+                          ),
+                          child: Text(
+                            'Size $size',
                             textAlign: TextAlign.center,
-                          ),
-                          const SizedBox(height: 16),
-                          Table(
-                            border: TableBorder(
-                              horizontalInside: BorderSide(color: ZarwintoColors.border, width: 0.5),
-                              verticalInside: BorderSide(color: ZarwintoColors.border, width: 0.5),
-                            ),
-                            children: [
-                              // Header row
-                              TableRow(
-                                decoration: BoxDecoration(color: ZarwintoColors.panel),
-                                children: const [
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                    child: Text('US', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: ZarwintoColors.muted)),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                    child: Text('UK', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: ZarwintoColors.muted)),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                    child: Text('EU', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: ZarwintoColors.muted)),
-                                  ),
-                                  Padding(
-                                    padding: EdgeInsets.symmetric(vertical: 12, horizontal: 8),
-                                    child: Text('CM', style: TextStyle(fontWeight: FontWeight.w900, fontSize: 12, color: ZarwintoColors.muted)),
-                                  ),
-                                ],
-                              ),
-                              // Data rows
-                              for (final row in _sizeChart)
-                                TableRow(
-                                  children: [
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                                      child: Text(row['us']!, style: const TextStyle(fontWeight: FontWeight.w700, color: Colors.white)),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                                      child: Text(row['uk']!, style: mutedStyle),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                                      child: Text(row['eu']!, style: mutedStyle),
-                                    ),
-                                    Padding(
-                                      padding: const EdgeInsets.symmetric(vertical: 10, horizontal: 8),
-                                      child: Text(row['cm']!, style: mutedStyle),
-                                    ),
-                                  ],
-                                ),
-                            ],
-                          ),
-                          const SizedBox(height: 20),
-                          Container(
-                            padding: const EdgeInsets.all(16),
-                            decoration: BoxDecoration(
-                              color: ZarwintoColors.primary.withValues(alpha: 0.08),
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(color: ZarwintoColors.primary.withValues(alpha: 0.2)),
-                            ),
-                            child: Row(
-                              children: [
-                                const Icon(Icons.lightbulb_outline, color: ZarwintoColors.primary, size: 20),
-                                const SizedBox(width: 12),
-                                Expanded(
-                                  child: Text(
-                                    'Tip: If you\'re between sizes, we recommend going up half a size for a more comfortable fit.',
-                                    style: mutedStyle.copyWith(fontSize: 12),
-                                  ),
-                                ),
-                              ],
+                            style: TextStyle(
+                              color: isSelected ? Colors.white : Colors.black,
+                              fontWeight: FontWeight.bold,
+                              fontSize: 13,
                             ),
                           ),
-                          const SizedBox(height: 20),
-                        ],
+                        ),
+                      ),
+                    );
+                  }).toList(),
+                ),
+
+                const SizedBox(height: 20),
+
+                // Description Section
+                const Text(
+                  'Select Size', // Section title styling as seen in design image
+                  style: TextStyle(
+                    fontSize: 15,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.black,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  product.description,
+                  style: const TextStyle(
+                    color: Color(0xFF7A7A7A),
+                    fontSize: 13,
+                    height: 1.5,
+                  ),
+                ),
+
+                const SizedBox(height: 30),
+              ],
+            ),
+          ),
+
+          // Bottom Action Bar Section
+          Container(
+            padding: const EdgeInsets.fromLTRB(20, 16, 20, 24),
+            decoration: const BoxDecoration(
+              color: Colors.transparent,
+            ),
+            child: Row(
+              children: [
+                // Add to Cart Button
+                Expanded(
+                  child: SizedBox(
+                    height: 54,
+                    child: FilledButton(
+                      style: FilledButton.styleFrom(
+                        backgroundColor: Colors.black,
+                        foregroundColor: Colors.white,
+                        shape: RoundedRectangleBorder(
+                          borderRadius: BorderRadius.circular(28),
+                        ),
+                        elevation: 0,
+                      ),
+                      onPressed: () {
+                        final variant = product.variants.firstWhere(
+                          (v) => v.size == selectedSize,
+                          orElse: () => product.variants.first,
+                        );
+                        store.addToCart(product, variant, quantity: quantity);
+                        ScaffoldMessenger.of(context).showSnackBar(
+                          SnackBar(
+                            content: Text('${product.title} (Size $selectedSize) added to cart'),
+                            duration: const Duration(seconds: 2),
+                          ),
+                        );
+                      },
+                      child: const Text(
+                        'Add to Cart',
+                        style: TextStyle(
+                          fontSize: 15,
+                          fontWeight: FontWeight.bold,
+                        ),
                       ),
                     ),
                   ),
-                ],
-              ),
-            )
-          : null,
+                ),
+                const SizedBox(width: 14),
+                // Wishlist Heart Circle Button
+                GestureDetector(
+                  onTap: () => store.toggleWishlist(product.id),
+                  child: Container(
+                    width: 54,
+                    height: 54,
+                    decoration: BoxDecoration(
+                      color: Colors.black,
+                      shape: BoxShape.circle,
+                      boxShadow: [
+                        BoxShadow(
+                          color: Colors.black.withValues(alpha: 0.1),
+                          blurRadius: 10,
+                          offset: const Offset(0, 4),
+                        ),
+                      ],
+                    ),
+                    child: Icon(
+                      isFavorite ? Icons.favorite : Icons.favorite_border,
+                      color: isFavorite ? Colors.redAccent : Colors.white,
+                      size: 22,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

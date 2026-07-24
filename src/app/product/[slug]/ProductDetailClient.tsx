@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useState, useRef, useEffect } from 'react';
-import { Star, Heart, ShoppingBag, Shield, Truck, RefreshCw, Send, Check, ArrowRight, Share2, MessageCircle, Zap, X, ZoomIn, Ruler, Store as StoreIcon } from 'lucide-react';
+import { Star, Heart, ShoppingBag, Shield, Truck, RefreshCw, Send, Check, ArrowRight, Share2, MessageCircle, Zap, X, Ruler, Store as StoreIcon, Package, Clock, FileText, ShieldCheck, Phone } from 'lucide-react';
 import { Product, ProductVariant, Review, Store } from '../../../types';
 import { useCart } from '../../../context/CartContext';
 import { useAuth } from '../../../context/AuthContext';
@@ -54,8 +54,11 @@ export default function ProductDetailClient({ product, store, initialReviews, re
   const [cartSuccess, setCartSuccess] = useState(false);
 
   // Modal states
-  const [showImageZoom, setShowImageZoom] = useState(false);
   const [showSizeChart, setShowSizeChart] = useState(false);
+
+  // Hover zoom state
+  const [isHovering, setIsHovering] = useState(false);
+  const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   // Tab State
   const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'shipping'>('description');
@@ -66,6 +69,13 @@ export default function ProductDetailClient({ product, store, initialReviews, re
   const [newReviewText, setNewReviewText] = useState('');
   const [newReviewName, setNewReviewName] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState(false);
+
+  // Calculate dynamic rating from all reviews
+  const dynamicRating = localReviews.length > 0
+    ? localReviews.reduce((sum, r) => sum + r.rating, 0) / localReviews.length
+    : product.rating;
+  const displayRating = Math.round(dynamicRating * 10) / 10;
+  const reviewCount = localReviews.length;
 
   const isWishlisted = wishlist.includes(product.id);
   const price = product.price;
@@ -139,7 +149,8 @@ export default function ProductDetailClient({ product, store, initialReviews, re
     e.preventDefault();
     if (!newReviewName.trim() || !newReviewText.trim()) return;
 
-    const reviewId = `rev_db_${Date.now()}`;
+    // Generate a proper UUID for the review
+    const reviewId = crypto.randomUUID ? crypto.randomUUID() : `rev_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
     const newReview: Review = {
       id: reviewId,
       user_id: user?.id || 'usr_local',
@@ -147,7 +158,8 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       product_id: product.id,
       rating: newReviewRating,
       review_text: newReviewText,
-      created_at: new Date().toISOString()
+      created_at: new Date().toISOString(),
+      approved: true
     };
 
     setLocalReviews(prev => [newReview, ...prev]);
@@ -162,12 +174,23 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           product_id: product.id,
           rating: newReviewRating,
           review_text: newReviewText,
-          approved: false // Require admin moderation by default
+          approved: true
         });
 
       if (error) {
         console.error('Error submitting review:', error);
+        // Revert local state on error
+        setLocalReviews(prev => prev.filter(r => r.id !== reviewId));
+        addToast('Failed to submit review. Please try again.', 'error');
+      } else {
+        addToast('Review submitted successfully!', 'success');
+        // Recalculate product rating after successful review
+        // Note: In a real app, you might want to call an API to update the product rating
       }
+    } else if (!user) {
+      // Revert local state if not logged in
+      setLocalReviews(prev => prev.filter(r => r.id !== reviewId));
+      addToast('Please log in to submit a review.', 'error');
     }
 
     setNewReviewName('');
@@ -210,22 +233,40 @@ export default function ProductDetailClient({ product, store, initialReviews, re
             </div>
           )}
           
-          {/* Main Image */}
+          {/* Main Image with Hover Zoom */}
           <div className="flex-1">
             <div
-              className="aspect-[3/4] sm:aspect-[4/5] bg-background/40 rounded-2xl sm:rounded-3xl overflow-hidden border border-border relative group cursor-zoom-in"
-              onClick={() => setShowImageZoom(true)}
+              className="aspect-[3/4] sm:aspect-[4/5] bg-background/40 rounded-2xl sm:rounded-3xl overflow-hidden border border-border relative"
+              onMouseEnter={() => setIsHovering(true)}
+              onMouseLeave={() => setIsHovering(false)}
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const x = ((e.clientX - rect.left) / rect.width) * 100;
+                const y = ((e.clientY - rect.top) / rect.height) * 100;
+                setMousePos({ x, y });
+              }}
             >
-              <ShimmerImage
-                src={product.images[activeImageIndex]}
-                alt={product.title}
-                className="w-full h-full"
-              />
-              <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-black/20">
-                <div className="bg-white/10 backdrop-blur-sm rounded-full p-2 sm:p-3">
-                  <ZoomIn className="h-6 w-6 sm:h-8 sm:w-8 text-white" />
-                </div>
+              <div
+                className="w-full h-full transition-transform duration-200 ease-out"
+                style={{
+                  transform: isHovering ? 'scale(1.8)' : 'scale(1)',
+                  transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
+                }}
+              >
+                <ShimmerImage
+                  src={product.images[activeImageIndex]}
+                  alt={product.title}
+                  className="w-full h-full object-cover"
+                />
               </div>
+              {!isHovering && (
+                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                  <div className="bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 text-white text-xs font-medium flex items-center gap-1.5">
+                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+                    Hover to zoom
+                  </div>
+                </div>
+              )}
             </div>
             
             {/* Mobile thumbnails */}
@@ -286,8 +327,8 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
             <div className="flex items-center gap-0.5 text-accent font-bold text-sm">
               <Star className="h-4 w-4 fill-accent" />
-              <span>{product.rating}</span>
-              <span className="text-muted-foreground font-semibold ml-1">({localReviews.length} reviews)</span>
+              <span>{displayRating}</span>
+              <span className="text-muted-foreground font-semibold ml-1">({reviewCount} reviews)</span>
             </div>
             <span className="text-muted-foreground">|</span>
             <span className="text-xs text-muted-foreground font-semibold">SKU: {product.sku}</span>
@@ -437,21 +478,28 @@ export default function ProductDetailClient({ product, store, initialReviews, re
               <Truck className="h-5 w-5 text-primary flex-shrink-0" />
               <div>
                 <p className="font-bold text-foreground">Free Express Delivery</p>
-                <p className="text-muted-foreground mt-0.5">Arrives in 2-4 business days.</p>
+                <p className="text-muted-foreground mt-0.5">Arrives in 2-4 business days via our trusted delivery partners.</p>
               </div>
             </div>
             <div className="flex gap-3 items-start text-xs">
               <RefreshCw className="h-5 w-5 text-primary flex-shrink-0" />
               <div>
-                <p className="font-bold text-foreground">Easy Returns</p>
-                <p className="text-muted-foreground mt-0.5">30-day exchange window with free return label.</p>
+                <p className="font-bold text-foreground">Easy Returns & Exchanges</p>
+                <p className="text-muted-foreground mt-0.5">30-day exchange window with free return label. Refunds processed within 5-7 business days after inspection.</p>
               </div>
             </div>
             <div className="flex gap-3 items-start text-xs">
               <Shield className="h-5 w-5 text-primary flex-shrink-0" />
               <div>
                 <p className="font-bold text-foreground">Authenticity Guaranteed</p>
-                <p className="text-muted-foreground mt-0.5">Checked manually by our experts before shipping.</p>
+                <p className="text-muted-foreground mt-0.5">Every pair is checked manually by our experts before shipping. 100% genuine products or your money back.</p>
+              </div>
+            </div>
+            <div className="flex gap-3 items-start text-xs">
+              <Phone className="h-5 w-5 text-primary flex-shrink-0" />
+              <div>
+                <p className="font-bold text-foreground">Delivery Partner</p>
+                <p className="text-muted-foreground mt-0.5">Shipped via Shiprocket with real-time tracking. You'll receive SMS and email updates at every step.</p>
               </div>
             </div>
           </div>
@@ -546,10 +594,91 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           )}
 
           {activeTab === 'shipping' && (
-            <div className="max-w-2xl space-y-4">
-              <p>We provide fast and secure shipping worldwide. Standard shipping is completely free for all orders above ₹1500.</p>
-              <h4 className="font-bold text-foreground text-xs uppercase tracking-wider">Return Rules</h4>
-              <p>Items must be returned in their original packaging, unworn, and with tags attached. Once our inspection team validates the returned item, a refund is processed back to your original payment method within 5-7 business days.</p>
+            <div className="max-w-2xl space-y-6">
+              {/* Shipping Info */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-2">
+                  <Truck className="h-4 w-4 text-primary" />
+                  Shipping & Delivery
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  We provide fast and secure shipping across India. Standard shipping is completely free for all orders above ₹1500.
+                  Orders are processed within 1-2 business days and delivered within 2-4 business days via our trusted logistics partner, Shiprocket.
+                </p>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  You will receive real-time tracking updates via SMS and email at every step — from dispatch to delivery.
+                  Our delivery partners are carefully selected for reliability and careful handling of footwear.
+                </p>
+              </div>
+
+              {/* Return & Exchange Policy */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-2">
+                  <RefreshCw className="h-4 w-4 text-primary" />
+                  Returns & Exchanges
+                </h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Every Zarwinto order comes with a hassle-free 30-day return or exchange window.
+                  If your shoes don't fit perfectly or aren't what you expected, we make it easy to return or exchange them.
+                </p>
+                <ul className="space-y-2 text-sm text-muted-foreground">
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Items must be unworn, in original condition, and returned with the box and tags.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Footwear can be tried on indoors on a clean surface to check the fit.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Sale and final-clearance items are eligible for exchange only, not refund.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Custom-made and personalized footwear cannot be returned unless defective.</span>
+                  </li>
+                  <li className="flex items-start gap-2">
+                    <Check className="h-4 w-4 text-green-500 flex-shrink-0 mt-0.5" />
+                    <span>Defective or wrong items are replaced free of charge, no questions asked.</span>
+                  </li>
+                </ul>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  Once our inspection team validates the returned item, a refund is processed back to your original payment method within 5-7 business days.
+                  Exchanges ship out as soon as we receive your return.
+                </p>
+              </div>
+
+              {/* Policy Links */}
+              <div className="space-y-3">
+                <h4 className="font-bold text-foreground text-xs uppercase tracking-wider flex items-center gap-2">
+                  <FileText className="h-4 w-4 text-primary" />
+                  Our Policies
+                </h4>
+                <div className="flex flex-wrap gap-3">
+                  <Link
+                    href="/returns"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <RefreshCw className="h-3.5 w-3.5" />
+                    Returns & Exchanges Policy
+                  </Link>
+                  <Link
+                    href="/terms"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <FileText className="h-3.5 w-3.5" />
+                    Terms of Service
+                  </Link>
+                  <Link
+                    href="/privacy"
+                    className="inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-hover bg-primary/10 hover:bg-primary/20 px-3 py-2 rounded-lg transition-colors"
+                  >
+                    <ShieldCheck className="h-3.5 w-3.5" />
+                    Privacy Policy
+                  </Link>
+                </div>
+              </div>
             </div>
           )}
         </div>
@@ -557,7 +686,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
 
       {/* Reviews Tab */}
       <section className="mt-10 sm:mt-16 border-t border-border pt-8 sm:pt-10">
-        <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight mb-6 sm:mb-8">Customer Reviews ({localReviews.length})</h2>
+        <h2 className="text-xl sm:text-2xl font-extrabold text-foreground tracking-tight mb-6 sm:mb-8">Customer Reviews ({reviewCount})</h2>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 sm:gap-10 items-start">
           {/* Review Grid */}
@@ -752,45 +881,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
         </section>
       )}
 
-      {/* Image Zoom Modal */}
-      {showImageZoom && (
-        <div 
-          className="fixed inset-0 z-50 bg-black/95 flex items-center justify-center p-4"
-          onClick={() => setShowImageZoom(false)}
-        >
-          <button
-            onClick={() => setShowImageZoom(false)}
-            className="absolute top-4 right-4 p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer"
-          >
-            <X className="h-6 w-6 text-white" />
-          </button>
-          <ShimmerImage
-            src={product.images[activeImageIndex]}
-            alt={product.title}
-            className="max-w-full max-h-[90vh]"
-            onClick={(e) => e.stopPropagation()}
-          />
-          {/* Thumbnail navigation */}
-          {product.images.length > 1 && (
-            <div className="absolute bottom-8 left-1/2 -translate-x-1/2 flex gap-3">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setActiveImageIndex(idx);
-                  }}
-                  className={`w-16 h-16 rounded-xl border-2 overflow-hidden transition-all ${
-                    activeImageIndex === idx ? 'border-primary scale-110' : 'border-border opacity-60 hover:opacity-100'
-                  }`}
-                >
-                  <ShimmerImage src={img} alt="" className="w-full h-full" />
-                </button>
-              ))}
-            </div>
-          )}
-        </div>
-      )}
+      {/* Image Zoom Modal removed — hover zoom is now enabled on the main image above */}
 
       {/* Size Chart Modal */}
       {showSizeChart && (

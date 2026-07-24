@@ -9,13 +9,14 @@ import { ArrowRight, Phone, User, AlertCircle, CheckCircle, Loader2, RotateCcw }
 type Step = 'phone' | 'otp';
 
 const RESEND_COOLDOWN_SECONDS = 60;
+const REDIRECT_TIMEOUT_MS = 8000; // Wait up to 8s for user state to update before forcing redirect
 
 interface PhoneAuthFormProps {
   mode?: 'login' | 'signup';
 }
 
 export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
-  const { sendOtp, verifyOtp, isConfigured, user } = useAuth();
+  const { sendOtp, verifyOtp, refreshSession, isConfigured, user } = useAuth();
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/account';
@@ -30,22 +31,27 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
   const [resendCooldown, setResendCooldown] = useState(0);
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [hasVerifiedOtp, setHasVerifiedOtp] = useState(false);
+  const [redirecting, setRedirecting] = useState(false);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
+  const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const isSignup = mode === 'signup';
 
   // Redirect as soon as user is logged in
   useEffect(() => {
     console.log('[PhoneAuthForm] redirect useEffect triggered, user:', user);
-    if (user) {
+    if (user && !redirecting) {
       console.log('[PhoneAuthForm] user is truthy, redirecting to:', redirect);
+      setRedirecting(true);
       router.push(redirect);
     }
-  }, [user, router, redirect]);
+  }, [user, router, redirect, redirecting]);
 
+  // Cleanup timeouts on unmount
   useEffect(() => {
     return () => {
       if (cooldownRef.current) clearInterval(cooldownRef.current);
+      if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
     };
   }, []);
 
@@ -115,13 +121,28 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
         return;
       }
 
-      console.log('[PhoneAuthForm] verifyOtp successful, waiting for user to be set');
-      setVerifying(false);
+      console.log('[PhoneAuthForm] verifyOtp successful, refreshing session');
       setHasVerifiedOtp(true);
-      // Don't call router.push here — let the useEffect handle it once user is truthy!
+
+      // Clear any existing redirect timeout
+      if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
+
+      // Set a timeout to force redirect if onAuthStateChange doesn't fire
+      redirectTimeoutRef.current = setTimeout(async () => {
+        console.log('[PhoneAuthForm] redirect timeout reached, forcing session refresh');
+        await refreshSession();
+        // The useEffect watching `user` will handle the actual redirect
+      }, REDIRECT_TIMEOUT_MS);
+
+      // Immediately try to refresh the session as a fallback
+      await refreshSession();
+
+      // Keep verifying state true until redirect happens (useEffect will set redirecting)
+      // This prevents the button from being re-enabled
     } catch (err) {
       console.error('[PhoneAuthForm] Uncaught error:', err);
       setVerifying(false);
+      setHasVerifiedOtp(false);
       setError('Something went wrong, please try again');
     }
   };
@@ -145,6 +166,8 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
     }
     setSending(false);
   };
+
+  const isButtonDisabled = verifying || hasVerifiedOtp || redirecting || otp.length < 4;
 
   return (
     <div className="min-h-[80vh] flex items-center justify-center px-4 py-10">
@@ -238,7 +261,11 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
               {(verifying || hasVerifiedOtp) && (
                 <div className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs">
                   <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
-                  <span>{hasVerifiedOtp ? 'Signing you in...' : 'Verifying your code and signing you in — this can take up to a minute on first login.'}</span>
+                  <span>
+                    {hasVerifiedOtp
+                      ? 'Signing you in...'
+                      : 'Verifying your code and signing you in — this can take up to a minute on first login.'}
+                  </span>
                 </div>
               )}
 
@@ -255,7 +282,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                   onChange={(e) => setOtp(e.target.value.replace(/\D/g, ''))}
                   required
                   autoFocus
-                  disabled={verifying}
+                  disabled={verifying || hasVerifiedOtp}
                   placeholder="123456"
                   className="w-full bg-secondary border border-border rounded-xl py-3 px-4 text-foreground text-center text-2xl font-bold tracking-[0.5em] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50"
                 />
@@ -266,13 +293,13 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
 
               <button
                 type="submit"
-                disabled={verifying || otp.length < 4}
+                disabled={isButtonDisabled}
                 className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 text-white py-3 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 glow-btn"
               >
-                {verifying ? (
+                {verifying || hasVerifiedOtp ? (
                   <>
                     <Loader2 className="h-4 w-4 animate-spin" />
-                    Verifying...
+                    {hasVerifiedOtp ? 'Signing you in...' : 'Verifying...'}
                   </>
                 ) : (
                   <>
@@ -285,8 +312,16 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
               <div className="flex items-center justify-between text-xs">
                 <button
                   type="button"
-                  onClick={() => { setStep('phone'); setError(''); setVerifying(false); setIsRateLimited(false); }}
-                  disabled={verifying}
+                  onClick={() => {
+                    setStep('phone');
+                    setError('');
+                    setVerifying(false);
+                    setHasVerifiedOtp(false);
+                    setRedirecting(false);
+                    setIsRateLimited(false);
+                    if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
+                  }}
+                  disabled={verifying || hasVerifiedOtp}
                   className="text-muted-foreground hover:text-foreground transition-colors disabled:opacity-50 flex items-center gap-1"
                 >
                   <RotateCcw className="h-3 w-3" />
@@ -295,7 +330,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                 <button
                   type="button"
                   onClick={handleResend}
-                  disabled={resendCooldown > 0 || verifying || sending}
+                  disabled={resendCooldown > 0 || verifying || hasVerifiedOtp || sending}
                   className="text-primary hover:text-primary-hover font-semibold disabled:text-muted-foreground disabled:cursor-not-allowed"
                 >
                   {resendCooldown > 0 ? `Resend in ${resendCooldown}s` : 'Resend OTP'}
