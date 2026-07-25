@@ -66,6 +66,11 @@ export default function RootLayout({
                 </Suspense>
                 <OrganizationSchema />
                 <WebSiteSchema />
+                {/* Cashfree JS SDK */}
+                <script
+                  src="https://sdk.cashfree.com/js/v3/cashfree.js"
+                  async
+                />
                 <Suspense fallback={null}>
                   <Header />
                 </Suspense>

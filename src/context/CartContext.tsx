@@ -29,7 +29,7 @@ interface CartContextType {
   toggleWishlist: (productId: string) => void;
   orders: Order[];
   placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree') => Promise<Order | null>;
-  initiateCashfreePayment: (address: ShippingAddress) => Promise<{ order: Order; paymentLink?: string; checkoutUrl?: string; paymentSessionId?: string } | null>;
+  initiateCashfreePayment: (address: ShippingAddress) => Promise<{ order: Order; paymentSessionId: string } | null>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   verifyCashfreePayment: (orderId: string) => Promise<{ success: boolean; paymentStatus?: string; orderStatus?: string }>;
 }
@@ -422,8 +422,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return newOrder;
   };
 
-  // Initiate Cashfree payment using payment link (with fallback to hosted checkout)
-  const initiateCashfreePayment = async (address: ShippingAddress): Promise<{ order: Order; paymentLink?: string; checkoutUrl?: string; paymentSessionId?: string } | null> => {
+  // Initiate Cashfree payment using standard order creation + JS SDK
+  const initiateCashfreePayment = async (address: ShippingAddress): Promise<{ order: Order; paymentSessionId: string } | null> => {
     if (cart.length === 0 || !user) return null;
 
     // First create the order in pending state
@@ -431,8 +431,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!order) return null;
 
     try {
-      // Try payment link API first
-      const response = await fetch('/api/cashfree/create-payment-link', {
+      // Create order on Cashfree to get payment session ID
+      const response = await fetch('/api/cashfree/create-order', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -445,59 +445,20 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             email: user.email || 'customer@example.com',
             phone: address.phone,
           },
-          returnUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout/payment-close`,
         }),
       });
 
       const data = await response.json();
 
-      if (response.ok && data.paymentLink) {
-        return {
-          order,
-          paymentLink: data.paymentLink,
-        };
+      if (!response.ok || !data.paymentSessionId) {
+        addToast(data.error || 'Failed to initiate payment. Please try again.', 'error');
+        return null;
       }
 
-      // If payment link fails, check if it's because the API is not enabled
-      const errorMessage = data.error || '';
-      if (errorMessage.includes('link_creation_api') || errorMessage.includes('not enabled') || errorMessage.includes('not approved')) {
-        console.log('[Cashfree] Payment Link API not enabled, falling back to hosted checkout');
-        
-        // Fallback: Create order directly and use hosted checkout
-        try {
-          const orderResponse = await fetch('/api/cashfree/create-order', {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-            },
-            body: JSON.stringify({
-              orderId: order.id,
-              amount: Math.round(order.total_amount * 100) / 100,
-              customerDetails: {
-                name: address.fullName,
-                email: user.email || 'customer@example.com',
-                phone: address.phone,
-              },
-            }),
-          });
-
-          const orderData = await orderResponse.json();
-
-          if (orderResponse.ok && orderData.paymentSessionId) {
-            const checkoutUrl = `https://payments.cashfree.com/checkout#/${orderData.paymentSessionId}`;
-            return {
-              order,
-              checkoutUrl,
-              paymentSessionId: orderData.paymentSessionId,
-            };
-          }
-        } catch (fallbackError) {
-          console.error('[Cashfree] Fallback to hosted checkout failed:', fallbackError);
-        }
-      }
-
-      addToast(data.error || 'Failed to initiate payment. Please try again.', 'error');
-      return null;
+      return {
+        order,
+        paymentSessionId: data.paymentSessionId,
+      };
     } catch (error) {
       console.error('Error initiating Cashfree payment:', error);
       addToast('Failed to initiate payment. Please try again.', 'error');
