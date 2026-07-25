@@ -29,7 +29,7 @@ interface CartContextType {
   toggleWishlist: (productId: string) => void;
   orders: Order[];
   placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree') => Promise<Order | null>;
-  initiateCashfreePayment: (address: ShippingAddress) => Promise<{ order: Order; paymentLink?: string } | null>;
+  initiateCashfreePayment: (address: ShippingAddress) => Promise<{ order: Order; paymentLink?: string; checkoutUrl?: string; paymentSessionId?: string } | null>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   verifyCashfreePayment: (orderId: string) => Promise<{ success: boolean; paymentStatus?: string; orderStatus?: string }>;
 }
@@ -422,8 +422,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return newOrder;
   };
 
-  // Initiate Cashfree payment using payment link
-  const initiateCashfreePayment = async (address: ShippingAddress): Promise<{ order: Order; paymentLink?: string } | null> => {
+  // Initiate Cashfree payment using payment link (with fallback to hosted checkout)
+  const initiateCashfreePayment = async (address: ShippingAddress): Promise<{ order: Order; paymentLink?: string; checkoutUrl?: string; paymentSessionId?: string } | null> => {
     if (cart.length === 0 || !user) return null;
 
     // First create the order in pending state
@@ -431,7 +431,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!order) return null;
 
     try {
-      // Create payment link on Cashfree
+      // Try payment link API first
       const response = await fetch('/api/cashfree/create-payment-link', {
         method: 'POST',
         headers: {
@@ -451,15 +451,53 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       const data = await response.json();
 
-      if (!response.ok || !data.paymentLink) {
-        addToast(data.error || 'Failed to initiate payment. Please try again.', 'error');
-        return null;
+      if (response.ok && data.paymentLink) {
+        return {
+          order,
+          paymentLink: data.paymentLink,
+        };
       }
 
-      return {
-        order,
-        paymentLink: data.paymentLink,
-      };
+      // If payment link fails, check if it's because the API is not enabled
+      const errorMessage = data.error || '';
+      if (errorMessage.includes('link_creation_api') || errorMessage.includes('not enabled') || errorMessage.includes('not approved')) {
+        console.log('[Cashfree] Payment Link API not enabled, falling back to hosted checkout');
+        
+        // Fallback: Create order directly and use hosted checkout
+        try {
+          const orderResponse = await fetch('/api/cashfree/create-order', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              orderId: order.id,
+              amount: Math.round(order.total_amount * 100) / 100,
+              customerDetails: {
+                name: address.fullName,
+                email: user.email || 'customer@example.com',
+                phone: address.phone,
+              },
+            }),
+          });
+
+          const orderData = await orderResponse.json();
+
+          if (orderResponse.ok && orderData.paymentSessionId) {
+            const checkoutUrl = `https://payments.cashfree.com/checkout#/${orderData.paymentSessionId}`;
+            return {
+              order,
+              checkoutUrl,
+              paymentSessionId: orderData.paymentSessionId,
+            };
+          }
+        } catch (fallbackError) {
+          console.error('[Cashfree] Fallback to hosted checkout failed:', fallbackError);
+        }
+      }
+
+      addToast(data.error || 'Failed to initiate payment. Please try again.', 'error');
+      return null;
     } catch (error) {
       console.error('Error initiating Cashfree payment:', error);
       addToast('Failed to initiate payment. Please try again.', 'error');

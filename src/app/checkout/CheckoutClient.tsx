@@ -253,7 +253,7 @@ export default function CheckoutPage() {
         }
       }, 1500);
     } else if (paymentMethod === 'cashfree_upi') {
-      // Cashfree UPI flow - using payment link
+      // Cashfree UPI flow - using payment link (with fallback to hosted checkout)
       setProcessStep('Initializing secure payment gateway...');
       
       try {
@@ -263,8 +263,14 @@ export default function CheckoutPage() {
           setCashfreeOrder(result);
           setIsProcessing(false);
           
-          // Open Cashfree payment link in iframe modal
+          // Open Cashfree payment link in popup
           openCashfreePaymentLink(result.paymentLink, result.order.id);
+        } else if (result && result.checkoutUrl) {
+          setCashfreeOrder(result);
+          setIsProcessing(false);
+          
+          // Fallback: Open Cashfree hosted checkout in popup
+          openCashfreeHostedCheckout(result.checkoutUrl, result.order.id);
         } else {
           setIsProcessing(false);
           addToast('Failed to initialize payment. Please try again.', 'error');
@@ -304,6 +310,93 @@ export default function CheckoutPage() {
     
     // Open payment link in a popup window
     const paymentWindow = window.open(paymentLink, 'cashfree-payment', 'width=500,height=700,scrollbars=yes');
+    
+    if (!paymentWindow) {
+      addToast('Please allow popups for this site to complete payment', 'warning');
+      return;
+    }
+    
+    // Poll for payment completion
+    const pollInterval = setInterval(async () => {
+      try {
+        // Check if window was closed manually
+        if (paymentWindow.closed) {
+          clearInterval(pollInterval);
+          // Verify payment status when window closes
+          setPaymentVerifying(true);
+          const result = await verifyCashfreePayment(orderId);
+          setPaymentVerifying(false);
+          
+          if (result.success && result.paymentStatus === 'paid') {
+            const order = cashfreeOrder?.order;
+            if (order) {
+              try {
+                await syncOrderWithShiprocket(order);
+              } catch (error) {
+                console.error('Failed to sync with Shiprocket:', error);
+              }
+              // Show payment success first
+              setPaymentSuccess(true);
+              triggerConfetti();
+              
+              // Show order success after a delay
+              setTimeout(() => {
+                setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
+                setPaymentSuccess(false);
+              }, 2000);
+            }
+          } else if (result.success && result.paymentStatus === 'unpaid') {
+            addToast('Payment was not completed. Please try again.', 'error');
+          }
+          return;
+        }
+        
+        // Also check via webhook - the webhook will update the order status
+        // We can poll our own API to check
+        const verifyResult = await verifyCashfreePayment(orderId);
+        if (verifyResult.success && verifyResult.paymentStatus === 'paid') {
+          clearInterval(pollInterval);
+          // Close popup
+          paymentWindow.close();
+          
+          const order = cashfreeOrder?.order;
+          if (order) {
+            try {
+              await syncOrderWithShiprocket(order);
+            } catch (error) {
+              console.error('Failed to sync with Shiprocket:', error);
+            }
+            // Show payment success first
+            setPaymentSuccess(true);
+            triggerConfetti();
+            
+            // Show order success after a delay
+            setTimeout(() => {
+              setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
+              setPaymentSuccess(false);
+            }, 2000);
+          }
+        }
+      } catch (error) {
+        console.error('Payment verification error:', error);
+      }
+    }, 3000);
+
+    // Cleanup after 10 minutes
+    setTimeout(() => {
+      clearInterval(pollInterval);
+      if (!paymentWindow.closed) {
+        paymentWindow.close();
+      }
+    }, 10 * 60 * 1000);
+  };
+
+  // Open Cashfree hosted checkout (fallback when payment link API is not enabled)
+  const openCashfreeHostedCheckout = (checkoutUrl: string, orderId: string) => {
+    console.log('[Checkout] Opening Cashfree hosted checkout:', checkoutUrl);
+    
+    // Open hosted checkout in a popup window
+    const paymentWindow = window.open(checkoutUrl, 'cashfree-checkout', 'width=500,height=700,scrollbars=yes');
     
     if (!paymentWindow) {
       addToast('Please allow popups for this site to complete payment', 'warning');
