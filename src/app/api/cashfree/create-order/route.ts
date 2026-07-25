@@ -16,8 +16,17 @@ export async function POST(request: Request) {
       );
     }
 
+    // Construct base URL from request headers (works in production with HTTPS)
+    const host = request.headers.get('host') || 'localhost:3000';
+    const protocol = request.headers.get('x-forwarded-proto') || 'http';
+    const baseUrl = `${protocol}://${host}`;
+
+    // Force HTTPS for any non-localhost host (works in production regardless of NODE_ENV)
+    const isLocalhost = host.includes('localhost') || host.includes('127.0.0.1');
+    const finalBaseUrl = isLocalhost ? baseUrl : baseUrl.replace('http://', 'https://');
+
     // Create order on Cashfree
-    const cashfreeResult = await createCashfreeOrder(orderId, amount, customerDetails);
+    const cashfreeResult = await createCashfreeOrder(orderId, amount, customerDetails, finalBaseUrl);
 
     if (!cashfreeResult.success) {
       return NextResponse.json(

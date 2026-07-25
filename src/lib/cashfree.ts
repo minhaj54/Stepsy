@@ -49,7 +49,8 @@ export async function createCashfreeOrder(
     name: string;
     email: string;
     phone: string;
-  }
+  },
+  baseUrl?: string
 ): Promise<{
   success: boolean;
   orderId?: string;
@@ -60,6 +61,9 @@ export async function createCashfreeOrder(
   if (!APP_ID || !SECRET_KEY) {
     return { success: false, error: 'Cashfree credentials not configured' };
   }
+
+  // Use provided baseUrl, or construct from env/request headers
+  const siteUrl = baseUrl || process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000';
 
   try {
     const response = await fetch(`${CASHFREE_BASE_URL}/orders`, {
@@ -76,8 +80,8 @@ export async function createCashfreeOrder(
           customer_phone: customerDetails.phone,
         },
         order_meta: {
-          return_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout?status=success`,
-          notify_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/cashfree/webhook`,
+          return_url: `${siteUrl}/checkout?status=success`,
+          notify_url: `${siteUrl}/api/cashfree/webhook`,
         },
         payment_methods: {
           upi: { enabled: true },
