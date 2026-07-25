@@ -29,7 +29,7 @@ if (!APP_ID || !SECRET_KEY) {
 export function getCashfreeHeaders(): Record<string, string> {
   return {
     'Content-Type': 'application/json',
-    'x-api-version': '2024-01-01',
+    'x-api-version': '2026-01-01',
     'x-client-id': APP_ID || '',
     'x-client-secret': SECRET_KEY || '',
   };
