@@ -94,9 +94,17 @@ export async function createCashfreeOrder(
       }),
     });
 
-    const data = await response.json();
+    const data: any = await response.json();
 
-    if (!response.ok || data.status !== 'OK') {
+    // Cashfree returns order directly at top level on success
+    // Check for order_id or payment_session_id to confirm success
+    const cashfreeOrderId = data.order_id || data.cf_order_id;
+    const paymentSessionId = data.payment_session_id;
+
+    console.log('[Cashfree] Create order response:', JSON.stringify(data, null, 2));
+    console.log('[Cashfree] Payment session ID:', paymentSessionId);
+
+    if (!response.ok || !cashfreeOrderId || !paymentSessionId) {
       console.error('[Cashfree] Create order failed:', data);
       return {
         success: false,
@@ -106,15 +114,85 @@ export async function createCashfreeOrder(
 
     return {
       success: true,
-      orderId: data.data.order_id,
-      paymentSessionId: data.data.payment_session_id,
-      orderToken: data.data.order_token,
+      orderId: cashfreeOrderId,
+      paymentSessionId: paymentSessionId,
+      orderToken: data.order_token,
     };
   } catch (error) {
     console.error('[Cashfree] Create order error:', error);
     return {
       success: false,
       error: error instanceof Error ? error.message : 'Network error while creating order',
+    };
+  }
+}
+
+/**
+ * Create a payment link for an order
+ * This is an alternative to hosted checkout when payment session ID is invalid
+ */
+export async function createCashfreePaymentLink(
+  orderId: string,
+  amount: number,
+  customerDetails: {
+    name: string;
+    email: string;
+    phone: string;
+  },
+  returnUrl: string
+): Promise<{
+  success: boolean;
+  paymentLink?: string;
+  error?: string;
+}> {
+  if (!APP_ID || !SECRET_KEY) {
+    return { success: false, error: 'Cashfree credentials not configured' };
+  }
+
+  try {
+    const response = await fetch(`${CASHFREE_BASE_URL}/links`, {
+      method: 'POST',
+      headers: getCashfreeHeaders(),
+      body: JSON.stringify({
+        order_id: orderId,
+        order_amount: amount,
+        order_currency: 'INR',
+        customer_details: {
+          customer_name: customerDetails.name,
+          customer_email: customerDetails.email,
+          customer_phone: customerDetails.phone,
+        },
+        return_url: returnUrl,
+        notify_url: `${returnUrl.replace('/checkout', '/api/cashfree/webhook')}`,
+        payment_methods: {
+          upi: { enabled: true },
+          card: { enabled: true },
+          netbanking: { enabled: true },
+          wallet: { enabled: true },
+        },
+      }),
+    });
+
+    const data: any = await response.json();
+
+    console.log('[Cashfree] Create payment link response:', JSON.stringify(data, null, 2));
+
+    if (!response.ok || !data.link_url) {
+      return {
+        success: false,
+        error: data.message || data.error_message || 'Failed to create payment link',
+      };
+    }
+
+    return {
+      success: true,
+      paymentLink: data.link_url,
+    };
+  } catch (error) {
+    console.error('[Cashfree] Create payment link error:', error);
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error while creating payment link',
     };
   }
 }
@@ -139,7 +217,8 @@ export async function getCashfreeOrder(orderId: string): Promise<{
 
     const data = await response.json();
 
-    if (!response.ok || data.status !== 'OK') {
+    // Cashfree returns order directly at top level on success
+    if (!response.ok || !data.order_id) {
       return {
         success: false,
         error: data.message || data.error_message || 'Failed to fetch order',
@@ -148,7 +227,7 @@ export async function getCashfreeOrder(orderId: string): Promise<{
 
     return {
       success: true,
-      order: data.data,
+      order: data,
     };
   } catch (error) {
     console.error('[Cashfree] Get order error:', error);

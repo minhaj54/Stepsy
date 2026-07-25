@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
@@ -24,7 +24,7 @@ interface ShippingRate {
 }
 
 export default function CheckoutPage() {
-  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, initiateCashfreePayment, verifyCashfreePayment } = useCart();
+  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, initiateCashfreePayment, createCashfreePaymentLink, verifyCashfreePayment } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
 
@@ -298,53 +298,186 @@ export default function CheckoutPage() {
     }
   };
 
-  // Open Cashfree payment page
+  // Open Cashfree payment in an iframe modal
   const openCashfreePayment = (paymentSessionId: string, orderId: string) => {
-    // Cashfree hosted checkout URL
-    const cashfreeUrl = `https://payments.cashfree.com/checkout#/${paymentSessionId}`;
+    // Clean the payment session ID - remove any malformed suffixes like "paymentpayment"
+    const cleanSessionId = paymentSessionId.replace(/(?:payment)+$/, '');
     
-    // Open in a new window for payment
-    const paymentWindow = window.open(cashfreeUrl, '_blank', 'width=500,height=700,scrollbars=yes');
+    console.log('[Checkout] Original payment session ID:', paymentSessionId);
+    console.log('[Checkout] Cleaned payment session ID:', cleanSessionId);
+    console.log('[Checkout] Opening Cashfree payment with session ID:', cleanSessionId);
     
-    if (!paymentWindow) {
-      addToast('Please allow popups for this site to complete payment', 'warning');
-      return;
+    // Try using cf_order_id as fallback if payment session ID seems invalid
+    // The cf_order_id is the Cashfree order ID which can also be used for checkout
+    const fallbackOrderId = orderId.replace('ord_', '');
+    
+    // Create modal overlay
+    const modal = document.createElement('div');
+    modal.id = 'cashfree-modal';
+    modal.style.cssText = `
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0, 0, 0, 0.7);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 99999;
+      font-family: system-ui, -apple-system, sans-serif;
+    `;
+    
+    // Create modal content
+    const modalContent = document.createElement('div');
+    modalContent.style.cssText = `
+      background: white;
+      border-radius: 12px;
+      width: 90%;
+      max-width: 500px;
+      height: 80vh;
+      max-height: 700px;
+      display: flex;
+      flex-direction: column;
+      overflow: hidden;
+      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+    `;
+    
+    // Create header
+    const header = document.createElement('div');
+    header.style.cssText = `
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 16px 20px;
+      border-bottom: 1px solid #e5e7eb;
+      background: #f9fafb;
+    `;
+    header.innerHTML = `
+      <div style="display: flex; align-items: center; gap: 8px;">
+        <div style="width: 32px; height: 32px; background: #0066ff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">CF</div>
+        <span style="font-weight: 600; color: #111827; font-size: 16px;">Cashfree Payments</span>
+      </div>
+      <button id="close-cashfree-modal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px;">&times;</button>
+    `;
+    
+    // Create iframe container
+    const iframeContainer = document.createElement('div');
+    iframeContainer.style.cssText = `
+      flex: 1;
+      position: relative;
+      background: #f3f4f6;
+    `;
+    
+    // Create iframe
+    const iframe = document.createElement('iframe');
+    
+    // Try payment session ID first, then order ID, then payment link
+    let checkoutUrl = `https://sandbox.cashfree.com/checkout#/${cleanSessionId}`;
+    console.log('[Checkout] Checkout URL:', checkoutUrl);
+    
+    // If the session ID still has issues, try using the order ID
+    if (cleanSessionId.includes('payment') || cleanSessionId.length < 20) {
+      checkoutUrl = `https://sandbox.cashfree.com/checkout#/${fallbackOrderId}`;
+      console.log('[Checkout] Fallback checkout URL using order ID:', checkoutUrl);
     }
-
-    // Poll for payment completion
-    const pollInterval = setInterval(async () => {
-      try {
-        if (paymentWindow.closed) {
-          clearInterval(pollInterval);
-          // Verify payment status when window closes
-          setPaymentVerifying(true);
-          const result = await verifyCashfreePayment(orderId);
+    
+    iframe.src = checkoutUrl;
+    
+    // If iframe fails to load, try payment link approach
+    iframe.onerror = async () => {
+      console.log('[Checkout] Iframe failed to load, trying payment link...');
+      const paymentLink = await createCashfreePaymentLink(cashfreeOrder?.order || { id: orderId, total: finalTotal });
+      if (paymentLink) {
+        iframe.src = paymentLink;
+      }
+    };
+    iframe.style.cssText = `
+      width: 100%;
+      height: 100%;
+      border: none;
+    `;
+    iframe.allow = 'payment *';
+    
+    // Create loading indicator
+    const loading = document.createElement('div');
+    loading.id = 'cashfree-loading';
+    loading.style.cssText = `
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      background: #f3f4f6;
+      z-index: 10;
+    `;
+    loading.innerHTML = `
+      <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #0066ff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
+      <p style="margin-top: 16px; color: #6b7280; font-size: 14px;">Loading secure payment...</p>
+    `;
+    
+    // Add spin animation
+    const style = document.createElement('style');
+    style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
+    document.head.appendChild(style);
+    
+    iframeContainer.appendChild(loading);
+    iframeContainer.appendChild(iframe);
+    modalContent.appendChild(header);
+    modalContent.appendChild(iframeContainer);
+    modal.appendChild(modalContent);
+    document.body.appendChild(modal);
+    
+    // Hide loading when iframe loads
+    iframe.onload = () => {
+      const loadingEl = document.getElementById('cashfree-loading');
+      if (loadingEl) {
+        loadingEl.style.display = 'none';
+      }
+    };
+    
+    // Close button handler
+    const closeBtn = document.getElementById('close-cashfree-modal');
+    if (closeBtn) {
+      closeBtn.onclick = () => {
+        document.body.removeChild(modal);
+        setPaymentVerifying(true);
+        verifyCashfreePayment(orderId).then((result) => {
           setPaymentVerifying(false);
-          
           if (result.success && result.paymentStatus === 'paid') {
-            // Payment successful - sync with Shiprocket and show success
             const order = cashfreeOrder?.order;
             if (order) {
-              try {
-                await syncOrderWithShiprocket(order);
-              } catch (error) {
-                console.error('Failed to sync with Shiprocket:', error);
-              }
+              syncOrderWithShiprocket(order).catch(console.error);
               setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
               triggerConfetti();
             }
           } else if (result.success && result.paymentStatus === 'unpaid') {
             addToast('Payment was not completed. Please try again.', 'error');
           }
+        });
+      };
+    }
+    
+    // Poll for payment completion
+    const pollInterval = setInterval(async () => {
+      try {
+        // Check if modal was closed manually
+        if (!document.body.contains(modal)) {
+          clearInterval(pollInterval);
           return;
         }
-
-        // Also check via webhook - the webhook will update the order status
-        // We can poll our own API to check
+        
         const verifyResult = await verifyCashfreePayment(orderId);
         if (verifyResult.success && verifyResult.paymentStatus === 'paid') {
           clearInterval(pollInterval);
-          paymentWindow.close();
+          // Close modal
+          if (document.body.contains(modal)) {
+            document.body.removeChild(modal);
+          }
           
           const order = cashfreeOrder?.order;
           if (order) {
@@ -362,13 +495,13 @@ export default function CheckoutPage() {
       }
     }, 3000);
 
-    // Cleanup after 5 minutes
+    // Cleanup after 10 minutes
     setTimeout(() => {
       clearInterval(pollInterval);
-      if (!paymentWindow.closed) {
-        paymentWindow.close();
+      if (document.body.contains(modal)) {
+        document.body.removeChild(modal);
       }
-    }, 5 * 60 * 1000);
+    }, 10 * 60 * 1000);
   };
 
   const syncOrderWithShiprocket = async (order: any) => {

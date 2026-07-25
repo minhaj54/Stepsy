@@ -30,6 +30,7 @@ interface CartContextType {
   orders: Order[];
   placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree') => Promise<Order | null>;
   initiateCashfreePayment: (address: ShippingAddress) => Promise<{ order: Order; paymentSessionId?: string; orderToken?: string } | null>;
+  createCashfreePaymentLink: (order: Order) => Promise<string | null>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   verifyCashfreePayment: (orderId: string) => Promise<{ success: boolean; paymentStatus?: string; orderStatus?: string }>;
 }
@@ -489,6 +490,40 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  // Create Cashfree payment link as fallback
+  const createCashfreePaymentLink = async (order: Order): Promise<string | null> => {
+    try {
+      const response = await fetch('/api/cashfree/create-payment-link', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+            orderId: order.id,
+            amount: order.total_amount,
+            customerDetails: {
+            name: order.shipping_address?.fullName || 'Customer',
+            email: order.user_id || 'customer@example.com',
+            phone: order.shipping_address?.phone || '0000000000',
+          },
+          returnUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout?status=success`,
+        }),
+      });
+
+      const data = await response.json();
+
+      if (!response.ok || !data.paymentLink) {
+        console.error('[CartContext] Failed to create payment link:', data);
+        return null;
+      }
+
+      return data.paymentLink;
+    } catch (error) {
+      console.error('[CartContext] Create payment link error:', error);
+      return null;
+    }
+  };
+
   const sendOrderAlert = async (orderId: string) => {
     try {
       const response = await fetch('/api/notifications/order-alert', {
@@ -557,6 +592,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       orders,
       placeOrder,
       initiateCashfreePayment,
+      createCashfreePaymentLink,
       updateOrderStatus,
       verifyCashfreePayment,
     }}>
