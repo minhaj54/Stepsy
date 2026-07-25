@@ -76,8 +76,8 @@ export async function createCashfreeOrder(
           customer_phone: customerDetails.phone,
         },
         order_meta: {
-          return_url: `${process.env.NEXT_PUBLIC_SITE_URL}/checkout?status=success`,
-          notify_url: `${process.env.NEXT_PUBLIC_SITE_URL}/api/cashfree/webhook`,
+          return_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout?status=success`,
+          notify_url: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/api/cashfree/webhook`,
         },
         payment_methods: {
           upi: { enabled: true },
