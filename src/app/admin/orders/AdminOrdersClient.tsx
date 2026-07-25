@@ -141,11 +141,18 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
   };
 
   const getPaymentStatusColor = (status: string) => {
-    switch (status) {
+    const normalizedStatus = status.toLowerCase();
+    switch (normalizedStatus) {
       case 'paid': return 'bg-green-500/10 text-green-400';
       case 'unpaid': return 'bg-red-500/10 text-red-400';
       case 'refunded': return 'bg-yellow-500/10 text-yellow-400';
       case 'cod_pending': return 'bg-orange-500/10 text-orange-400';
+      case 'success': return 'bg-green-500/10 text-green-400';
+      case 'pending': return 'bg-yellow-500/10 text-yellow-400';
+      case 'failed': return 'bg-red-500/10 text-red-400';
+      case 'expired': return 'bg-red-500/10 text-red-400';
+      case 'cancelled': return 'bg-red-500/10 text-red-400';
+      case 'user_dropped': return 'bg-zinc-500/10 text-muted-foreground';
       default: return 'bg-zinc-500/10 text-muted-foreground';
     }
   };

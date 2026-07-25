@@ -24,7 +24,7 @@ interface ShippingRate {
 }
 
 export default function CheckoutPage() {
-  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, initiateCashfreePayment, createCashfreePaymentLink, verifyCashfreePayment } = useCart();
+  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, initiateCashfreePayment, verifyCashfreePayment } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
 
@@ -47,6 +47,7 @@ export default function CheckoutPage() {
   const [isCashfreeProcessing, setIsCashfreeProcessing] = useState(false);
   const [cashfreeOrder, setCashfreeOrder] = useState<any>(null);
   const [paymentVerifying, setPaymentVerifying] = useState(false);
+  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // Shipping Options
   const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
@@ -213,7 +214,7 @@ export default function CheckoutPage() {
   const [completedOrder, setCompletedOrder] = useState<any>(null);
 
   const shippingCost = selectedShipping ? Number(selectedShipping.total_charges.toFixed(2)) : 0;
-  const finalTotal = discountedTotal + shippingCost;
+  const finalTotal = Number((discountedTotal + shippingCost).toFixed(2));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -252,19 +253,18 @@ export default function CheckoutPage() {
         }
       }, 1500);
     } else if (paymentMethod === 'cashfree_upi') {
-      // Cashfree UPI flow
+      // Cashfree UPI flow - using payment link
       setProcessStep('Initializing secure payment gateway...');
       
       try {
         const result = await initiateCashfreePayment(address);
         
-        if (result && result.paymentSessionId) {
+        if (result && result.paymentLink) {
           setCashfreeOrder(result);
           setIsProcessing(false);
           
-          // Open Cashfree payment in a new window or redirect
-          // For UPI, we'll use the payment session to open the Cashfree checkout
-          openCashfreePayment(result.paymentSessionId, result.order.id);
+          // Open Cashfree payment link in iframe modal
+          openCashfreePaymentLink(result.paymentLink, result.order.id);
         } else {
           setIsProcessing(false);
           addToast('Failed to initialize payment. Please try again.', 'error');
@@ -298,186 +298,60 @@ export default function CheckoutPage() {
     }
   };
 
-  // Open Cashfree payment in an iframe modal
-  const openCashfreePayment = (paymentSessionId: string, orderId: string) => {
-    // Clean the payment session ID - remove any malformed suffixes like "paymentpayment"
-    const cleanSessionId = paymentSessionId.replace(/(?:payment)+$/, '');
+  // Open Cashfree payment link in a popup window
+  const openCashfreePaymentLink = (paymentLink: string, orderId: string) => {
+    console.log('[Checkout] Opening Cashfree payment link:', paymentLink);
     
-    console.log('[Checkout] Original payment session ID:', paymentSessionId);
-    console.log('[Checkout] Cleaned payment session ID:', cleanSessionId);
-    console.log('[Checkout] Opening Cashfree payment with session ID:', cleanSessionId);
+    // Open payment link in a popup window
+    const paymentWindow = window.open(paymentLink, 'cashfree-payment', 'width=500,height=700,scrollbars=yes');
     
-    // Try using cf_order_id as fallback if payment session ID seems invalid
-    // The cf_order_id is the Cashfree order ID which can also be used for checkout
-    const fallbackOrderId = orderId.replace('ord_', '');
-    
-    // Create modal overlay
-    const modal = document.createElement('div');
-    modal.id = 'cashfree-modal';
-    modal.style.cssText = `
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      background: rgba(0, 0, 0, 0.7);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      z-index: 99999;
-      font-family: system-ui, -apple-system, sans-serif;
-    `;
-    
-    // Create modal content
-    const modalContent = document.createElement('div');
-    modalContent.style.cssText = `
-      background: white;
-      border-radius: 12px;
-      width: 90%;
-      max-width: 500px;
-      height: 80vh;
-      max-height: 700px;
-      display: flex;
-      flex-direction: column;
-      overflow: hidden;
-      box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
-    `;
-    
-    // Create header
-    const header = document.createElement('div');
-    header.style.cssText = `
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      padding: 16px 20px;
-      border-bottom: 1px solid #e5e7eb;
-      background: #f9fafb;
-    `;
-    header.innerHTML = `
-      <div style="display: flex; align-items: center; gap: 8px;">
-        <div style="width: 32px; height: 32px; background: #0066ff; border-radius: 6px; display: flex; align-items: center; justify-content: center; color: white; font-weight: bold; font-size: 14px;">CF</div>
-        <span style="font-weight: 600; color: #111827; font-size: 16px;">Cashfree Payments</span>
-      </div>
-      <button id="close-cashfree-modal" style="background: none; border: none; font-size: 24px; cursor: pointer; color: #6b7280; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; border-radius: 6px;">&times;</button>
-    `;
-    
-    // Create iframe container
-    const iframeContainer = document.createElement('div');
-    iframeContainer.style.cssText = `
-      flex: 1;
-      position: relative;
-      background: #f3f4f6;
-    `;
-    
-    // Create iframe
-    const iframe = document.createElement('iframe');
-    
-    // Try payment session ID first, then order ID, then payment link
-    let checkoutUrl = `https://sandbox.cashfree.com/checkout#/${cleanSessionId}`;
-    console.log('[Checkout] Checkout URL:', checkoutUrl);
-    
-    // If the session ID still has issues, try using the order ID
-    if (cleanSessionId.includes('payment') || cleanSessionId.length < 20) {
-      checkoutUrl = `https://sandbox.cashfree.com/checkout#/${fallbackOrderId}`;
-      console.log('[Checkout] Fallback checkout URL using order ID:', checkoutUrl);
-    }
-    
-    iframe.src = checkoutUrl;
-    
-    // If iframe fails to load, try payment link approach
-    iframe.onerror = async () => {
-      console.log('[Checkout] Iframe failed to load, trying payment link...');
-      const paymentLink = await createCashfreePaymentLink(cashfreeOrder?.order || { id: orderId, total: finalTotal });
-      if (paymentLink) {
-        iframe.src = paymentLink;
-      }
-    };
-    iframe.style.cssText = `
-      width: 100%;
-      height: 100%;
-      border: none;
-    `;
-    iframe.allow = 'payment *';
-    
-    // Create loading indicator
-    const loading = document.createElement('div');
-    loading.id = 'cashfree-loading';
-    loading.style.cssText = `
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      background: #f3f4f6;
-      z-index: 10;
-    `;
-    loading.innerHTML = `
-      <div style="width: 40px; height: 40px; border: 3px solid #e5e7eb; border-top-color: #0066ff; border-radius: 50%; animation: spin 1s linear infinite;"></div>
-      <p style="margin-top: 16px; color: #6b7280; font-size: 14px;">Loading secure payment...</p>
-    `;
-    
-    // Add spin animation
-    const style = document.createElement('style');
-    style.textContent = `@keyframes spin { to { transform: rotate(360deg); } }`;
-    document.head.appendChild(style);
-    
-    iframeContainer.appendChild(loading);
-    iframeContainer.appendChild(iframe);
-    modalContent.appendChild(header);
-    modalContent.appendChild(iframeContainer);
-    modal.appendChild(modalContent);
-    document.body.appendChild(modal);
-    
-    // Hide loading when iframe loads
-    iframe.onload = () => {
-      const loadingEl = document.getElementById('cashfree-loading');
-      if (loadingEl) {
-        loadingEl.style.display = 'none';
-      }
-    };
-    
-    // Close button handler
-    const closeBtn = document.getElementById('close-cashfree-modal');
-    if (closeBtn) {
-      closeBtn.onclick = () => {
-        document.body.removeChild(modal);
-        setPaymentVerifying(true);
-        verifyCashfreePayment(orderId).then((result) => {
-          setPaymentVerifying(false);
-          if (result.success && result.paymentStatus === 'paid') {
-            const order = cashfreeOrder?.order;
-            if (order) {
-              syncOrderWithShiprocket(order).catch(console.error);
-              setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
-              triggerConfetti();
-            }
-          } else if (result.success && result.paymentStatus === 'unpaid') {
-            addToast('Payment was not completed. Please try again.', 'error');
-          }
-        });
-      };
+    if (!paymentWindow) {
+      addToast('Please allow popups for this site to complete payment', 'warning');
+      return;
     }
     
     // Poll for payment completion
     const pollInterval = setInterval(async () => {
       try {
-        // Check if modal was closed manually
-        if (!document.body.contains(modal)) {
+        // Check if window was closed manually
+        if (paymentWindow.closed) {
           clearInterval(pollInterval);
+          // Verify payment status when window closes
+          setPaymentVerifying(true);
+          const result = await verifyCashfreePayment(orderId);
+          setPaymentVerifying(false);
+          
+          if (result.success && result.paymentStatus === 'paid') {
+            const order = cashfreeOrder?.order;
+            if (order) {
+              try {
+                await syncOrderWithShiprocket(order);
+              } catch (error) {
+                console.error('Failed to sync with Shiprocket:', error);
+              }
+              // Show payment success first
+              setPaymentSuccess(true);
+              triggerConfetti();
+              
+              // Show order success after a delay
+              setTimeout(() => {
+                setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
+                setPaymentSuccess(false);
+              }, 2000);
+            }
+          } else if (result.success && result.paymentStatus === 'unpaid') {
+            addToast('Payment was not completed. Please try again.', 'error');
+          }
           return;
         }
         
+        // Also check via webhook - the webhook will update the order status
+        // We can poll our own API to check
         const verifyResult = await verifyCashfreePayment(orderId);
         if (verifyResult.success && verifyResult.paymentStatus === 'paid') {
           clearInterval(pollInterval);
-          // Close modal
-          if (document.body.contains(modal)) {
-            document.body.removeChild(modal);
-          }
+          // Close popup
+          paymentWindow.close();
           
           const order = cashfreeOrder?.order;
           if (order) {
@@ -486,8 +360,15 @@ export default function CheckoutPage() {
             } catch (error) {
               console.error('Failed to sync with Shiprocket:', error);
             }
-            setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
+            // Show payment success first
+            setPaymentSuccess(true);
             triggerConfetti();
+            
+            // Show order success after a delay
+            setTimeout(() => {
+              setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
+              setPaymentSuccess(false);
+            }, 2000);
           }
         }
       } catch (error) {
@@ -498,8 +379,8 @@ export default function CheckoutPage() {
     // Cleanup after 10 minutes
     setTimeout(() => {
       clearInterval(pollInterval);
-      if (document.body.contains(modal)) {
-        document.body.removeChild(modal);
+      if (!paymentWindow.closed) {
+        paymentWindow.close();
       }
     }, 10 * 60 * 1000);
   };
@@ -608,6 +489,33 @@ export default function CheckoutPage() {
     }());
   };
 
+  // Payment success view
+  if (paymentSuccess && !completedOrder) {
+    return (
+      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex-grow flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in duration-500">
+        <div className="h-24 w-24 bg-green-500/10 border border-green-500/20 text-green-500 rounded-full flex items-center justify-center text-5xl relative">
+          <CheckCircle className="h-16 w-16 text-green-500" />
+          <div className="absolute inset-0 rounded-full border border-green-500 animate-ping opacity-25 pointer-events-none" />
+        </div>
+
+        <div className="space-y-3">
+          <span className="text-xs font-bold text-primary uppercase tracking-widest flex items-center justify-center gap-1">
+            <Sparkles className="h-4 w-4 text-accent" /> Payment Successful
+          </span>
+          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Payment Received!</h1>
+          <p className="text-muted-foreground text-sm max-w-md mx-auto">
+            Your payment has been processed successfully. Preparing your order details...
+          </p>
+        </div>
+
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          <Loader2 className="h-4 w-4 animate-spin" />
+          <span>Loading order details...</span>
+        </div>
+      </div>
+    );
+  }
+
   // Success view
   if (completedOrder) {
     return (
@@ -619,7 +527,7 @@ export default function CheckoutPage() {
 
         <div className="space-y-3">
           <span className="text-xs font-bold text-primary uppercase tracking-widest flex items-center justify-center gap-1">
-          <Sparkles className="h-4 w-4 text-accent" /> {completedOrder.payment_method === 'cod' ? 'Order Placed Successfully' : 'Payment Succeeded'}
+          <Sparkles className="h-4 w-4 text-accent" /> Order Confirmed
         </span>
           <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Your order has been placed!</h1>
           <p className="text-muted-foreground text-sm max-w-md mx-auto">
@@ -1010,7 +918,7 @@ export default function CheckoutPage() {
               )}
               <div className="flex justify-between text-sm font-black text-foreground border-t border-border pt-3">
                 <span>Grand Total</span>
-                <span className="text-primary font-black">₹{finalTotal}</span>
+                <span className="text-primary font-black">₹{finalTotal.toFixed(2)}</span>
               </div>
             </div>
 

@@ -10,7 +10,8 @@ export async function POST(request: Request) {
     const signature = request.headers.get('x-webhook-signature') || '';
 
     // Verify webhook signature
-    if (!verifyCashfreeWebhook(rawBody, signature)) {
+    const isValid = await verifyCashfreeWebhook(rawBody, signature);
+    if (!isValid) {
       console.error('[Cashfree] Webhook signature verification failed');
       return NextResponse.json({ success: false, error: 'Invalid signature' }, { status: 401 });
     }

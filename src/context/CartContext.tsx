@@ -29,8 +29,7 @@ interface CartContextType {
   toggleWishlist: (productId: string) => void;
   orders: Order[];
   placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree') => Promise<Order | null>;
-  initiateCashfreePayment: (address: ShippingAddress) => Promise<{ order: Order; paymentSessionId?: string; orderToken?: string } | null>;
-  createCashfreePaymentLink: (order: Order) => Promise<string | null>;
+  initiateCashfreePayment: (address: ShippingAddress) => Promise<{ order: Order; paymentLink?: string } | null>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   verifyCashfreePayment: (orderId: string) => Promise<{ success: boolean; paymentStatus?: string; orderStatus?: string }>;
 }
@@ -423,8 +422,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return newOrder;
   };
 
-  // Initiate Cashfree payment
-  const initiateCashfreePayment = async (address: ShippingAddress): Promise<{ order: Order; paymentSessionId?: string; orderToken?: string } | null> => {
+  // Initiate Cashfree payment using payment link
+  const initiateCashfreePayment = async (address: ShippingAddress): Promise<{ order: Order; paymentLink?: string } | null> => {
     if (cart.length === 0 || !user) return null;
 
     // First create the order in pending state
@@ -432,35 +431,34 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (!order) return null;
 
     try {
-      // Create order on Cashfree
-      const response = await fetch('/api/cashfree/create-order', {
+      // Create payment link on Cashfree
+      const response = await fetch('/api/cashfree/create-payment-link', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
           orderId: order.id,
-          amount: discountedTotal,
+          amount: Math.round(order.total_amount * 100) / 100,
           customerDetails: {
             name: address.fullName,
             email: user.email || 'customer@example.com',
             phone: address.phone,
           },
-          items: order.items,
+          returnUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout/payment-close`,
         }),
       });
 
       const data = await response.json();
 
-      if (!response.ok || !data.success) {
+      if (!response.ok || !data.paymentLink) {
         addToast(data.error || 'Failed to initiate payment. Please try again.', 'error');
         return null;
       }
 
       return {
         order,
-        paymentSessionId: data.paymentSessionId,
-        orderToken: data.orderToken,
+        paymentLink: data.paymentLink,
       };
     } catch (error) {
       console.error('Error initiating Cashfree payment:', error);
@@ -487,40 +485,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     } catch (error) {
       console.error('Error verifying Cashfree payment:', error);
       return { success: false };
-    }
-  };
-
-  // Create Cashfree payment link as fallback
-  const createCashfreePaymentLink = async (order: Order): Promise<string | null> => {
-    try {
-      const response = await fetch('/api/cashfree/create-payment-link', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-            orderId: order.id,
-            amount: order.total_amount,
-            customerDetails: {
-            name: order.shipping_address?.fullName || 'Customer',
-            email: order.user_id || 'customer@example.com',
-            phone: order.shipping_address?.phone || '0000000000',
-          },
-          returnUrl: `${process.env.NEXT_PUBLIC_SITE_URL || 'http://localhost:3000'}/checkout?status=success`,
-        }),
-      });
-
-      const data = await response.json();
-
-      if (!response.ok || !data.paymentLink) {
-        console.error('[CartContext] Failed to create payment link:', data);
-        return null;
-      }
-
-      return data.paymentLink;
-    } catch (error) {
-      console.error('[CartContext] Create payment link error:', error);
-      return null;
     }
   };
 
@@ -592,7 +556,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       orders,
       placeOrder,
       initiateCashfreePayment,
-      createCashfreePaymentLink,
       updateOrderStatus,
       verifyCashfreePayment,
     }}>
