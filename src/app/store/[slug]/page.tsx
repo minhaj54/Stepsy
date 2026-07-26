@@ -94,7 +94,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
               {/* Store Details */}
               <div className="flex-1 min-w-0 pt-3 sm:pt-4 md:pt-0">
                 <div className="flex items-center gap-3 mb-2">
-                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-foreground tracking-tight truncate">
+                  <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight truncate">
                     {store.name}
                   </h1>
                   {isOwner && (
@@ -124,22 +124,22 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
 
                 {/* Stats */}
                 <div className="flex flex-wrap items-center gap-3 sm:gap-4 md:gap-6 mt-2 sm:mt-3">
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1.5 text-sm text-white/70">
                     <Package className="h-4 w-4 text-primary" />
-                    <span className="font-semibold text-foreground">{products.length}</span> Products
+                    <span className="font-semibold text-white">{products.length}</span> Products
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1.5 text-sm text-white/70">
                     <Star className="h-4 w-4 text-yellow-400 fill-yellow-400" />
-                    <span className="font-semibold text-foreground">4.8</span> Rating
+                    <span className="font-semibold text-white">4.8</span> Rating
                   </div>
-                  <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                  <div className="flex items-center gap-1.5 text-sm text-white/70">
                     <TrendingUp className="h-4 w-4 text-green-400" />
-                    <span className="font-semibold text-foreground">Active</span>
+                    <span className="font-semibold text-white">Active</span>
                   </div>
                   {store.customer_support_phone && (
-                    <div className="flex items-center gap-1.5 text-sm text-muted-foreground">
+                    <div className="flex items-center gap-1.5 text-sm text-white/70">
                       <Phone className="h-4 w-4 text-blue-400" />
-                      <span className="font-semibold text-foreground">{store.customer_support_phone}</span>
+                      <span className="font-semibold text-white">{store.customer_support_phone}</span>
                     </div>
                   )}
                 </div>
@@ -195,42 +195,80 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
           </div>
         ) : (
           <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-            {products.map((product) => (
-              <Link
-                key={product.id}
-                href={`/product/${product.slug}`}
-                className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative group hover:border-primary/20 transition-all duration-300"
-              >
-                <div className="aspect-square w-full bg-background/40 relative overflow-hidden">
-                  <ShimmerImage
-                    src={product.images[0]}
-                    alt={product.title}
-                    className="w-full h-full group-hover:scale-105 transition-transform duration-500"
-                  />
-                  {product.sale_price && (
-                    <div className="absolute top-2 left-2 px-2 py-1 bg-accent text-white text-[10px] font-bold uppercase rounded-md">
-                      Sale
-                    </div>
-                  )}
-                </div>
-                <div className="p-4 flex flex-col gap-1.5 flex-grow">
-                  <span className="text-[11px] text-muted-foreground uppercase tracking-wider">{product.brand_name}</span>
-                  <h3 className="font-bold text-foreground text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                    {product.title}
-                  </h3>
-                  <div className="mt-auto pt-2">
-                    {product.sale_price ? (
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs line-through text-muted-foreground">₹{product.price}</span>
-                        <span className="text-sm font-black text-foreground">₹{product.sale_price}</span>
+            {products.map((product) => {
+              const salePrice = product.sale_price;
+              const price = product.price;
+              return (
+                <Link
+                  key={product.id}
+                  href={`/product/${product.slug}`}
+                  className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative group hover:border-primary/20 transition-all duration-300"
+                >
+                  {/* Product Image */}
+                  <div className="aspect-square w-full bg-background/40 relative overflow-hidden">
+                    <ShimmerImage
+                      src={product.images[0]}
+                      alt={product.title}
+                      className="w-full h-full group-hover:scale-105 transition-transform duration-500"
+                    />
+                    {salePrice && (
+                      <div className="absolute top-2 left-2 px-2 py-1 bg-accent text-white text-[10px] font-bold uppercase rounded-md">
+                        Sale
                       </div>
-                    ) : (
-                      <span className="text-sm font-black text-foreground">₹{product.price}</span>
                     )}
                   </div>
-                </div>
-              </Link>
-            ))}
+
+                  {/* Details */}
+                  <div className="p-3 sm:p-5 flex-grow flex flex-col justify-between">
+                    <div>
+                      <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
+                        <span>{product.brand_name}</span>
+                        <div className="flex items-center gap-0.5 text-accent font-semibold">
+                          {[1, 2, 3, 4, 5].map((star) => {
+                            const fillRatio = 4.8 - (star - 1);
+                            if (fillRatio >= 1) {
+                              return <Star key={star} className="h-3 w-3 fill-accent" />;
+                            } else if (fillRatio > 0) {
+                              return (
+                                <div key={star} className="relative h-3 w-3">
+                                  <Star className="h-3 w-3 text-zinc-700" />
+                                  <div className="absolute inset-0 overflow-hidden">
+                                    <Star className="h-3 w-3 fill-accent" />
+                                  </div>
+                                </div>
+                              );
+                            } else {
+                              return <Star key={star} className="h-3 w-3 text-zinc-700" />;
+                            }
+                          })}
+                          <span className="ml-0.5">4.8</span>
+                        </div>
+                      </div>
+
+                      <h3 className="font-bold text-foreground text-sm line-clamp-1 group-hover:text-primary transition-colors">
+                        {product.title}
+                      </h3>
+                    </div>
+
+                    <div className="flex justify-between items-center mt-3 pt-2.5 sm:mt-4 sm:pt-3 border-t border-border">
+                      <div>
+                        {salePrice ? (
+                          <div className="flex items-center gap-2">
+                            <span className="text-xs line-through text-muted-foreground">₹{price}</span>
+                            <span className="text-sm font-black text-foreground">₹{salePrice}</span>
+                          </div>
+                        ) : (
+                          <span className="text-sm font-black text-foreground">₹{price}</span>
+                        )}
+                      </div>
+                      <div className="bg-primary hover:bg-primary-hover text-primary-foreground p-2.5 rounded-xl border border-primary hover:border-primary-hover transition-all duration-300">
+                        <ArrowRight className="h-4 w-4" />
+                      </div>
+                    </div>
+                  </div>
+                </Link>
+              );
+            })}
           </div>
         )}
       </div>

@@ -18,6 +18,27 @@ interface ProductDetailClientProps {
   relatedProducts: Product[];
 }
 
+function useMediaQuery(query: string): boolean {
+  const [matches, setMatches] = useState(false);
+
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const mediaQuery = window.matchMedia(query);
+    setMatches(mediaQuery.matches);
+
+    const handler = (event: MediaQueryListEvent) => {
+      setMatches(event.matches);
+    };
+
+    mediaQuery.addEventListener('change', handler);
+    return () => {
+      mediaQuery.removeEventListener('change', handler);
+    };
+  }, [query]);
+
+  return matches;
+}
+
 // Standard shoe size chart (US to EU/UK/CM)
 const SIZE_CHART = [
   { us: '6', uk: '5.5', eu: '38.5', cm: '24.1' },
@@ -56,7 +77,8 @@ export default function ProductDetailClient({ product, store, initialReviews, re
   // Modal states
   const [showSizeChart, setShowSizeChart] = useState(false);
 
-  // Hover zoom state
+  // Hover zoom state (desktop only)
+  const isDesktop = useMediaQuery('(min-width: 1024px)');
   const [isHovering, setIsHovering] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
@@ -70,11 +92,8 @@ export default function ProductDetailClient({ product, store, initialReviews, re
   const [newReviewName, setNewReviewName] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
-  // Calculate dynamic rating from all reviews
-  const dynamicRating = localReviews.length > 0
-    ? localReviews.reduce((sum, r) => sum + r.rating, 0) / localReviews.length
-    : product.rating;
-  const displayRating = Math.round(dynamicRating * 10) / 10;
+  // Hardcoded rating for all products
+  const displayRating = 4.8;
   const reviewCount = localReviews.length;
 
   const isWishlisted = wishlist.includes(product.id);
@@ -112,7 +131,12 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       return;
     }
     if (activeVariant) {
-      addToCart(product, activeVariant, quantity);
+      // Store buy-now item in sessionStorage so checkout uses only this item
+      sessionStorage.setItem('zarwinto_buy_now', JSON.stringify({
+        product,
+        variant: activeVariant,
+        quantity,
+      }));
       // Redirect directly to checkout page
       router.push('/checkout');
     }
@@ -233,41 +257,43 @@ export default function ProductDetailClient({ product, store, initialReviews, re
             </div>
           )}
           
-          {/* Main Image with Hover Zoom */}
-          <div className="flex-1">
-            <div
-              className="aspect-[3/4] sm:aspect-[4/5] bg-background/40 rounded-2xl sm:rounded-3xl overflow-hidden border border-border relative"
-              onMouseEnter={() => setIsHovering(true)}
-              onMouseLeave={() => setIsHovering(false)}
-              onMouseMove={(e) => {
-                const rect = e.currentTarget.getBoundingClientRect();
-                const x = ((e.clientX - rect.left) / rect.width) * 100;
-                const y = ((e.clientY - rect.top) / rect.height) * 100;
-                setMousePos({ x, y });
-              }}
-            >
+            {/* Main Image with Hover Zoom (desktop only) */}
+            <div className="flex-1">
               <div
-                className="w-full h-full transition-transform duration-200 ease-out"
-                style={{
-                  transform: isHovering ? 'scale(1.8)' : 'scale(1)',
-                  transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
-                }}
+                className="aspect-[3/4] sm:aspect-[4/5] bg-background/40 rounded-2xl sm:rounded-3xl overflow-hidden border border-border relative"
+                {...(isDesktop ? {
+                  onMouseEnter: () => setIsHovering(true),
+                  onMouseLeave: () => setIsHovering(false),
+                  onMouseMove: (e) => {
+                    const rect = e.currentTarget.getBoundingClientRect();
+                    const x = ((e.clientX - rect.left) / rect.width) * 100;
+                    const y = ((e.clientY - rect.top) / rect.height) * 100;
+                    setMousePos({ x, y });
+                  },
+                } : {})}
               >
-                <ShimmerImage
-                  src={product.images[activeImageIndex]}
-                  alt={product.title}
-                  className="w-full h-full object-cover"
-                />
-              </div>
-              {!isHovering && (
-                <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                  <div className="bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 text-white text-xs font-medium flex items-center gap-1.5">
-                    <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
-                    Hover to zoom
-                  </div>
+                <div
+                  className="w-full h-full transition-transform duration-200 ease-out"
+                  style={{
+                    transform: isDesktop && isHovering ? 'scale(1.8)' : 'scale(1)',
+                    transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
+                  }}
+                >
+                  <ShimmerImage
+                    src={product.images[activeImageIndex]}
+                    alt={product.title}
+                    className="w-full h-full object-cover"
+                  />
                 </div>
-              )}
-            </div>
+                {isDesktop && !isHovering && (
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                    <div className="bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 text-white text-xs font-medium flex items-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+                      Hover to zoom
+                    </div>
+                  </div>
+                )}
+              </div>
             
             {/* Mobile thumbnails */}
             {product.images.length > 1 && (
@@ -322,17 +348,53 @@ export default function ProductDetailClient({ product, store, initialReviews, re
             </div>
           </div>
           
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight leading-tight">{product.title}</h1>
-          
-          <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-            <div className="flex items-center gap-0.5 text-accent font-bold text-sm">
-              <Star className="h-4 w-4 fill-accent" />
-              <span>{displayRating}</span>
-              <span className="text-muted-foreground font-semibold ml-1">({reviewCount} reviews)</span>
-            </div>
-            <span className="text-muted-foreground">|</span>
-            <span className="text-xs text-muted-foreground font-semibold">SKU: {product.sku}</span>
-          </div>
+           <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight leading-tight">{product.title}</h1>
+           
+           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+          <div className="flex items-center gap-0.5 text-accent font-bold text-sm">
+                {[1, 2, 3, 4, 5].map((star) => {
+                  const fillRatio = displayRating - (star - 1);
+                  if (fillRatio >= 1) {
+                    return <Star key={star} className="h-4 w-4 fill-accent" />;
+                  } else if (fillRatio > 0) {
+                    return (
+                      <div key={star} className="relative h-4 w-4">
+                        <Star className="h-4 w-4 text-zinc-700" />
+                        <div className="absolute inset-0 overflow-hidden">
+                          <Star className="h-4 w-4 fill-accent" />
+                        </div>
+                      </div>
+                    );
+                  } else {
+                    return <Star key={star} className="h-4 w-4 text-zinc-700" />;
+                  }
+                })}
+                <span className="text-foreground font-semibold ml-1">{displayRating}</span>
+                <span className="text-muted-foreground font-semibold ml-1">({reviewCount} reviews)</span>
+              </div>
+             <span className="text-muted-foreground">|</span>
+             <span className="text-xs text-muted-foreground font-semibold">SKU: {product.sku}</span>
+           </div>
+
+          {/* Stock Status */}
+          {selectedSize && activeVariant && activeVariant.stock_quantity === 0 && (
+            <span className="inline-flex items-center gap-1.5 text-sm font-bold text-red-500">
+              <span className="w-2 h-2 bg-red-500 rounded-full" />
+              Out of Stock
+            </span>
+          )}
+          {selectedSize && activeVariant && activeVariant.stock_quantity > 0 && activeVariant.stock_quantity <= 5 && (
+            <span className="inline-flex items-center gap-1.5 text-sm font-bold text-orange-500">
+              <span className="w-2 h-2 bg-orange-500 rounded-full" />
+              Only {activeVariant.stock_quantity} left
+            </span>
+          )}
+          {!selectedSize && (
+            <span className="inline-flex items-center gap-1.5 text-sm font-bold text-muted-foreground">
+              <span className="w-2 h-2 bg-muted-foreground rounded-full" />
+              Select a size to check availability
+            </span>
+          )}
 
           {/* Pricing */}
           <div className="p-5 bg-card border border-border rounded-2xl">
@@ -393,33 +455,38 @@ export default function ProductDetailClient({ product, store, initialReviews, re
             </div>
             
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-              {['8', '9', '10', '11', '12'].map((size) => {
-                const variant = product.variants.find(v => v.color === selectedColor && v.size === size);
-                const hasStock = variant ? variant.stock_quantity > 0 : false;
-                const isSelected = selectedSize === size;
+               {['8', '9', '10', '11', '12'].map((size) => {
+                 const variant = product.variants.find(v => v.color === selectedColor && v.size === size);
+                 const hasStock = variant ? variant.stock_quantity > 0 : false;
+                 const isSelected = selectedSize === size;
 
-                return (
-                  <button
-                    key={size}
-                    disabled={!hasStock}
-                    onClick={() => setSelectedSize(size)}
-                    className={`h-12 rounded-xl font-bold text-sm flex flex-col items-center justify-center border transition-all cursor-pointer ${
-                      isSelected
-                        ? 'bg-primary text-white border-primary shadow-[0_0_10px_rgba(99,102,241,0.3)]'
-                        : hasStock
-                        ? 'bg-card border-border hover:border-muted-foreground/50 text-muted-foreground'
-                        : 'bg-background border-border text-muted-foreground cursor-not-allowed line-through'
-                    }`}
-                  >
-                    <span>{size}</span>
-                    {hasStock && variant && (
-                      <span className={`text-[10px] mt-0.5 ${isSelected ? 'text-foreground/60' : 'text-muted-foreground'}`}>
-                        {variant.stock_quantity} left
-                      </span>
-                    )}
-                  </button>
-                );
-              })}
+                 return (
+                   <button
+                     key={size}
+                     disabled={!hasStock}
+                     onClick={() => setSelectedSize(size)}
+                     className={`h-12 rounded-xl font-bold text-sm flex flex-col items-center justify-center border transition-all cursor-pointer ${
+                       isSelected
+                         ? 'bg-primary text-white border-primary shadow-[0_0_10px_rgba(99,102,241,0.3)]'
+                         : hasStock
+                         ? 'bg-card border-border hover:border-muted-foreground/50 text-muted-foreground'
+                         : 'bg-background border-border text-muted-foreground cursor-not-allowed opacity-50'
+                     }`}
+                   >
+                     <span>{size}</span>
+                     {!hasStock && variant && (
+                       <span className="text-[10px] mt-0.5 text-red-400 font-semibold">
+                         Out of Stock
+                       </span>
+                     )}
+                     {hasStock && variant && (
+                       <span className={`text-[10px] mt-0.5 ${isSelected ? 'text-foreground/60' : 'text-muted-foreground'}`}>
+                         {variant.stock_quantity} left
+                       </span>
+                     )}
+                   </button>
+                 );
+               })}
             </div>
           </div>
 
@@ -443,34 +510,34 @@ export default function ProductDetailClient({ product, store, initialReviews, re
             </div>
           </div>
 
-          {/* Action Buttons */}
-          <div className="space-y-3 pt-4">
-            <button
-              onClick={handleAddToCart}
-              className={`w-full py-4 px-6 rounded-xl font-bold text-sm text-center flex items-center justify-center gap-2 cursor-pointer transition-all duration-300 ${
-                cartSuccess
-                  ? 'bg-green-600 text-white'
-                  : 'bg-primary hover:bg-primary-hover text-white shadow-lg shadow-primary/25'
-              }`}
-            >
-              {cartSuccess ? (
-                <>
-                  <Check className="h-5 w-5" /> Added to Cart
-                </>
-              ) : (
-                <>
-                  <ShoppingBag className="h-5 w-5" /> Add to Cart
-                </>
-              )}
-            </button>
-            
-            <button
-              onClick={handleBuyNow}
-              className="w-full py-4 px-6 rounded-xl font-bold text-sm text-center flex items-center justify-center gap-2 cursor-pointer transition-all duration-300 bg-accent hover:bg-orange-600 text-white shadow-lg shadow-accent/25"
-            >
-              <Zap className="h-5 w-5" /> Buy Now
-            </button>
-          </div>
+           {/* Action Buttons */}
+           <div className="space-y-3 pt-4">
+             <button
+               onClick={handleAddToCart}
+               className={`w-full py-4 px-6 rounded-xl font-bold text-sm text-center flex items-center justify-center gap-2 transition-all duration-300 ${
+                 cartSuccess
+                   ? 'bg-green-600 text-white'
+                   : 'bg-primary hover:bg-primary-hover text-white shadow-lg shadow-primary/25 cursor-pointer'
+               }`}
+             >
+               {cartSuccess ? (
+                 <>
+                   <Check className="h-5 w-5" /> Added to Cart
+                 </>
+               ) : (
+                 <>
+                   <ShoppingBag className="h-5 w-5" /> Add to Cart
+                 </>
+               )}
+             </button>
+             
+             <button
+               onClick={handleBuyNow}
+               className="w-full py-4 px-6 rounded-xl font-bold text-sm text-center flex items-center justify-center gap-2 transition-all duration-300 bg-accent hover:bg-orange-600 text-white shadow-lg shadow-accent/25 cursor-pointer"
+             >
+               <Zap className="h-5 w-5" /> Buy Now
+             </button>
+           </div>
 
           {/* Delivery & Warranty */}
           <div className="border-t border-border pt-6 space-y-4">

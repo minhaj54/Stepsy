@@ -65,13 +65,6 @@ export default async function PartnersPage() {
             </div>
             <div className="w-px h-6 sm:h-8 bg-white/[0.08] hidden sm:block" />
             <div className="text-center">
-              <p className="text-xl sm:text-2xl lg:text-3xl font-black text-foreground">
-                {storesWithCounts.reduce((acc, store) => acc + store.productCount, 0)}
-              </p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mt-0.5 sm:mt-1">Products Listed</p>
-            </div>
-            <div className="w-px h-6 sm:h-8 bg-white/[0.08] hidden sm:block" />
-            <div className="text-center">
               <p className="text-xl sm:text-2xl lg:text-3xl font-black text-foreground">100%</p>
               <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mt-0.5 sm:mt-1">Verified Sellers</p>
             </div>

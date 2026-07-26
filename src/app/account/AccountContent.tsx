@@ -494,18 +494,34 @@ export default function AccountContent({ products }: { products: Product[] }) {
                         </div>
                         <div>
                           <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">
-                            {order.payment_method === 'cod' ? 'Amount to Pay' : 'Total Debited'}
+                            {order.payment_method === 'cod' ? 'Amount to Pay' : 'Total Paid'}
                           </p>
                           <p className="text-sm font-black text-primary mt-0.5">₹{order.total_amount}</p>
                         </div>
-                        <div className="flex flex-col gap-1">
-                          <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${getStatusColor(order.status)}`}>
-                            {order.status}
-                          </span>
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${getPaymentStatusColor(order.payment_status)}`}>
-                            {order.payment_status}
-                          </span>
+                        <div className="text-right">
+                          <p className="text-[10px] text-muted-foreground uppercase font-bold tracking-wider">Payment</p>
+                          <p className="text-xs font-semibold text-muted-foreground mt-0.5">{getPaymentMethodDisplay(order.payment_method)}</p>
+                          <p className={`text-[10px] font-bold mt-0.5 ${
+                            (order.payment_status as string) === 'paid' || (order.payment_status as string) === 'success' ? 'text-green-400' :
+                            (order.payment_status as string) === 'cod_pending' ? 'text-orange-400' :
+                            (order.payment_status as string) === 'cancelled' || (order.payment_status as string) === 'failed' ? 'text-red-400' :
+                            'text-muted-foreground'
+                          }`}>
+                            {(order.payment_status as string) === 'paid' || (order.payment_status as string) === 'success' ? '✓ Paid' :
+                             (order.payment_status as string) === 'cod_pending' ? 'COD' :
+                             (order.payment_status as string) === 'cancelled' ? 'Cancelled' :
+                             (order.payment_status as string) === 'failed' ? 'Failed' :
+                             order.payment_status}
+                          </p>
                         </div>
+                      </div>
+                      <div className="flex flex-col gap-1">
+                        <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${getStatusColor(order.status)}`}>
+                          {order.status}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${getPaymentStatusColor(order.payment_status)}`}>
+                          {order.payment_status}
+                        </span>
                       </div>
 
                       {/* Payment Info */}
@@ -526,18 +542,22 @@ export default function AccountContent({ products }: { products: Product[] }) {
 
                       {/* Order Items */}
                       <div className="p-4 sm:p-5 space-y-4">
-                        {order.items.map((item, idx) => (
-                          <div key={idx} className="flex justify-between items-center gap-4">
-                            <div className="flex items-center gap-3">
-                              <ShimmerImage src={item.product_image} alt="" className="h-10 w-10" />
-                              <div>
-                                <p className="font-bold text-foreground text-xs">{item.product_title}</p>
-                                <p className="text-[10px] text-muted-foreground mt-0.5">Size {item.size} • Color {item.color} • Qty {item.quantity}</p>
-                              </div>
+                        {order.items.map((item, idx) => {
+                          const product = products.find(p => p.id === item.product_id);
+                          const productSlug = product?.slug || '';
+                          return (
+                            <div key={idx} className="flex justify-between items-center gap-4">
+                              <Link href={`/product/${productSlug}`} className="flex items-center gap-3 group">
+                                <ShimmerImage src={item.product_image} alt="" className="h-10 w-10" />
+                                <div>
+                                  <p className="font-bold text-foreground text-xs group-hover:text-primary transition-colors line-clamp-1">{item.product_title}</p>
+                                  <p className="text-[10px] text-muted-foreground mt-0.5">Size {item.size} • Color {item.color} • Qty {item.quantity}</p>
+                                </div>
+                              </Link>
+                              <span className="font-bold text-foreground text-xs">₹{item.price * item.quantity}</span>
                             </div>
-                            <span className="font-bold text-foreground text-xs">₹{item.price * item.quantity}</span>
-                          </div>
-                        ))}
+                          );
+                        })}
                       </div>
 
                       {/* Actions */}

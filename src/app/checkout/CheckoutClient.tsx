@@ -25,9 +25,45 @@ interface ShippingRate {
 }
 
 export default function CheckoutPage() {
-  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, initiateCashfreePayment, verifyCashfreePayment } = useCart();
+  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, initiateCashfreePayment, verifyCashfreePayment, sendOrderAlert } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
+
+  // Buy Now support: read from sessionStorage if present
+  const [buyNowItem, setBuyNowItem] = useState<any>(null);
+
+  useEffect(() => {
+    const stored = sessionStorage.getItem('zarwinto_buy_now');
+    if (stored) {
+      try {
+        setBuyNowItem(JSON.parse(stored));
+      } catch {
+        // ignore parse errors
+      }
+    }
+  }, []);
+
+   // Use buyNow item as cart if present, otherwise use regular cart
+   const effectiveCart = React.useMemo(() => {
+     if (buyNowItem) {
+       return [{ product: buyNowItem.product, variant: buyNowItem.variant, quantity: buyNowItem.quantity }];
+     }
+     return cart;
+   }, [buyNowItem, cart]);
+   const effectiveTotal = React.useMemo(() => {
+     return effectiveCart.reduce((total: number, item: any) => {
+       const price = item.product.sale_price || item.product.price;
+       return total + price * item.quantity;
+     }, 0);
+   }, [effectiveCart]);
+   const effectiveDiscountedTotal = effectiveTotal;
+   const effectiveDiscountAmount = 0;
+
+  // Clean up buyNow from sessionStorage after order is placed
+  const clearBuyNow = () => {
+    sessionStorage.removeItem('zarwinto_buy_now');
+    setBuyNowItem(null);
+  };
 
   // Form State
   const [fullName, setFullName] = useState('');
@@ -63,12 +99,12 @@ export default function CheckoutPage() {
     process.env.NEXT_PUBLIC_SHIPROCKET_PICKUP_PINCODE || '110001'
   );
 
-  // Fetch pickup pincode from the store of the first product in the cart
-  useEffect(() => {
-    const fetchStorePickupPincode = async () => {
-      if (cart.length === 0) return;
-      const storeId = cart[0].product.store_id;
-      if (!storeId) return;
+   // Fetch pickup pincode from the store of the first product in the cart
+   useEffect(() => {
+     const fetchStorePickupPincode = async () => {
+       if (effectiveCart.length === 0) return;
+       const storeId = effectiveCart[0].product.store_id;
+       if (!storeId) return;
 
       try {
         const supabase = createClient();
@@ -89,94 +125,94 @@ export default function CheckoutPage() {
     if (configured) {
       fetchStorePickupPincode();
     }
-  }, [cart, configured]);
+   }, [effectiveCart, configured]);
 
-  // Calculate total weight and dimensions from cart using standard shoe box sizes
-  const calculatePackageDetails = () => {
-    let totalWeight = 0; // in kg
-    let totalValue = 0;
-    
-    // Standard shoe box dimensions: 33 x 20 x 12 cm
-    const boxLength = 33;
-    const boxBreadth = 20;
-    let totalHeight = 0; // stack height
+   // Calculate total weight and dimensions from cart using standard shoe box sizes
+   const calculatePackageDetails = () => {
+     let totalWeight = 0; // in kg
+     let totalValue = 0;
+     
+     // Standard shoe box dimensions: 33 x 20 x 12 cm
+     const boxLength = 33;
+     const boxBreadth = 20;
+     let totalHeight = 0; // stack height
 
-    cart.forEach((item) => {
-      totalWeight += item.quantity * 0.8; // Assume average shoe weight is 0.8kg per pair
-      totalHeight += item.quantity * 12; // Each box adds 12cm to the stack
-      totalValue += (item.product.sale_price || item.product.price) * item.quantity;
-    });
+     effectiveCart.forEach((item: any) => {
+       totalWeight += item.quantity * 0.8; // Assume average shoe weight is 0.8kg per pair
+       totalHeight += item.quantity * 12; // Each box adds 12cm to the stack
+       totalValue += (item.product.sale_price || item.product.price) * item.quantity;
+     });
 
-    return {
-      weight: Math.max(totalWeight, 0.8), // Minimum 0.8kg
-      length: boxLength,
-      breadth: boxBreadth,
-      height: Math.max(totalHeight, 12),
-      declaredValue: totalValue || 1, // ensure it is never 0
-    };
-  };
+     return {
+       weight: Math.max(totalWeight, 0.8), // Minimum 0.8kg
+       length: boxLength,
+       breadth: boxBreadth,
+       height: Math.max(totalHeight, 12),
+       declaredValue: totalValue || 1, // ensure it is never 0
+     };
+   };
 
-  // Fetch shipping rates when pincode changes
-  useEffect(() => {
-    if (!pincode || pincode.length !== 6) {
-      setShippingRates([]);
-      setSelectedShipping(null);
-      return;
-    }
+   // Fetch shipping rates when pincode changes
+   useEffect(() => {
+     if (!pincode || pincode.length !== 6) {
+       setShippingRates([]);
+       setSelectedShipping(null);
+       return;
+     }
 
-    const fetchShippingRates = async () => {
-      setIsLoadingRates(true);
-      setShippingError(null);
-      setSelectedShipping(null);
+     const fetchShippingRates = async () => {
+       setIsLoadingRates(true);
+       setShippingError(null);
+       setSelectedShipping(null);
 
-      try {
-        const { weight, length, breadth, height, declaredValue } = calculatePackageDetails();
-        
-        const response = await fetch('/api/shiprocket/shipping-rates', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-          },
-          body: JSON.stringify({
-            pickupPincode: pickupPincode,
-            deliveryPincode: pincode,
-            weight,
-            length,
-            breadth,
-            height,
-            declaredValue,
-            cod: paymentMethod === 'cod' ? 1 : 0,
-          }),
-        });
+       try {
+         const { weight, length, breadth, height, declaredValue } = calculatePackageDetails();
+         
+         const response = await fetch('/api/shiprocket/shipping-rates', {
+           method: 'POST',
+           headers: {
+             'Content-Type': 'application/json',
+           },
+           body: JSON.stringify({
+             pickupPincode: pickupPincode,
+             deliveryPincode: pincode,
+             weight,
+             length,
+             breadth,
+             height,
+             declaredValue,
+             cod: paymentMethod === 'cod' ? 1 : 0,
+           }),
+         });
 
-        const data = await response.json();
+         const data = await response.json();
 
-        if (!response.ok || data.status !== 1) {
-          throw new Error(data.error || 'Failed to fetch shipping rates');
-        }
+         if (!response.ok || data.status !== 1) {
+           throw new Error(data.error || 'Failed to fetch shipping rates');
+         }
 
-        setShippingRates(data.data);
-        
-        // Auto-select the cheapest option
-        if (data.data.length > 0) {
-          const cheapest = data.data.reduce((min: ShippingRate, rate: ShippingRate) => 
-            rate.total_charges < min.total_charges ? rate : min
-          );
-          setSelectedShipping(cheapest);
-        }
-      } catch (error) {
-        console.error('Error fetching shipping rates:', error);
-        setShippingError(error instanceof Error ? error.message : 'Failed to fetch shipping rates');
-        setShippingRates([]);
-      } finally {
-        setIsLoadingRates(false);
-      }
-    };
+         setShippingRates(data.data);
+         
+         // Auto-select the cheapest option
+         if (data.data.length > 0) {
+           const cheapest = data.data.reduce((min: ShippingRate, rate: ShippingRate) => 
+             rate.total_charges < min.total_charges ? rate : min
+           );
+           setSelectedShipping(cheapest);
+         }
+       } catch (error) {
+         console.error('Error fetching shipping rates:', error);
+         setShippingError(error instanceof Error ? error.message : 'Failed to fetch shipping rates');
+         setShippingRates([]);
+       } finally {
+         setIsLoadingRates(false);
+       }
+     };
 
-    // Debounce the API call
-    const timeoutId = setTimeout(fetchShippingRates, 500);
-    return () => clearTimeout(timeoutId);
-  }, [pincode, cart, paymentMethod]);
+     // Debounce the API call
+     const timeoutId = setTimeout(fetchShippingRates, 500);
+     return () => clearTimeout(timeoutId);
+   }, [pincode, effectiveCart, paymentMethod]);
 
   // Fetch saved addresses
   useEffect(() => {
@@ -214,90 +250,94 @@ export default function CheckoutPage() {
   const [processStep, setProcessStep] = useState('');
   const [completedOrder, setCompletedOrder] = useState<any>(null);
 
-  const shippingCost = selectedShipping ? Number(selectedShipping.total_charges.toFixed(2)) : 0;
-  const finalTotal = Number((discountedTotal + shippingCost).toFixed(2));
+   const shippingCost = selectedShipping ? Number(selectedShipping.total_charges.toFixed(2)) : 0;
+   const finalTotal = Number((effectiveDiscountedTotal + shippingCost).toFixed(2));
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (cart.length === 0) return;
+   const handleSubmit = async (e: React.FormEvent) => {
+     e.preventDefault();
+     if (effectiveCart.length === 0) return;
 
-    if (!selectedShipping && shippingRates.length > 0) {
-      addToast('Please select a shipping method', 'warning');
-      return;
-    }
+     if (!selectedShipping && shippingRates.length > 0) {
+       addToast('Please select a shipping method', 'warning');
+       return;
+     }
 
-    setIsProcessing(true);
-    setProcessStep('Verifying stock levels...');
+     setIsProcessing(true);
+     setProcessStep('Verifying stock levels...');
 
-    const address = { fullName, phone, addressLine1, city, state, pincode };
+     const address = { fullName, phone, addressLine1, city, state, pincode };
 
-    if (paymentMethod === 'cod') {
-      // COD flow - direct order placement
-      setProcessStep('Preparing your Cash on Delivery order...');
-      setTimeout(async () => {
-        const order = await placeOrder(address, 'cod');
-        
-        if (order) {
-          try {
-            setProcessStep('Syncing with Shiprocket...');
-            await syncOrderWithShiprocket(order);
-          } catch (error) {
-            console.error('Failed to sync with Shiprocket:', error);
+     if (paymentMethod === 'cod') {
+       // COD flow - direct order placement
+       setProcessStep('Preparing your Cash on Delivery order...');
+       setTimeout(async () => {
+         const order = await placeOrder(address, 'cod', effectiveCart);
+         
+         if (order) {
+           try {
+             setProcessStep('Syncing with Shiprocket...');
+             await syncOrderWithShiprocket(order);
+           } catch (error) {
+             console.error('Failed to sync with Shiprocket:', error);
+           }
+
+            setCompletedOrder(order);
+            setIsProcessing(false);
+            triggerConfetti();
+            clearBuyNow();
+            sendOrderAlert(order.id);
+          } else {
+            setIsProcessing(false);
+            addToast('Failed to place order. Please try again.', 'error');
           }
-
-          setCompletedOrder(order);
-          setIsProcessing(false);
-          triggerConfetti();
-        } else {
-          setIsProcessing(false);
-          addToast('Failed to place order. Please try again.', 'error');
-        }
-      }, 1500);
-    } else if (paymentMethod === 'cashfree_upi') {
-      // Cashfree UPI flow - using official Cashfree JS SDK
-      setProcessStep('Initializing secure payment gateway...');
-      
-      try {
-        const result = await initiateCashfreePayment(address);
+        }, 1500);
+      } else if (paymentMethod === 'cashfree_upi') {
+        // Cashfree UPI flow - using official Cashfree JS SDK
+        setProcessStep('Initializing secure payment gateway...');
         
-        if (result && result.paymentSessionId) {
-          setCashfreeOrder(result);
-          setIsProcessing(false);
+        try {
+          const result = await initiateCashfreePayment(address, effectiveCart, finalTotal);
           
-          // Open Cashfree checkout using official SDK
-          openCashfreeCheckout(result);
-        } else {
+          if (result && result.paymentSessionId) {
+            setCashfreeOrder(result);
+            setIsProcessing(false);
+            
+            // Open Cashfree checkout using official SDK
+            openCashfreeCheckout(result);
+          } else {
+            setIsProcessing(false);
+            addToast('Failed to initialize payment. Please try again.', 'error');
+          }
+        } catch (error) {
+          console.error('Cashfree payment initiation error:', error);
           setIsProcessing(false);
           addToast('Failed to initialize payment. Please try again.', 'error');
         }
-      } catch (error) {
-        console.error('Cashfree payment initiation error:', error);
-        setIsProcessing(false);
-        addToast('Failed to initialize payment. Please try again.', 'error');
-      }
-    } else {
-      // Card/Netbanking - simulated for now
-      setTimeout(async () => {
-        const order = await placeOrder(address, 'prepaid');
-        
-        if (order) {
-          try {
-            setProcessStep('Syncing with Shiprocket...');
-            await syncOrderWithShiprocket(order);
-          } catch (error) {
-            console.error('Failed to sync with Shiprocket:', error);
-          }
+      } else {
+        // Card/Netbanking - simulated for now
+        setTimeout(async () => {
+          const order = await placeOrder(address, 'prepaid', effectiveCart);
+          
+          if (order) {
+            try {
+              setProcessStep('Syncing with Shiprocket...');
+              await syncOrderWithShiprocket(order);
+            } catch (error) {
+              console.error('Failed to sync with Shiprocket:', error);
+            }
 
-          setCompletedOrder(order);
-          setIsProcessing(false);
-          triggerConfetti();
-        } else {
-          setIsProcessing(false);
-          addToast('Failed to place order. Please try again.', 'error');
-        }
-      }, 2000);
-    }
-  };
+            setCompletedOrder(order);
+            setIsProcessing(false);
+            triggerConfetti();
+            clearBuyNow();
+            sendOrderAlert(order.id);
+          } else {
+            setIsProcessing(false);
+            addToast('Failed to place order. Please try again.', 'error');
+          }
+        }, 2000);
+      }
+   };
 
   // Open Cashfree checkout using official JS SDK
   const openCashfreeCheckout = async (result: { order: Order; paymentSessionId: string }) => {
@@ -356,6 +396,7 @@ export default function CheckoutPage() {
           setTimeout(() => {
             setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
             setPaymentSuccess(false);
+            sendOrderAlert(order.id);
           }, 2000);
         } else if (verifyResult.success && verifyResult.paymentStatus === 'unpaid') {
           addToast('Payment was not completed. Please try again.', 'error');
@@ -385,6 +426,7 @@ export default function CheckoutPage() {
           setTimeout(() => {
             setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
             setPaymentSuccess(false);
+            sendOrderAlert(order.id);
           }, 2000);
         } else {
           addToast('Payment verification failed. Please contact support if amount was deducted.', 'error');
@@ -414,6 +456,7 @@ export default function CheckoutPage() {
               setTimeout(() => {
                 setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
                 setPaymentSuccess(false);
+                sendOrderAlert(order.id);
               }, 2000);
             }
           } catch (error) {
@@ -467,8 +510,8 @@ export default function CheckoutPage() {
       shipping_charges: Number(shippingCost) || 0,
       giftwrap_charges: 0,
       transaction_charges: 0,
-      total_discount: Math.max(0, cartTotal - discountedTotal),
-      sub_total: Number(discountedTotal),
+       total_discount: Math.max(0, effectiveTotal - effectiveDiscountedTotal),
+       sub_total: Number(effectiveDiscountedTotal),
       length: Number(length),
       breadth: Number(breadth),
       height: Number(height),
@@ -645,8 +688,8 @@ export default function CheckoutPage() {
     );
   }
 
-  // Fallback empty view
-  if (cart.length === 0) {
+   // Fallback empty view
+   if (effectiveCart.length === 0) {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4 flex-grow flex flex-col justify-center">
         <h1 className="text-2xl font-black text-foreground">Checkout Unavailable</h1>
@@ -882,7 +925,7 @@ export default function CheckoutPage() {
 
             {/* Item list */}
             <div className="max-h-[220px] overflow-y-auto pr-2 divide-y divide-border space-y-3.5">
-              {cart.map((item) => (
+               {effectiveCart.map((item: any) => (
                 <div key={item.variant.id} className="flex gap-4 items-center justify-between text-xs pt-3 first:pt-0">
                   <div className="flex gap-3 items-center">
                     <ShimmerImage src={item.product.images[0]} alt="" className="h-9 w-9" />
@@ -951,17 +994,17 @@ export default function CheckoutPage() {
             <div className="border-t border-border pt-4 text-xs space-y-2">
               <div className="flex justify-between text-muted-foreground font-semibold">
                 <span>Subtotal</span>
-                <span>₹{cartTotal}</span>
+                 <span>₹{effectiveTotal}</span>
               </div>
               <div className="flex justify-between text-muted-foreground font-semibold">
                 <span>Shipping</span>
                 <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
               </div>
-              {discountAmount > 0 && (
-                <div className="flex justify-between text-muted-foreground font-semibold">
-                  <span>Discount</span>
-                  <span className="text-green-400">-₹{discountAmount}</span>
-                </div>
+               {effectiveDiscountAmount > 0 && (
+                 <div className="flex justify-between text-muted-foreground font-semibold">
+                   <span>Discount</span>
+                   <span className="text-green-400">-₹{effectiveDiscountAmount}</span>
+                 </div>
               )}
               <div className="flex justify-between text-sm font-black text-foreground border-t border-border pt-3">
                 <span>Grand Total</span>

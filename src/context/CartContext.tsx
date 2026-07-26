@@ -28,10 +28,11 @@ interface CartContextType {
   wishlist: string[];
   toggleWishlist: (productId: string) => void;
   orders: Order[];
-  placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree') => Promise<Order | null>;
-  initiateCashfreePayment: (address: ShippingAddress) => Promise<{ order: Order; paymentSessionId: string } | null>;
+  placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree', cartItems?: CartItem[]) => Promise<Order | null>;
+   initiateCashfreePayment: (address: ShippingAddress, cartItems?: CartItem[], grandTotal?: number) => Promise<{ order: Order; paymentSessionId: string } | null>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   verifyCashfreePayment: (orderId: string) => Promise<{ success: boolean; paymentStatus?: string; orderStatus?: string }>;
+  sendOrderAlert: (orderId: string) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -282,35 +283,41 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Place order (for COD or direct prepaid without Cashfree)
-  const placeOrder = async (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree' = 'prepaid'): Promise<Order | null> => {
-    if (cart.length === 0 || !user) return null;
+   // Place order (for COD or direct prepaid without Cashfree)
+   const placeOrder = async (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree' = 'prepaid', cartItems?: CartItem[]): Promise<Order | null> => {
+    const items = cartItems || cart;
+    if (items.length === 0 || !user) return null;
 
-    const orderId = `ord_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+   const orderId = `ord_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-    const isCashfree = paymentMethod === 'cashfree';
-    const internalPaymentMethod = isCashfree ? 'cashfree_upi' : paymentMethod;
+   const isCashfree = paymentMethod === 'cashfree';
+   const internalPaymentMethod = isCashfree ? 'cashfree_upi' : paymentMethod;
 
-    const newOrder: Order = {
-      id: orderId,
-      user_id: user.id,
-      status: isCashfree ? 'pending' : 'processing',
-      payment_status: isCashfree ? 'unpaid' : (paymentMethod === 'cod' ? 'cod_pending' : 'paid'),
-      payment_method: internalPaymentMethod,
-      total_amount: discountedTotal,
-      shipping_address: address,
-      items: cart.map(item => ({
-        product_id: item.product.id,
-        product_title: item.product.title,
-        product_image: item.product.images[0],
-        variant_id: item.variant.id,
-        size: item.variant.size,
-        color: item.variant.color,
-        quantity: item.quantity,
-        price: item.product.sale_price || item.product.price
-      })),
-      created_at: new Date().toISOString()
-    };
+   // Compute total from the actual items being ordered (handles Buy Now where cart may be empty)
+   const orderTotal = items.reduce((total, item) => {
+     return total + (item.product.sale_price || item.product.price) * item.quantity;
+   }, 0);
+
+   const newOrder: Order = {
+     id: orderId,
+     user_id: user.id,
+     status: isCashfree ? 'pending' : 'processing',
+     payment_status: isCashfree ? 'unpaid' : (paymentMethod === 'cod' ? 'cod_pending' : 'paid'),
+     payment_method: internalPaymentMethod,
+      total_amount: orderTotal,
+     shipping_address: address,
+     items: items.map(item => ({
+       product_id: item.product.id,
+       product_title: item.product.title,
+       product_image: item.product.images[0],
+       variant_id: item.variant.id,
+       size: item.variant.size,
+       color: item.variant.color,
+       quantity: item.quantity,
+       price: item.product.sale_price || item.product.price
+     })),
+     created_at: new Date().toISOString()
+   };
 
     let dbOrderCreated = false;
 
@@ -357,7 +364,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           status: newOrder.status,
           payment_status: newOrder.payment_status,
           payment_method: newOrder.payment_method,
-          total_amount: discountedTotal,
+          total_amount: orderTotal,
           shipping_address: address,
           coupon_code: appliedCoupon?.code ?? null,
           discount_amount: discountAmount
@@ -367,7 +374,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (!orderError) {
         dbOrderCreated = true;
 
-        const itemsToInsert = cart.map(item => ({
+        const itemsToInsert = items.map(item => ({
           order_id: orderId,
           product_id: item.product.id,
           variant_id: item.variant.id,
@@ -381,7 +388,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
 
         // Update variant stocks
-        for (const item of cart) {
+        for (const item of items) {
           const { data: vData } = await supabase
             .from('product_variants')
             .select('stock_quantity')
@@ -412,41 +419,37 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       }
     }
 
-    // Send order alert notifications (non-blocking) - only for non-Cashfree orders
-    if (dbOrderCreated && orderId && !isCashfree) {
-      sendOrderAlert(orderId).catch(err => {
-        console.error('Failed to send order alert notification:', err);
-      });
-    }
-
     return newOrder;
   };
 
-  // Initiate Cashfree payment using standard order creation + JS SDK
-  const initiateCashfreePayment = async (address: ShippingAddress): Promise<{ order: Order; paymentSessionId: string } | null> => {
-    if (cart.length === 0 || !user) return null;
+   // Initiate Cashfree payment using standard order creation + JS SDK
+   const initiateCashfreePayment = async (address: ShippingAddress, cartItems?: CartItem[], grandTotal?: number): Promise<{ order: Order; paymentSessionId: string } | null> => {
+    const items = cartItems || cart;
+    if (items.length === 0 || !user) return null;
 
     // First create the order in pending state
-    const order = await placeOrder(address, 'cashfree');
+    const order = await placeOrder(address, 'cashfree', items);
     if (!order) return null;
 
-    try {
-      // Create order on Cashfree to get payment session ID
-      const response = await fetch('/api/cashfree/create-order', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          orderId: order.id,
-          amount: Math.round(order.total_amount * 100) / 100,
-          customerDetails: {
-            name: address.fullName,
-            email: user.email || 'customer@example.com',
-            phone: address.phone,
-          },
-        }),
-      });
+   try {
+     // Create order on Cashfree to get payment session ID
+     // Use grandTotal (includes shipping) if provided, otherwise fallback to order total
+     const cashfreeAmount = grandTotal !== undefined ? grandTotal : Math.round(order.total_amount * 100) / 100;
+     const response = await fetch('/api/cashfree/create-order', {
+       method: 'POST',
+       headers: {
+         'Content-Type': 'application/json',
+       },
+       body: JSON.stringify({
+         orderId: order.id,
+         amount: Math.round(cashfreeAmount * 100) / 100,
+         customerDetails: {
+           name: address.fullName,
+           email: user.email || 'customer@example.com',
+           phone: address.phone,
+         },
+       }),
+     });
 
       const data = await response.json();
 
@@ -557,6 +560,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       initiateCashfreePayment,
       updateOrderStatus,
       verifyCashfreePayment,
+      sendOrderAlert,
     }}>
       {children}
     </CartContext.Provider>

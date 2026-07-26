@@ -179,17 +179,17 @@ export default function FashionBanner() {
         ))}
       </div>
 
-      {/* Navigation Arrows */}
+      {/* Navigation Arrows (hidden on mobile) */}
       <button
         onClick={() => { prev(); setIsAutoPlaying(false); }}
-        className="absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 bg-background/80 hover:bg-background text-foreground rounded-full border border-border shadow-lg transition-all duration-300 backdrop-blur-sm"
+        className="hidden sm:block absolute left-4 top-1/2 -translate-y-1/2 z-20 p-2.5 bg-background/80 hover:bg-background text-foreground rounded-full border border-border shadow-lg transition-all duration-300 backdrop-blur-sm"
         aria-label="Previous slide"
       >
         <ChevronLeft className="h-5 w-5" />
       </button>
       <button
         onClick={() => { next(); setIsAutoPlaying(false); }}
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 bg-background/80 hover:bg-background text-foreground rounded-full border border-border shadow-lg transition-all duration-300 backdrop-blur-sm"
+        className="hidden sm:block absolute right-4 top-1/2 -translate-y-1/2 z-20 p-2.5 bg-background/80 hover:bg-background text-foreground rounded-full border border-border shadow-lg transition-all duration-300 backdrop-blur-sm"
         aria-label="Next slide"
       >
         <ChevronRight className="h-5 w-5" />

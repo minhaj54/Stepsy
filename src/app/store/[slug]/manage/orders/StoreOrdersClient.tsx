@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, RefreshCw, ShoppingBag, Eye, Search, Filter, Package, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, ExternalLink, CreditCard } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ShoppingBag, Eye, Search, Filter, Package, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
 import { useToast } from '@/components/Toast';
 
@@ -63,59 +63,6 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
     }
 
     setUpdatingId(null);
-  };
-
-  const handleGenerateAWB = async (orderId: string, shipmentId: number) => {
-    setUpdatingId(orderId);
-    try {
-      const response = await fetch('/api/shiprocket/awb', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shipmentId, orderId }),
-      });
-      const data = await response.json();
-      if (!response.ok || data.status !== 1) {
-        throw new Error(data.error || 'Failed to generate AWB');
-      }
-      
-      // Update local orders state
-      setOrders(prev =>
-        prev.map(o => (o.id === orderId ? { ...o, awb_code: data.data.awb_code, courier_name: `Courier ID: ${data.data.courier_company_id}` } : o))
-      );
-      addToast('AWB generated successfully!', 'success');
-    } catch (err) {
-      console.error(err);
-      addToast(err instanceof Error ? err.message : 'Failed to generate AWB', 'error');
-    } finally {
-      setUpdatingId(null);
-    }
-  };
-
-  const handleCancelShipment = async (orderId: string, shipmentId: number) => {
-    if (!confirm('Are you sure you want to cancel the shipment in Shiprocket?')) return;
-    setUpdatingId(orderId);
-    try {
-      const response = await fetch('/api/shiprocket/cancel', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ shipmentId, orderId }),
-      });
-      const data = await response.json();
-      if (!response.ok || data.status !== 1) {
-        throw new Error(data.error || 'Failed to cancel shipment');
-      }
-      
-      // Update local orders state
-      setOrders(prev =>
-        prev.map(o => (o.id === orderId ? { ...o, shiprocket_order_id: undefined, shipment_id: undefined, awb_code: undefined, courier_name: undefined } : o))
-      );
-      addToast('Shipment cancelled successfully!', 'success');
-    } catch (err) {
-      console.error(err);
-      addToast(err instanceof Error ? err.message : 'Failed to cancel shipment', 'error');
-    } finally {
-      setUpdatingId(null);
-    }
   };
 
   const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
@@ -311,73 +258,6 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
                               </span>
                             </div>
                           )}
-                        </div>
-                      </div>
-                    )}
-
-                    {/* Shiprocket Tracking Info */}
-                    {(order as any).shiprocket_order_id && (
-                      <div>
-                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Shiprocket Tracking</h4>
-                        <div className="p-3 bg-secondary rounded-xl space-y-2">
-                          <div className="flex items-center justify-between text-xs">
-                            <span className="text-muted-foreground">Shiprocket Order ID</span>
-                            <span className="font-mono text-foreground">#{(order as any).shiprocket_order_id}</span>
-                          </div>
-                          {(order as any).awb_code && (
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-muted-foreground">AWB Code</span>
-                              <span className="font-mono text-foreground">{(order as any).awb_code}</span>
-                            </div>
-                          )}
-                          {(order as any).courier_name && (
-                            <div className="flex items-center justify-between text-xs">
-                              <span className="text-muted-foreground">Courier</span>
-                              <span className="text-foreground">{(order as any).courier_name}</span>
-                            </div>
-                          )}
-                           {(order as any).shiprocket_order_id && (
-                              <div className="flex flex-wrap gap-2 pt-2 border-t border-border mt-2">
-                                <a
-                                  href={`https://app.shiprocket.in/orders/${(order as any).shiprocket_order_id}`}
-                                  target="_blank"
-                                  rel="noopener noreferrer"
-                                  className="inline-flex items-center gap-1 text-[10px] text-primary hover:text-primary-hover transition-colors font-bold mr-auto"
-                                >
-                                  View in Dashboard <ExternalLink className="h-3 w-3" />
-                                </a>
-
-                                {!(order as any).awb_code && (
-                                  <button
-                                    onClick={() => handleGenerateAWB(order.id, (order as any).shipment_id)}
-                                    disabled={updatingId === order.id}
-                                    className="bg-primary hover:bg-primary-hover text-white text-[10px] font-bold px-2 py-1 rounded transition-all disabled:opacity-50"
-                                  >
-                                    Generate AWB
-                                  </button>
-                                )}
-
-                                {(order as any).awb_code && (
-                                  <>
-                                    <a
-                                      href={`/api/shiprocket/label?shipmentId=${(order as any).shipment_id}`}
-                                      target="_blank"
-                                      rel="noopener noreferrer"
-                                      className="bg-zinc-850 hover:bg-zinc-700 text-white text-[10px] font-bold px-2 py-1 rounded transition-all"
-                                    >
-                                      Download Label
-                                    </a>
-                                    <button
-                                      onClick={() => handleCancelShipment(order.id, (order as any).shipment_id)}
-                                      disabled={updatingId === order.id}
-                                      className="bg-red-500/10 hover:bg-red-500/20 text-red-400 text-[10px] font-bold px-2 py-1 rounded transition-all disabled:opacity-50"
-                                    >
-                                      Cancel Shipment
-                                    </button>
-                                  </>
-                                )}
-                              </div>
-                            )}
                         </div>
                       </div>
                     )}
