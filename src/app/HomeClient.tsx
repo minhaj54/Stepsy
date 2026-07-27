@@ -76,31 +76,29 @@ export default function HomeClient({ products, categories, brands, testimonials 
       </section>
 
       {/* Categories Grid */}
-      <section className="px-4 sm:px-6 lg:px-8 py-10 sm:py-16">
-        <div className="text-center mb-4 sm:mb-8 space-y-1">
+      <section className="px-4 sm:px-6 lg:px-8 py-8 sm:py-16">
+        <div className="text-center mb-6 sm:mb-10 space-y-1">
           <h2 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Shop by Category</h2>
           <p className="text-muted-foreground text-xs sm:text-sm">Explore specialized shoes designed for every scenario</p>
         </div>
 
-        <div className="flex flex-wrap justify-center gap-3 sm:gap-4">
+        <div className="flex overflow-x-auto gap-3 sm:gap-5 pb-6 pl-4 sm:pl-0 snap-x snap-mandatory [scrollbar-width:none] [&::-webkit-scrollbar]:hidden">
           {categories.map((cat) => (
             <Link
               key={cat.id}
               href={`/shop?category=${cat.slug}`}
-              className="group relative w-[45%] sm:w-[25%] lg:w-[16%] aspect-[3/4] rounded-md sm:rounded-lg overflow-hidden border border-border hover:border-primary/40 transition-all duration-300 cursor-pointer"
+              className="group relative shrink-0 flex flex-col items-center cursor-pointer snap-start"
             >
-              <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent z-10 transition-opacity duration-300" />
-              <img
-                src={cat.image}
-                alt={cat.name}
-                className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-500"
-              />
-              <div className="absolute bottom-2 left-2 right-2 sm:bottom-2.5 sm:left-2.5 sm:right-2.5 z-20">
-                <span className="text-[9px] sm:text-[9px] text-primary font-bold uppercase tracking-wider">Explore</span>
-                <h3 className="text-[11px] sm:text-xs font-extrabold text-foreground tracking-tight mt-0.5 group-hover:text-primary transition-colors">
-                  {cat.name}
-                </h3>
+              <div className="relative w-[100px] h-[100px] sm:w-[130px] sm:h-[130px] md:w-[150px] md:h-[150px] rounded-full overflow-hidden border-2 sm:border-3 border-border hover:border-primary/70 hover:shadow-[0_0_15px_rgba(99,102,241,0.25)] transition-all duration-300">
+                <img
+                  src={cat.image}
+                  alt={cat.name}
+                  className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-500"
+                />
               </div>
+              <h3 className="text-[10px] sm:text-xs font-extrabold text-foreground tracking-tight mt-1.5 group-hover:text-primary transition-colors leading-tight text-center">
+                {cat.name}
+              </h3>
             </Link>
           ))}
         </div>
