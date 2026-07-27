@@ -1,6 +1,7 @@
 import React, { Suspense } from 'react';
 import CheckoutClient from './CheckoutClient';
 import { BreadcrumbSchema } from '../../components/JsonLd';
+import AuthGuard from '../../components/AuthGuard';
 
 export const metadata = {
   title: 'Secure Checkout | Fast & Safe Payment - Zarwinto',
@@ -29,7 +30,9 @@ export default function CheckoutPage() {
         ]}
       />
       <Suspense fallback={<div className="px-4 sm:px-6 lg:px-8 py-10 text-center">Loading...</div>}>
-        <CheckoutClient />
+        <AuthGuard>
+          <CheckoutClient />
+        </AuthGuard>
       </Suspense>
     </>
   );

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import Link from 'next/link';
 import { ArrowRight, ChevronLeft, ChevronRight } from 'lucide-react';
 
@@ -71,6 +71,10 @@ const banners: BannerSlide[] = [
 export default function FashionBanner() {
   const [current, setCurrent] = useState(0);
   const [isAutoPlaying, setIsAutoPlaying] = useState(true);
+  const [isDragging, setIsDragging] = useState(false);
+  const [dragStart, setDragStart] = useState(0);
+  const [dragOffset, setDragOffset] = useState(0);
+  const containerRef = useRef<HTMLDivElement>(null);
 
   const next = () => setCurrent((prev) => (prev + 1) % banners.length);
   const prev = () => setCurrent((prev) => (prev - 1 + banners.length) % banners.length);
@@ -80,6 +84,58 @@ export default function FashionBanner() {
     const timer = setInterval(next, 4000);
     return () => clearInterval(timer);
   }, [isAutoPlaying]);
+
+  // Drag handlers for manual scrolling
+  const handleDragStart = (clientX: number) => {
+    setIsDragging(true);
+    setIsAutoPlaying(false);
+    setDragStart(clientX);
+    setDragOffset(0);
+  };
+
+  const handleDragMove = (clientX: number) => {
+    if (!isDragging) return;
+    setDragOffset(clientX - dragStart);
+  };
+
+  const handleDragEnd = () => {
+    if (!isDragging) return;
+    setIsDragging(false);
+    const threshold = 50;
+    if (dragOffset > threshold) {
+      prev();
+    } else if (dragOffset < -threshold) {
+      next();
+    }
+    setDragOffset(0);
+    // Resume auto-play after 5 seconds of inactivity
+    setTimeout(() => setIsAutoPlaying(true), 5000);
+  };
+
+  const onMouseDown = (e: React.MouseEvent) => {
+    e.preventDefault();
+    handleDragStart(e.clientX);
+  };
+
+  const onMouseMove = (e: React.MouseEvent) => {
+    handleDragMove(e.clientX);
+  };
+
+  const onMouseUp = () => {
+    handleDragEnd();
+  };
+
+  const onTouchStart = (e: React.TouchEvent) => {
+    handleDragStart(e.touches[0].clientX);
+  };
+
+  const onTouchMove = (e: React.TouchEvent) => {
+    handleDragMove(e.touches[0].clientX);
+  };
+
+  const onTouchEnd = () => {
+    handleDragEnd();
+  };
 
   const getThemeClasses = (theme: string) => {
     switch (theme) {
@@ -107,13 +163,28 @@ export default function FashionBanner() {
     }
   };
 
+  const handleMouseLeave = () => {
+    if (isDragging) {
+      onMouseUp();
+    } else {
+      setIsAutoPlaying(true);
+    }
+  };
+
   return (
     <section className="relative w-full overflow-hidden">
       <div
-        className={`flex transition-transform duration-700 ease-in-out ${getThemeClasses(banners[current].theme)}`}
-        style={{ transform: `translateX(-${current * 100}%)` }}
-        onMouseEnter={() => setIsAutoPlaying(false)}
-        onMouseLeave={() => setIsAutoPlaying(true)}
+        ref={containerRef}
+        className={`flex transition-transform duration-700 ease-in-out ${getThemeClasses(banners[current].theme)} ${isDragging ? 'cursor-grabbing' : 'cursor-grab'}`}
+        style={{ transform: `translateX(calc(-${current * 100}% + ${dragOffset}px))` }}
+        onMouseEnter={() => !isDragging && setIsAutoPlaying(false)}
+        onMouseLeave={handleMouseLeave}
+        onMouseDown={onMouseDown}
+        onMouseMove={onMouseMove}
+        onMouseUp={onMouseUp}
+        onTouchStart={onTouchStart}
+        onTouchMove={onTouchMove}
+        onTouchEnd={onTouchEnd}
       >
         {banners.map((banner) => (
           <div

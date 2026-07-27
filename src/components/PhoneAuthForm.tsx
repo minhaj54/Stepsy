@@ -43,7 +43,8 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
     if (user && !redirecting) {
       console.log('[PhoneAuthForm] user is truthy, redirecting to:', redirect);
       setRedirecting(true);
-      router.push(redirect);
+      // Use replace to avoid back-button issues after login
+      router.replace(redirect);
     }
   }, [user, router, redirect, redirecting]);
 
@@ -121,13 +122,13 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
         return;
       }
 
-      console.log('[PhoneAuthForm] verifyOtp successful, refreshing session');
+      console.log('[PhoneAuthForm] verifyOtp successful, waiting for user state');
       setHasVerifiedOtp(true);
 
       // Clear any existing redirect timeout
       if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
 
-      // Set a timeout to force redirect if onAuthStateChange doesn't fire
+      // Set a timeout to force redirect if user state doesn't update
       redirectTimeoutRef.current = setTimeout(async () => {
         console.log('[PhoneAuthForm] redirect timeout reached, forcing session refresh');
         await refreshSession();

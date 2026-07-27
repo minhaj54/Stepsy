@@ -232,7 +232,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) return { error: error.message };
-      
+
+      // Immediately update local state so the UI can react without waiting
+      // for onAuthStateChange (which can be delayed or missed in some cases).
+      if (data.session) {
+        setSession(data.session);
+        if (data.session.user) {
+          applySession(setUser, supabase, data.session.user);
+        }
+      }
+
       // Background update for full_name if provided
       if (fullName && data.session?.user?.id) {
         (async () => {
