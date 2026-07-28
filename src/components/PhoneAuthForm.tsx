@@ -32,6 +32,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
   const [isRateLimited, setIsRateLimited] = useState(false);
   const [hasVerifiedOtp, setHasVerifiedOtp] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
+  const [showManualRedirect, setShowManualRedirect] = useState(false);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const redirectAttemptedRef = useRef(false);
@@ -80,6 +81,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
     if (redirectAttemptedRef.current) return;
     redirectAttemptedRef.current = true;
     setRedirecting(true);
+    setShowManualRedirect(false);
     window.location.href = redirect;
   };
 
@@ -151,6 +153,11 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
 
       console.log('[PhoneAuthForm] verifyOtp successful, waiting for user state');
       setHasVerifiedOtp(true);
+      // Show manual redirect button after a short delay
+      // This ensures the button is visible even if automatic redirect fails
+      setTimeout(() => {
+        setShowManualRedirect(true);
+      }, 1500);
 
       // Clear any existing redirect timeout
       if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
@@ -171,6 +178,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
         if (redirectAttemptedRef.current) return;
         redirectAttemptedRef.current = true;
         setRedirecting(true);
+        setShowManualRedirect(false);
 
         // Try client-side navigation first
         try {
@@ -318,14 +326,14 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                         ? 'Signing you in...'
                         : 'Verifying your code and signing you in — this can take up to a minute on first login.'}
                     </p>
-                    {hasVerifiedOtp && !redirecting && (
+                    {showManualRedirect && !redirecting && (
                       <button
                         type="button"
                         onClick={handleManualRedirect}
-                        className="w-full mt-2 bg-primary hover:bg-primary-hover text-white py-2.5 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+                        className="w-full mt-2 bg-primary hover:bg-primary-hover text-white py-3 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2 animate-pulse"
                       >
                         <ArrowRight className="h-4 w-4" />
-                        Go to My Account
+                        Tap here to go to My Account
                       </button>
                     )}
                     {redirecting && (
