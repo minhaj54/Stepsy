@@ -34,14 +34,16 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
   const [redirecting, setRedirecting] = useState(false);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const redirectAttemptedRef = useRef(false);
 
   const isSignup = mode === 'signup';
 
   // Redirect as soon as user is logged in
   useEffect(() => {
     console.log('[PhoneAuthForm] redirect useEffect triggered, user:', user);
-    if (user && !redirecting) {
+    if (user && !redirecting && !redirectAttemptedRef.current) {
       console.log('[PhoneAuthForm] user is truthy, redirecting to:', redirect);
+      redirectAttemptedRef.current = true;
       setRedirecting(true);
       // Use replace to avoid back-button issues after login
       router.replace(redirect);
@@ -55,6 +57,23 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
       if (redirectTimeoutRef.current) clearTimeout(redirectTimeoutRef.current);
     };
   }, []);
+
+  // Fallback: if user state updates but redirect hasn't happened within REDIRECT_TIMEOUT_MS,
+  // force a full page navigation as a last resort
+  useEffect(() => {
+    if (!hasVerifiedOtp || redirecting) return;
+
+    const fallbackTimer = setTimeout(() => {
+      if (user && !redirectAttemptedRef.current) {
+        console.log('[PhoneAuthForm] fallback: forcing full page navigation');
+        redirectAttemptedRef.current = true;
+        setRedirecting(true);
+        window.location.href = redirect;
+      }
+    }, REDIRECT_TIMEOUT_MS + 1000);
+
+    return () => clearTimeout(fallbackTimer);
+  }, [hasVerifiedOtp, redirecting, user, redirect]);
 
   const startResendCooldown = (seconds = RESEND_COOLDOWN_SECONDS) => {
     if (cooldownRef.current) clearInterval(cooldownRef.current);
@@ -137,6 +156,17 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
 
       // Immediately try to refresh the session as a fallback
       await refreshSession();
+
+      // Direct redirect attempt after a short delay to ensure state has updated
+      // This fixes the issue where router.replace in useEffect doesn't trigger
+      setTimeout(() => {
+        if (!redirectAttemptedRef.current) {
+          console.log('[PhoneAuthForm] direct redirect fallback triggered');
+          redirectAttemptedRef.current = true;
+          setRedirecting(true);
+          router.replace(redirect);
+        }
+      }, 300);
 
       // Keep verifying state true until redirect happens (useEffect will set redirecting)
       // This prevents the button from being re-enabled

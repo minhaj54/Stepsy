@@ -240,16 +240,28 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         if (data.session.user) {
           applySession(setUser, supabase, data.session.user);
         }
+      } else if (data.user) {
+        // Fallback: if session is null but user exists, refresh the session
+        // This can happen in some edge cases where verifyOtp returns a user but no session
+        const { data: refreshData } = await supabase.auth.getSession();
+        if (refreshData.session) {
+          setSession(refreshData.session);
+          applySession(setUser, supabase, refreshData.session.user);
+        } else if (data.user) {
+          // Last resort: build profile directly from the user object
+          applySession(setUser, supabase, data.user);
+        }
       }
 
       // Background update for full_name if provided
-      if (fullName && data.session?.user?.id) {
+      if (fullName && (data.session?.user?.id || data.user?.id)) {
+        const userId = data.session?.user?.id || data.user?.id;
         (async () => {
           try {
             await supabase
               .from('users')
               .update({ full_name: fullName.trim() })
-              .eq('id', data.session.user.id);
+              .eq('id', userId);
             await supabase.auth.updateUser({
               data: { full_name: fullName.trim() }
             });
