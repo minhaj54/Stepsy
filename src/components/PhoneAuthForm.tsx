@@ -173,26 +173,28 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
       // Immediately try to refresh the session as a fallback
       await refreshSession();
 
-      // Robust redirect: try router.replace first, then fallback to window.location.href
-      // This ensures redirect works on all devices including mobile
+      // Robust redirect: try router.replace first
+      // On mobile where router.replace may fail, we show a manual button instead
+      // of using window.location.href immediately, to avoid middleware intercepting
+      // the navigation before the auth cookie is available
       const attemptRedirect = async () => {
         if (autoRedirectAttemptedRef.current) return;
         autoRedirectAttemptedRef.current = true;
         setRedirecting(true);
-        setShowManualRedirect(false);
 
         // Try client-side navigation first
         try {
           await router.replace(redirect);
         } catch {
-          // Fallback to full page navigation if router.replace fails
-          console.log('[PhoneAuthForm] router.replace failed, using window.location.href');
-          window.location.href = redirect;
+          // If router.replace fails (common on mobile), show manual button
+          // The button will use window.location.href after a delay when cookie is ready
+          console.log('[PhoneAuthForm] router.replace failed, showing manual redirect button');
+          setRedirecting(false);
+          autoRedirectAttemptedRef.current = false;
         }
       };
 
-      // Attempt redirect immediately after a very short delay
-      // Mobile browsers often need this for client-side navigation to work
+      // Attempt redirect immediately after a short delay
       setTimeout(() => {
         attemptRedirect();
       }, 200);
