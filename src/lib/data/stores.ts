@@ -1,5 +1,5 @@
 import { Store, Product, SocialHandle, PickupAddress } from '../../types';
-import { PRODUCT_SELECT, mapDbProduct } from './products';
+import { PRODUCT_SELECT, mapDbProduct, isSupabaseConfigured } from './products';
 import { mockStores } from '../../data/mockShoes';
 
 interface DbStore {
@@ -53,6 +53,10 @@ function mapDbStore(row: DbStore): Store {
 }
 
 export async function getStores(): Promise<Store[]> {
+  if (!isSupabaseConfigured()) {
+    return mockStores.filter(s => s.status === 'active');
+  }
+
   try {
     const { createClient } = await import('../supabase/server');
     const supabase = await createClient();
@@ -63,10 +67,10 @@ export async function getStores(): Promise<Store[]> {
       .eq('status', 'active')
       .order('created_at', { ascending: false });
 
-    if (error || !data) return [];
+    if (error || !data) return mockStores.filter(s => s.status === 'active');
     return (data as DbStore[]).map(mapDbStore);
   } catch {
-    return [];
+    return mockStores.filter(s => s.status === 'active');
   }
 }
 
