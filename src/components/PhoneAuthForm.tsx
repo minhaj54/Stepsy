@@ -35,16 +35,17 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
   const [showManualRedirect, setShowManualRedirect] = useState(false);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-  const redirectAttemptedRef = useRef(false);
+  const autoRedirectAttemptedRef = useRef(false);
+  const manualRedirectAttemptedRef = useRef(false);
 
   const isSignup = mode === 'signup';
 
   // Redirect as soon as user is logged in
   useEffect(() => {
     console.log('[PhoneAuthForm] redirect useEffect triggered, user:', user);
-    if (user && !redirecting && !redirectAttemptedRef.current) {
+    if (user && !redirecting && !autoRedirectAttemptedRef.current) {
       console.log('[PhoneAuthForm] user is truthy, redirecting to:', redirect);
-      redirectAttemptedRef.current = true;
+      autoRedirectAttemptedRef.current = true;
       setRedirecting(true);
       // Use replace to avoid back-button issues after login
       router.replace(redirect);
@@ -65,9 +66,9 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
     if (!hasVerifiedOtp || redirecting) return;
 
     const fallbackTimer = setTimeout(() => {
-      if (user && !redirectAttemptedRef.current) {
+      if (user && !autoRedirectAttemptedRef.current && !manualRedirectAttemptedRef.current) {
         console.log('[PhoneAuthForm] fallback: forcing full page navigation');
-        redirectAttemptedRef.current = true;
+        autoRedirectAttemptedRef.current = true;
         setRedirecting(true);
         window.location.href = redirect;
       }
@@ -78,8 +79,8 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
 
   // Manual redirect button handler for mobile users
   const handleManualRedirect = () => {
-    if (redirectAttemptedRef.current) return;
-    redirectAttemptedRef.current = true;
+    if (manualRedirectAttemptedRef.current) return;
+    manualRedirectAttemptedRef.current = true;
     setRedirecting(true);
     setShowManualRedirect(false);
     window.location.href = redirect;
@@ -175,8 +176,8 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
       // Robust redirect: try router.replace first, then fallback to window.location.href
       // This ensures redirect works on all devices including mobile
       const attemptRedirect = async () => {
-        if (redirectAttemptedRef.current) return;
-        redirectAttemptedRef.current = true;
+        if (autoRedirectAttemptedRef.current) return;
+        autoRedirectAttemptedRef.current = true;
         setRedirecting(true);
         setShowManualRedirect(false);
 
