@@ -75,6 +75,14 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
     return () => clearTimeout(fallbackTimer);
   }, [hasVerifiedOtp, redirecting, user, redirect]);
 
+  // Manual redirect button handler for mobile users
+  const handleManualRedirect = () => {
+    if (redirectAttemptedRef.current) return;
+    redirectAttemptedRef.current = true;
+    setRedirecting(true);
+    window.location.href = redirect;
+  };
+
   const startResendCooldown = (seconds = RESEND_COOLDOWN_SECONDS) => {
     if (cooldownRef.current) clearInterval(cooldownRef.current);
     setResendCooldown(seconds);
@@ -157,16 +165,27 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
       // Immediately try to refresh the session as a fallback
       await refreshSession();
 
-      // Direct redirect attempt after a short delay to ensure state has updated
-      // This fixes the issue where router.replace in useEffect doesn't trigger
-      setTimeout(() => {
-        if (!redirectAttemptedRef.current) {
-          console.log('[PhoneAuthForm] direct redirect fallback triggered');
-          redirectAttemptedRef.current = true;
-          setRedirecting(true);
-          router.replace(redirect);
+      // Robust redirect: try router.replace first, then fallback to window.location.href
+      // This ensures redirect works on all devices including mobile
+      const attemptRedirect = async () => {
+        if (redirectAttemptedRef.current) return;
+        redirectAttemptedRef.current = true;
+        setRedirecting(true);
+
+        // Try client-side navigation first
+        try {
+          await router.replace(redirect);
+        } catch {
+          // Fallback to full page navigation if router.replace fails
+          console.log('[PhoneAuthForm] router.replace failed, using window.location.href');
+          window.location.href = redirect;
         }
-      }, 300);
+      };
+
+      // Small delay to ensure state has updated and any auth listeners have fired
+      setTimeout(() => {
+        attemptRedirect();
+      }, 500);
 
       // Keep verifying state true until redirect happens (useEffect will set redirecting)
       // This prevents the button from being re-enabled
@@ -290,13 +309,29 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
           ) : (
             <form onSubmit={handleVerifyOtp} className="space-y-4">
               {(verifying || hasVerifiedOtp) && (
-                <div className="flex items-center gap-3 p-3 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs">
-                  <Loader2 className="h-4 w-4 animate-spin flex-shrink-0" />
-                  <span>
-                    {hasVerifiedOtp
-                      ? 'Signing you in...'
-                      : 'Verifying your code and signing you in — this can take up to a minute on first login.'}
-                  </span>
+                <div className="flex items-start gap-3 p-3 bg-primary/10 border border-primary/20 rounded-xl text-primary text-xs">
+                  <Loader2 className="h-4 w-4 animate-spin flex-shrink-0 mt-0.5" />
+                  <div className="space-y-2">
+                    <p>
+                      {hasVerifiedOtp
+                        ? 'Signing you in...'
+                        : 'Verifying your code and signing you in — this can take up to a minute on first login.'}
+                    </p>
+                    {hasVerifiedOtp && !redirecting && (
+                      <button
+                        type="button"
+                        onClick={handleManualRedirect}
+                        className="text-primary font-semibold underline underline-offset-2 hover:text-primary-hover transition-colors"
+                      >
+                        Click here if you are not redirected automatically
+                      </button>
+                    )}
+                    {redirecting && (
+                      <p className="text-primary/70">
+                        Redirecting you to your account...
+                      </p>
+                    )}
+                  </div>
                 </div>
               )}
 
