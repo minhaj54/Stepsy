@@ -182,10 +182,11 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
         }
       };
 
-      // Small delay to ensure state has updated and any auth listeners have fired
+      // Attempt redirect immediately after a very short delay
+      // Mobile browsers often need this for client-side navigation to work
       setTimeout(() => {
         attemptRedirect();
-      }, 500);
+      }, 200);
 
       // Keep verifying state true until redirect happens (useEffect will set redirecting)
       // This prevents the button from being re-enabled
@@ -321,9 +322,10 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                       <button
                         type="button"
                         onClick={handleManualRedirect}
-                        className="text-primary font-semibold underline underline-offset-2 hover:text-primary-hover transition-colors"
+                        className="w-full mt-2 bg-primary hover:bg-primary-hover text-white py-2.5 px-4 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
                       >
-                        Click here if you are not redirected automatically
+                        <ArrowRight className="h-4 w-4" />
+                        Go to My Account
                       </button>
                     )}
                     {redirecting && (
