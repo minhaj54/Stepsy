@@ -326,7 +326,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                         ? 'Signing you in...'
                         : 'Verifying your code and signing you in — this can take up to a minute on first login.'}
                     </p>
-                    {showManualRedirect && !redirecting && (
+                    {showManualRedirect && (
                       <button
                         type="button"
                         onClick={handleManualRedirect}
@@ -336,7 +336,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                         Tap here to go to My Account
                       </button>
                     )}
-                    {redirecting && (
+                    {redirecting && !showManualRedirect && (
                       <p className="text-primary/70">
                         Redirecting you to your account...
                       </p>
