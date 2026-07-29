@@ -40,17 +40,22 @@ export default function ShopContent({ products, brands, categories }: ShopConten
   const [maxPrice, setMaxPrice] = useState(priceCeiling);
   const [sortBy, setSortBy] = useState('newest');
   
+  // Pagination
+  const [currentPage, setCurrentPage] = useState(1);
+  const PRODUCTS_PER_PAGE = 6;
+  
   // Mobile Filter Drawer
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
 
-  // Sync URL changes to state
+  // Sync URL changes to state and reset pagination
   useEffect(() => {
     setSelectedCategory(searchParams.get('category') || '');
     setSelectedBrand(searchParams.get('brand') || '');
+    setCurrentPage(1);
   }, [searchParams]);
 
   // Unique lists from data
-  const sizes = ['8', '9', '10', '11', '12'];
+  const sizes = ['6', '7', '8', '9', '10', '11', '12'];
   const colors = [
     { name: 'Volt Electric', class: 'bg-[#ccff00]' },
     { name: 'Cyber Pink', class: 'bg-[#ff007f]' },
@@ -84,6 +89,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
     setSelectedColors([]);
     setMaxPrice(priceCeiling);
     setSortBy('newest');
+    setCurrentPage(1);
     router.push('/shop');
   };
 
@@ -128,6 +134,17 @@ export default function ShopContent({ products, brands, categories }: ShopConten
     // Default: Newest (by ID/date)
     return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
   });
+
+  // Pagination Logic
+  const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE);
+  const startIndex = (currentPage - 1) * PRODUCTS_PER_PAGE;
+  const endIndex = startIndex + PRODUCTS_PER_PAGE;
+  const paginatedProducts = sortedProducts.slice(startIndex, endIndex);
+
+  // Reset to page 1 when filters change
+  useEffect(() => {
+    setCurrentPage(1);
+  }, [selectedCategory, selectedBrand, selectedSizes, selectedColors, maxPrice, sortBy]);
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow">
@@ -324,7 +341,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
             </div>
           ) : (
             <div className="grid grid-cols-2 sm:grid-cols-2 lg:grid-cols-3 gap-3 sm:gap-4 lg:gap-6">
-              {sortedProducts.map((product) => {
+              {paginatedProducts.map((product) => {
                 const isWishlisted = wishlist.includes(product.id);
                 const price = product.price;
                 const salePrice = product.sale_price;
@@ -413,6 +430,43 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                   </div>
                 );
               })}
+            </div>
+          )}
+
+          {/* Pagination */}
+          {totalPages > 1 && (
+            <div className="flex items-center justify-center gap-2 mt-8 sm:mt-12">
+              <button
+                onClick={() => setCurrentPage(prev => Math.max(1, prev - 1))}
+                disabled={currentPage === 1}
+                className="px-4 py-2 rounded-xl bg-card border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              >
+                Previous
+              </button>
+              
+              <div className="flex items-center gap-1.5">
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                  <button
+                    key={page}
+                    onClick={() => setCurrentPage(page)}
+                    className={`w-10 h-10 rounded-xl text-sm font-bold transition-all cursor-pointer ${
+                      currentPage === page
+                        ? 'bg-primary text-white shadow-lg shadow-primary/25'
+                        : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
+                    }`}
+                  >
+                    {page}
+                  </button>
+                ))}
+              </div>
+
+              <button
+                onClick={() => setCurrentPage(prev => Math.min(totalPages, prev + 1))}
+                disabled={currentPage === totalPages}
+                className="px-4 py-2 rounded-xl bg-card border border-border text-sm font-semibold text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 disabled:opacity-50 disabled:cursor-not-allowed transition-all cursor-pointer"
+              >
+                Next
+              </button>
             </div>
           )}
         </div>

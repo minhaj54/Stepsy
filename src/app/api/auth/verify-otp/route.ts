@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { normalizePhone } from '@/lib/phone';
+import { recordOtpAttempt, clearOtpAttempts } from '@/lib/auth/rateLimiter';
 
 export async function POST(request: Request) {
   try {
@@ -12,6 +13,16 @@ export async function POST(request: Request) {
 
     const normalizedPhone = normalizePhone(phone);
 
+    // Check if phone is locked due to too many failed attempts
+    const attemptCheck = recordOtpAttempt(normalizedPhone);
+    if (!attemptCheck.allowed) {
+      const lockoutMinutes = Math.ceil((attemptCheck.lockedUntil! - Date.now()) / 60000);
+      return NextResponse.json(
+        { error: `Too many failed attempts. Please try again in ${lockoutMinutes} minutes.` },
+        { status: 429 }
+      );
+    }
+
     const supabase = await createClient();
     const { error, data } = await supabase.auth.verifyOtp({
       phone: normalizedPhone,
@@ -21,8 +32,21 @@ export async function POST(request: Request) {
 
     if (error) {
       console.error('[API/verify-otp] Error:', error.message);
-      return NextResponse.json({ error: error.message }, { status: 400 });
+      const remaining = attemptCheck.remaining - 1;
+      if (remaining <= 0) {
+        return NextResponse.json(
+          { error: 'Too many failed attempts. Your account has been temporarily locked. Please try again later.' },
+          { status: 429 }
+        );
+      }
+      return NextResponse.json(
+        { error: `Invalid OTP. ${remaining} attempts remaining.` },
+        { status: 400 }
+      );
     }
+
+    // Clear failed attempts on successful verification
+    clearOtpAttempts(normalizedPhone);
 
     // Background update for full_name if provided
     if (fullName && data.session?.user?.id) {

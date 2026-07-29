@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { Send, MapPin, Phone, Mail, Store } from 'lucide-react';
+import { Send, MapPin, Phone, Mail, Store, MessageCircle } from 'lucide-react';
 
 export const Footer: React.FC = () => {
   const [email, setEmail] = useState('');
@@ -159,7 +159,11 @@ export const Footer: React.FC = () => {
               </li>
               <li className="flex gap-2.5 items-center">
                 <Mail className="h-5 w-5 text-primary flex-shrink-0" />
-                <a href="mailto:support@zarwinto.com" className="hover:text-foreground transition-colors">support@zarwinto.com</a>
+                <a href="mailto:zarwinto12@gmail.com" className="hover:text-foreground transition-colors">zarwinto12@gmail.com</a>
+              </li>
+              <li className="flex gap-2.5 items-center">
+                <MessageCircle className="h-5 w-5 text-primary flex-shrink-0" />
+                <a href="https://wa.me/917982369183" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">+91 79823 69183 (WhatsApp)</a>
               </li>
             </ul>
           </div>

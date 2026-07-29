@@ -59,7 +59,7 @@ export function OrganizationSchema({
   url = 'https://zarwinto.com',
   logo = 'https://zarwinto.com/favicon.ico',
   contactPoint = {
-    telephone: '+91-9876543210',
+    telephone: '+91-7982369183',
     contactType: 'customer service',
   },
   sameAs = [

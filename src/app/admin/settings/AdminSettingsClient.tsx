@@ -17,8 +17,8 @@ export default function AdminSettingsClient() {
   const [favicon, setFavicon] = useState('');
   
   // Contact Settings
-  const [contactEmail, setContactEmail] = useState('support@zarwinto.com');
-  const [contactPhone, setContactPhone] = useState('+91 9876543210');
+  const [contactEmail, setContactEmail] = useState('zarwinto12@gmail.com');
+  const [contactPhone, setContactPhone] = useState('+91 79823 69183');
   const [contactAddress, setContactAddress] = useState('');
   
   // Social Settings

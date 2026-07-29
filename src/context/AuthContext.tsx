@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { createClient, isSupabaseConfigured, checkSupabaseConnectivity } from '../lib/supabase/client';
 import { normalizePhone } from '../lib/phone';
+import { canResendOtp, recordOtpSend, recordOtpAttempt, clearOtpAttempts } from '../lib/auth/rateLimiter';
 
 export interface UserProfile {
   id: string;
@@ -14,14 +15,23 @@ export interface UserProfile {
   created_at: string;
 }
 
+interface SendOtpResult {
+  error: string | null;
+  isNewUser?: boolean;
+}
+
+interface VerifyOtpResult {
+  error: string | null;
+}
+
 interface AuthContextType {
   user: UserProfile | null;
   session: Session | null;
   loading: boolean;
   isConfigured: boolean;
   supabaseReachable: boolean;
-  sendOtp: (phone: string, fullName?: string) => Promise<{ error: string | null }>;
-  verifyOtp: (phone: string, code: string, fullName?: string) => Promise<{ error: string | null }>;
+  sendOtp: (phone: string, fullName?: string) => Promise<SendOtpResult>;
+  verifyOtp: (phone: string, code: string, fullName?: string) => Promise<VerifyOtpResult>;
   signOut: () => Promise<void>;
   updateProfile: (data: Partial<Pick<UserProfile, 'full_name'>>) => Promise<{ error: string | null }>;
   refreshSession: () => Promise<void>;
@@ -194,12 +204,36 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return () => subscription.unsubscribe();
   }, [configured]);
 
-  const sendOtp = useCallback(async (phone: string, fullName?: string) => {
+  const sendOtp = useCallback(async (phone: string, fullName?: string): Promise<SendOtpResult> => {
     if (!configured) return { error: 'Supabase is not configured.' };
 
     try {
       const normalizedPhone = normalizePhone(phone);
       const supabase = createClient();
+
+      // Check resend cooldown
+      const resendCheck = canResendOtp(normalizedPhone);
+      if (!resendCheck.allowed) {
+        const remainingSeconds = Math.ceil(resendCheck.remainingMs / 1000);
+        return { error: `Please wait ${remainingSeconds} seconds before requesting a new OTP.` };
+      }
+
+      // Check if phone is locked due to too many failed attempts
+      const attemptCheck = recordOtpAttempt(normalizedPhone);
+      if (!attemptCheck.allowed) {
+        const lockoutMinutes = Math.ceil((attemptCheck.lockedUntil! - Date.now()) / 60000);
+        return { error: `Too many failed attempts. Please try again in ${lockoutMinutes} minutes.` };
+      }
+
+      // Check if user already exists
+      const { data: existingUser } = await supabase
+        .from('users')
+        .select('id')
+        .eq('phone', normalizedPhone)
+        .maybeSingle();
+
+      const isNewUser = !existingUser;
+
       const { error } = await supabase.auth.signInWithOtp({
         phone: normalizedPhone,
         options: {
@@ -209,18 +243,30 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) return { error: error.message };
-      return { error: null };
+
+      // Record successful send and clear any previous failed attempts
+      recordOtpSend(normalizedPhone);
+      clearOtpAttempts(normalizedPhone);
+
+      return { error: null, isNewUser };
     } catch (err) {
       return { error: err instanceof Error ? err.message : 'Network error.' };
     }
   }, [configured]);
 
-  const verifyOtp = useCallback(async (phone: string, code: string, fullName?: string) => {
+  const verifyOtp = useCallback(async (phone: string, code: string, fullName?: string): Promise<VerifyOtpResult> => {
     if (!configured) return { error: 'Supabase is not configured.' };
 
     try {
       const normalizedPhone = normalizePhone(phone);
       const supabase = createClient();
+
+      // Check if phone is locked due to too many failed attempts
+      const attemptCheck = recordOtpAttempt(normalizedPhone);
+      if (!attemptCheck.allowed) {
+        const lockoutMinutes = Math.ceil((attemptCheck.lockedUntil! - Date.now()) / 60000);
+        return { error: `Too many failed attempts. Please try again in ${lockoutMinutes} minutes.` };
+      }
       
       const { error, data } = await supabase.auth.verifyOtp({
         phone: normalizedPhone,
@@ -231,7 +277,16 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         }
       });
 
-      if (error) return { error: error.message };
+      if (error) {
+        const remaining = attemptCheck.remaining - 1;
+        if (remaining <= 0) {
+          return { error: 'Too many failed attempts. Your account has been temporarily locked. Please try again later.' };
+        }
+        return { error: `Invalid OTP. ${remaining} attempts remaining.` };
+      }
+
+      // Clear failed attempts on successful verification
+      clearOtpAttempts(normalizedPhone);
 
       // Immediately update local state so the UI can react without waiting
       // for onAuthStateChange (which can be delayed or missed in some cases).

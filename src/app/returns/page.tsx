@@ -1,15 +1,15 @@
 import React from 'react';
 import Link from 'next/link';
-import { RefreshCw, ArrowRight, CheckCircle2, Package, Clock, ShieldCheck, MessageCircle } from 'lucide-react';
+import { RefreshCw, ArrowRight, CheckCircle2, Package, Clock, ShieldCheck, MessageCircle, Mail } from 'lucide-react';
 import { BreadcrumbSchema } from '../../components/JsonLd';
 
 export const metadata = {
-  title: 'Returns & Exchanges Policy | Easy 30-Day Returns - Zarwinto',
-  description: 'Easy 30-day returns and exchanges on all Zarwinto footwear. Learn how to return or exchange your shoes with a free return label. Start a return online in minutes.',
-  keywords: ['return policy', 'exchange policy', 'easy returns', 'shoe returns', 'refund policy', 'Zarwinto returns', '30-day return', 'free replacement'],
+  title: 'Returns & Exchanges Policy | Easy 7-Day Returns - Zarwinto',
+  description: 'Easy 7-day returns and exchanges on all Zarwinto footwear. Learn how to return or exchange your shoes with a free return label. Start a return online in minutes.',
+  keywords: ['return policy', 'exchange policy', 'easy returns', 'shoe returns', 'refund policy', 'Zarwinto returns', '7-day return', 'free replacement'],
   openGraph: {
-    title: 'Returns & Exchanges Policy | Easy 30-Day Returns - Zarwinto',
-    description: 'Easy 30-day returns and exchanges on all Zarwinto footwear. Learn how to return or exchange your shoes with a free return label.',
+    title: 'Returns & Exchanges Policy | Easy 7-Day Returns - Zarwinto',
+    description: 'Easy 7-day returns and exchanges on all Zarwinto footwear. Learn how to return or exchange your shoes with a free return label.',
     url: 'https://zarwinto.com/returns',
     siteName: 'Zarwinto',
     type: 'website',
@@ -23,7 +23,7 @@ const steps = [
   {
     icon: Package,
     title: 'Start Your Request',
-    description: 'Go to your account, open the order, and click “Return or Exchange” within 30 days of delivery.'
+    description: 'Go to your account, open the order, and click "Return or Exchange" within 7 days of delivery.'
   },
   {
     icon: RefreshCw,
@@ -59,13 +59,13 @@ export default function ReturnsPage() {
         <div className="relative px-4 sm:px-6 lg:px-8 max-w-4xl mx-auto text-center">
           <div className="inline-flex items-center gap-2 px-4 py-2 rounded-full bg-primary/10 border border-primary/20 text-primary text-sm font-semibold mb-6">
             <RefreshCw className="h-4 w-4" />
-            30-Day Happiness Guarantee
+            7-Day Happiness Guarantee
           </div>
           <h1 className="text-4xl sm:text-5xl font-black text-foreground tracking-tight mb-6">
             Returns & <span className="text-primary">Exchanges</span>
           </h1>
           <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
-            Not the perfect fit? No worries. Every Zarwinto order comes with a hassle-free 30-day
+            Not the perfect fit? No worries. Every Zarwinto order comes with a hassle-free 7-day
             return or exchange window and a free return label.
           </p>
         </div>
@@ -79,7 +79,7 @@ export default function ReturnsPage() {
             {steps.map((step, i) => (
               <div
                 key={step.title}
-                className="relative rounded-2xl border border-border bg-card/40 p-5"
+                className="relative rounded-2xl border border-border bg-card p-5"
               >
                 <span className="absolute -top-3 left-5 text-xs font-black text-muted-foreground">0{i + 1}</span>
                 <div className="h-11 w-11 rounded-xl bg-primary/15 flex items-center justify-center text-primary mb-4">
@@ -99,7 +99,7 @@ export default function ReturnsPage() {
             {policies.map((p) => (
               <li
                 key={p}
-                className="flex items-start gap-3 rounded-xl border border-border bg-zinc-900/30 p-4"
+                className="flex items-start gap-3 rounded-xl border border-border bg-muted/30 p-4"
               >
                 <CheckCircle2 className="h-5 w-5 text-primary flex-shrink-0 mt-0.5" />
                 <span className="text-sm text-muted-foreground leading-relaxed">{p}</span>
@@ -109,7 +109,7 @@ export default function ReturnsPage() {
         </section>
 
         {/* CTA */}
-        <section className="rounded-2xl sm:rounded-3xl border border-border bg-gradient-to-r from-primary/10 via-zinc-950 to-primary/10 p-6 sm:p-8 text-center">
+        <section className="rounded-2xl sm:rounded-3xl border border-border bg-gradient-to-r from-primary/10 via-background to-primary/10 p-6 sm:p-8 text-center">
           <div className="flex justify-center mb-4">
             <div className="h-12 w-12 rounded-2xl bg-primary/15 flex items-center justify-center text-primary">
               <MessageCircle className="h-6 w-6" />
@@ -129,10 +129,20 @@ export default function ReturnsPage() {
               <ArrowRight className="h-4 w-4" />
             </Link>
             <a
-              href="mailto:support@zarwinto.com"
+              href="mailto:zarwinto12@gmail.com"
               className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-muted text-foreground border border-border px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm transition-all"
             >
-              Contact Support
+              <Mail className="h-4 w-4" />
+              Email Support
+            </a>
+            <a
+              href="https://wa.me/917982369183"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 sm:px-6 sm:py-3 rounded-xl font-semibold text-xs sm:text-sm transition-all"
+            >
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp Support
             </a>
           </div>
         </section>

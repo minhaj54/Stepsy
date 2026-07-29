@@ -552,7 +552,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
               <RefreshCw className="h-5 w-5 text-primary flex-shrink-0" />
               <div>
                 <p className="font-bold text-foreground">Easy Returns & Exchanges</p>
-                <p className="text-muted-foreground mt-0.5">30-day exchange window with free return label. Refunds processed within 5-7 business days after inspection.</p>
+                <p className="text-muted-foreground mt-0.5">7-day exchange window with free return label. Refunds processed within 5-7 business days after inspection.</p>
               </div>
             </div>
             <div className="flex gap-3 items-start text-xs">
@@ -685,7 +685,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                   Returns & Exchanges
                 </h4>
                 <p className="text-sm text-muted-foreground leading-relaxed">
-                  Every Zarwinto order comes with a hassle-free 30-day return or exchange window.
+                  Every Zarwinto order comes with a hassle-free 7-day return or exchange window.
                   If your shoes don't fit perfectly or aren't what you expected, we make it easy to return or exchange them.
                 </p>
                 <ul className="space-y-2 text-sm text-muted-foreground">

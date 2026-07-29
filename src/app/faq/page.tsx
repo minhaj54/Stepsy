@@ -2,7 +2,7 @@
 
 import React, { useState, useMemo } from 'react';
 import Link from 'next/link';
-import { ChevronDown, Search, HelpCircle, MessageCircle } from 'lucide-react';
+import { ChevronDown, Search, HelpCircle, MessageCircle, Mail } from 'lucide-react';
 import { FaqSchema, BreadcrumbSchema } from '../../components/JsonLd';
 
 interface Faq {
@@ -46,7 +46,7 @@ const FAQS: Faq[] = [
     category: 'Returns',
     question: 'My item arrived damaged. What should I do?',
     answer:
-      'We are sorry about that! Email support@zarwinto.com with photos of the damage within 48 hours of delivery, and we will arrange a free replacement or full refund.',
+      'We are sorry about that! Email zarwinto12@gmail.com with photos of the damage within 48 hours of delivery, and we will arrange a free replacement or full refund.',
   },
   {
     category: 'Sizing',
@@ -148,7 +148,7 @@ export default function FaqPage() {
         {filtered.length === 0 ? (
           <div className="text-center text-muted-foreground py-16">
             No questions match your search. Try a different keyword or{' '}
-            <a href="mailto:support@zarwinto.com" className="text-primary hover:underline">
+            <a href="mailto:zarwinto12@gmail.com" className="text-primary hover:underline">
               contact support
             </a>
             .
@@ -202,10 +202,20 @@ export default function FaqPage() {
           </p>
           <div className="flex flex-col sm:flex-row gap-2 sm:gap-3 justify-center">
             <a
-              href="mailto:support@zarwinto.com"
+              href="mailto:zarwinto12@gmail.com"
               className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-5 py-2.5 sm:px-6 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95"
             >
+              <Mail className="h-4 w-4" />
               Email Support
+            </a>
+            <a
+              href="https://wa.me/917982369183"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="inline-flex items-center justify-center gap-2 bg-green-600 hover:bg-green-700 text-white px-5 py-2.5 sm:px-6 sm:py-2.5 rounded-xl font-bold text-xs sm:text-sm transition-all active:scale-95"
+            >
+              <MessageCircle className="h-4 w-4" />
+              WhatsApp Support
             </a>
             <Link
               href="/returns"

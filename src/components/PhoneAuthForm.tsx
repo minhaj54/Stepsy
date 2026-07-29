@@ -8,6 +8,12 @@ import { ArrowRight, Phone, User, AlertCircle, CheckCircle, Loader2, RotateCcw }
 
 type Step = 'phone' | 'otp';
 
+interface SendOtpResponse {
+  success: boolean;
+  message: string;
+  isNewUser?: boolean;
+}
+
 const RESEND_COOLDOWN_SECONDS = 60;
 const REDIRECT_TIMEOUT_MS = 8000; // Wait up to 8s for user state to update before forcing redirect
 
@@ -33,6 +39,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
   const [hasVerifiedOtp, setHasVerifiedOtp] = useState(false);
   const [redirecting, setRedirecting] = useState(false);
   const [showManualRedirect, setShowManualRedirect] = useState(false);
+  const [isNewUser, setIsNewUser] = useState(false);
   const cooldownRef = useRef<ReturnType<typeof setInterval> | null>(null);
   const redirectTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const autoRedirectAttemptedRef = useRef(false);
@@ -106,7 +113,9 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
     setIsRateLimited(false);
     setSending(true);
 
-    const { error: sendError } = await sendOtp(phone, isSignup ? fullName : undefined);
+    const response = await sendOtp(phone, isSignup ? fullName : undefined);
+    const sendError = response.error;
+
     if (sendError) {
       if (sendError.includes('wait') || sendError.includes('Too many')) {
         setIsRateLimited(true);
@@ -116,6 +125,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
       return;
     }
 
+    setIsNewUser(response.isNewUser || false);
     setStep('otp');
     setOtp('');
     startResendCooldown();
@@ -130,15 +140,16 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
 
     try {
       console.log('[PhoneAuthForm] handleVerifyOtp starting');
-      const { error: verifyError } = await verifyOtp(
+      const response = await verifyOtp(
         phone,
         otp,
         isSignup ? fullName : undefined
       );
+      const verifyError = response.error;
 
       if (verifyError) {
         console.error('[PhoneAuthForm] verifyOtp error:', verifyError);
-        if (verifyError.includes('Too many') || verifyError.includes('wait')) {
+        if (verifyError.includes('Too many') || verifyError.includes('wait') || verifyError.includes('attempts remaining')) {
           setIsRateLimited(true);
           setTimeout(() => {
             setStep('phone');
@@ -240,7 +251,9 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
           </h1>
           <p className="text-muted-foreground text-sm mt-2">
             {step === 'phone'
-              ? 'Enter your mobile number to receive an OTP'
+              ? isNewUser
+                ? 'Create your account with your phone number'
+                : 'Enter your mobile number to sign in'
               : `Enter the 6-digit code sent to +91 ${phone.replace(/\D/g, '').slice(-10)}`}
           </p>
         </div>
@@ -326,8 +339,10 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                   <div className="space-y-2">
                     <p>
                       {hasVerifiedOtp
-                        ? 'Signing you in...'
-                        : 'Verifying your code and signing you in — this can take up to a minute on first login.'}
+                        ? isNewUser
+                          ? 'Creating your account and signing you in...'
+                          : 'Signing you in...'
+                        : 'Verifying your code...'}
                     </p>
                     {showManualRedirect && (
                       <button
@@ -366,7 +381,7 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                   className="w-full bg-secondary border border-border rounded-xl py-3 px-4 text-foreground text-center text-2xl font-bold tracking-[0.5em] outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all disabled:opacity-50"
                 />
                 <p className="text-[10px] text-muted-foreground mt-1.5">
-                  Enter the 6-digit code from your SMS. The code is valid for 10 minutes.
+                  Enter the 6-digit code from your SMS. The code is valid for 5 minutes.
                 </p>
               </div>
 

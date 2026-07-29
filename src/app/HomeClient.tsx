@@ -62,7 +62,7 @@ export default function HomeClient({ products, categories, brands, testimonials 
             <div className="p-2.5 bg-primary/10 text-primary rounded-lg">
               <RefreshCw className="h-6 w-6" />
             </div>
-            <h3 className="text-sm font-bold text-foreground">30-Day Returns</h3>
+            <h3 className="text-sm font-bold text-foreground">7-Day Returns</h3>
             <p className="text-xs text-muted-foreground">Hassle-free size exchanges</p>
           </div>
           <div className="flex flex-col items-center gap-1">

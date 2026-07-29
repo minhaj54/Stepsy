@@ -46,6 +46,8 @@ export default function AdminProductsClient({
   const [bestSeller, setBestSeller] = useState(false);
   const [stock, setStock] = useState('25');
   const [variants, setVariants] = useState<Array<{ size: string; color: string; stock: number }>>([
+    { size: '6', color: 'Default', stock: 10 },
+    { size: '7', color: 'Default', stock: 10 },
     { size: '8', color: 'Default', stock: 10 },
     { size: '9', color: 'Default', stock: 10 },
     { size: '10', color: 'Default', stock: 10 },
@@ -75,6 +77,8 @@ export default function AdminProductsClient({
     setBestSeller(false);
     setStock('50');
     setVariants([
+      { size: '6', color: 'Default', stock: 10 },
+      { size: '7', color: 'Default', stock: 10 },
       { size: '8', color: 'Default', stock: 10 },
       { size: '9', color: 'Default', stock: 10 },
       { size: '10', color: 'Default', stock: 10 },
@@ -99,6 +103,8 @@ export default function AdminProductsClient({
     setBestSeller(product.best_seller || false);
     setStock(product.stock.toString());
     setVariants(product.variants || [
+      { size: '6', color: 'Default', stock: 10 },
+      { size: '7', color: 'Default', stock: 10 },
       { size: '8', color: 'Default', stock: 10 },
       { size: '9', color: 'Default', stock: 10 },
       { size: '10', color: 'Default', stock: 10 },
