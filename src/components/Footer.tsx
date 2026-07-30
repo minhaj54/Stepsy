@@ -132,13 +132,13 @@ export const Footer: React.FC = () => {
                 <Link href="/returns" className="hover:text-foreground transition-colors">Returns & Exchanges</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-foreground transition-colors">Shipping Information</Link>
+                <Link href="/shipping" className="hover:text-foreground transition-colors">Shipping Information</Link>
               </li>
               <li>
                 <Link href="/faq" className="hover:text-foreground transition-colors">FAQs</Link>
               </li>
               <li>
-                <Link href="#" className="hover:text-foreground transition-colors">Size Guide</Link>
+                <Link href="/size-guide" className="hover:text-foreground transition-colors">Size Guide</Link>
               </li>
             </ul>
           </div>
@@ -152,10 +152,6 @@ export const Footer: React.FC = () => {
               <li className="flex gap-2.5 items-start">
                 <MapPin className="h-5 w-5 text-primary flex-shrink-0" />
                 <span>Block - 2 Sharda Launchpad - Sharda University, Greater Noida - UP, India</span>
-              </li>
-              <li className="flex gap-2.5 items-center">
-                <Phone className="h-5 w-5 text-primary flex-shrink-0" />
-                <a href="tel:+917982369183" className="hover:text-foreground transition-colors">+91 79823 69183</a>
               </li>
               <li className="flex gap-2.5 items-center">
                 <Mail className="h-5 w-5 text-primary flex-shrink-0" />

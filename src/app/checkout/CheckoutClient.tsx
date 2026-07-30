@@ -127,27 +127,19 @@ export default function CheckoutPage() {
     }
    }, [effectiveCart, configured]);
 
-   // Calculate total weight and dimensions from cart using standard shoe box sizes
+   // Hardcoded package dimensions for footwear (standard single shoe box)
    const calculatePackageDetails = () => {
-     let totalWeight = 0; // in kg
      let totalValue = 0;
-     
-     // Standard shoe box dimensions: 33 x 20 x 12 cm
-     const boxLength = 33;
-     const boxBreadth = 20;
-     let totalHeight = 0; // stack height
 
      effectiveCart.forEach((item: any) => {
-       totalWeight += item.quantity * 0.8; // Assume average shoe weight is 0.8kg per pair
-       totalHeight += item.quantity * 12; // Each box adds 12cm to the stack
        totalValue += (item.product.sale_price || item.product.price) * item.quantity;
      });
 
      return {
-       weight: Math.max(totalWeight, 0.8), // Minimum 0.8kg
-       length: boxLength,
-       breadth: boxBreadth,
-       height: Math.max(totalHeight, 12),
+       weight: 0.8, // Fixed weight for footwear in kg
+       length: 25,  // Fixed length in cm (volumetric weight ≤ 0.8kg)
+       breadth: 16, // Fixed breadth in cm
+       height: 10,  // Fixed height in cm
        declaredValue: totalValue || 1, // ensure it is never 0
      };
    };

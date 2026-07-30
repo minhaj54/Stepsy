@@ -252,7 +252,7 @@ export default function AdminProductsClient({
         }
       }
     } else {
-      const newId = `prod_${Date.now()}`;
+      const newId = crypto.randomUUID();
       const finalImages = uploadedImages.length > 0 ? uploadedImages : ['https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=600'];
       
       const localProduct = {

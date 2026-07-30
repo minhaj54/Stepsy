@@ -54,6 +54,14 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       url: `${baseUrl}/returns`,
       lastModified: new Date(),
     },
+    {
+      url: `${baseUrl}/shipping`,
+      lastModified: new Date(),
+    },
+    {
+      url: `${baseUrl}/size-guide`,
+      lastModified: new Date(),
+    },
   ];
 
   const productPages = products.map((product) => ({
