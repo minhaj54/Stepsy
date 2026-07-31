@@ -1,12 +1,22 @@
 'use client';
 
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Star, Heart, SlidersHorizontal, ArrowUpDown, ChevronDown, Check, X, ArrowRight } from 'lucide-react';
 import { Product, Brand, Category } from '../../types';
 import { useCart } from '../../context/CartContext';
 import Link from 'next/link';
 import ShimmerImage from '../../components/ShimmerImage';
+
+// Fisher-Yates shuffle for randomizing product order
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 interface ShopContentProps {
   products: Product[];
@@ -18,6 +28,12 @@ export default function ShopContent({ products, brands, categories }: ShopConten
   const router = useRouter();
   const searchParams = useSearchParams();
   const { wishlist, toggleWishlist } = useCart();
+
+  // Force shuffle on every page mount
+  const [shuffleKey, setShuffleKey] = useState(0);
+  useEffect(() => {
+    setShuffleKey(prev => prev + 1);
+  }, []);
 
   // URL parameters
   const initialCategory = searchParams.get('category') || '';
@@ -122,18 +138,24 @@ export default function ShopContent({ products, brands, categories }: ShopConten
     return true;
   });
 
-  // Sorting Logic
-  const sortedProducts = [...filteredProducts].sort((a, b) => {
-    const aPrice = a.sale_price || a.price;
-    const bPrice = b.sale_price || b.price;
+  // Shuffle products on each page load for better UX
+  const shuffledProducts = useMemo(() => shuffleArray(filteredProducts), [filteredProducts, shuffleKey]);
 
-    if (sortBy === 'price-low') return aPrice - bPrice;
-    if (sortBy === 'price-high') return bPrice - aPrice;
-    if (sortBy === 'rating') return b.rating - a.rating;
-    
-    // Default: Newest (by ID/date)
-    return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
-  });
+  // Sorting Logic — when sort is "newest" (default), keep the shuffled order
+  // so users see a different product arrangement on each page load.
+  const sortedProducts = useMemo(() => {
+    if (sortBy === 'price-low') {
+      return [...shuffledProducts].sort((a, b) => (a.sale_price || a.price) - (b.sale_price || b.price));
+    }
+    if (sortBy === 'price-high') {
+      return [...shuffledProducts].sort((a, b) => (b.sale_price || b.price) - (a.sale_price || a.price));
+    }
+    if (sortBy === 'rating') {
+      return [...shuffledProducts].sort((a, b) => b.rating - a.rating);
+    }
+    // Default "newest": return shuffled order (no deterministic sort)
+    return shuffledProducts;
+  }, [shuffledProducts, sortBy]);
 
   // Pagination Logic
   const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE);
@@ -152,7 +174,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
       <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-3 sm:gap-4 mb-4 sm:mb-6">
         <div>
           <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight">Zarwinto Footwear Catalog</h1>
-          <p className="text-muted-foreground text-xs sm:text-sm mt-1">Showing {sortedProducts.length} premium products</p>
+          <p className="text-muted-foreground text-xs sm:text-sm mt-1">Premium footwear catalog</p>
         </div>
 
         <div className="flex w-full md:w-auto items-center justify-between sm:justify-end gap-2 sm:gap-3 self-stretch md:self-auto">

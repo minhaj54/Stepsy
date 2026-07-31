@@ -2,7 +2,7 @@
 
 import React, { useState } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, RefreshCw, ShoppingBag, Eye, Search, Filter, Package, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, CreditCard } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ShoppingBag, Eye, Search, Filter, Package, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, CreditCard, Printer, FileText } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '@/lib/supabase/client';
 import { useToast } from '@/components/Toast';
 
@@ -102,6 +102,149 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
       case 'cancelled': return 'bg-red-500/10 text-red-400';
       case 'user_dropped': return 'bg-zinc-500/10 text-muted-foreground';
       default: return 'bg-zinc-500/10 text-muted-foreground';
+    }
+  };
+
+  // Generate a printable invoice in a new window
+  const generateInvoice = (order: any) => {
+    const items = (order.order_items ?? []).map((item: any) => {
+      const price = Number(item.products?.price || 0);
+      const salePrice = Number(item.products?.sale_price || 0);
+      const effectivePrice = salePrice > 0 ? salePrice : price;
+      return {
+        name: item.products?.title || 'Product',
+        qty: item.quantity,
+        price: effectivePrice.toFixed(2),
+        subtotal: (effectivePrice * item.quantity).toFixed(2),
+      };
+    });
+
+    const subtotal = items.reduce((sum: number, item: any) => sum + Number(item.subtotal), 0);
+    const tax = (subtotal * 0.18).toFixed(2);
+    const total = (subtotal + Number(tax)).toFixed(2);
+
+    const invoiceHTML = `<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Invoice #${order.id.slice(0, 8)}</title>
+<style>
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; padding: 40px; color: #18181b; background: #fff; max-width: 800px; margin: 0 auto; }
+  .header { display: flex; justify-content: space-between; align-items: flex-start; margin-bottom: 32px; border-bottom: 3px solid #18181b; padding-bottom: 16px; }
+  .store-name { font-size: 24px; font-weight: 800; }
+  .store-tagline { font-size: 12px; color: #71717a; margin-top: 4px; }
+  .invoice-title { text-align: right; }
+  .invoice-title h1 { font-size: 20px; font-weight: 800; text-transform: uppercase; letter-spacing: 2px; }
+  .invoice-title p { font-size: 13px; color: #71717a; margin-top: 4px; }
+  .section { margin-bottom: 24px; }
+  .section-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; color: #71717a; margin-bottom: 8px; }
+  .info-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+  .info-box { background: #f4f4f5; padding: 12px 16px; border-radius: 8px; }
+  .info-box label { font-size: 10px; font-weight: 600; text-transform: uppercase; color: #71717a; display: block; margin-bottom: 4px; }
+  .info-box p { font-size: 14px; font-weight: 500; }
+  table { width: 100%; border-collapse: collapse; }
+  th { text-align: left; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: #71717a; padding: 8px 12px; border-bottom: 2px solid #e4e4e7; }
+  td { padding: 10px 12px; font-size: 14px; border-bottom: 1px solid #e4e4e7; }
+  .text-right { text-align: right; }
+  .text-bold { font-weight: 700; }
+  .totals { margin-top: 16px; }
+  .total-row { display: flex; justify-content: space-between; padding: 6px 0; font-size: 14px; }
+  .total-row.grand { font-size: 18px; font-weight: 800; border-top: 2px solid #18181b; padding-top: 12px; margin-top: 8px; }
+  .footer { margin-top: 40px; padding-top: 16px; border-top: 1px solid #e4e4e7; text-align: center; font-size: 11px; color: #a1a1aa; }
+  @media print { body { padding: 20px; } .no-print { display: none; } }
+  .no-print { margin-top: 32px; text-align: center; }
+  .no-print button { background: #18181b; color: #fff; border: none; padding: 10px 24px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; }
+  .no-print button:hover { background: #3f3f46; }
+</style>
+</head>
+<body>
+  <div class="header">
+    <div>
+      <div class="store-name">Zarwinto</div>
+      <div class="store-tagline">Premium Footwear Marketplace</div>
+    </div>
+    <div class="invoice-title">
+      <h1>Invoice</h1>
+      <p>#${order.id.slice(0, 8)}</p>
+      <p>${new Date(order.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Bill To</div>
+    <div class="info-grid">
+      <div class="info-box">
+        <label>Customer</label>
+        <p>${order.users?.full_name || 'Unknown'}</p>
+      </div>
+      <div class="info-box">
+        <label>Phone</label>
+        <p>${order.users?.phone || 'N/A'}</p>
+      </div>
+    </div>
+  </div>
+
+  ${order.shipping_address ? `
+  <div class="section">
+    <div class="section-title">Shipping Address</div>
+    <div class="info-box">
+      <p>${order.shipping_address.fullName}</p>
+      <p>${order.shipping_address.addressLine1}</p>
+      <p>${order.shipping_address.city}, ${order.shipping_address.state} - ${order.shipping_address.pincode}</p>
+    </div>
+  </div>` : ''}
+
+  <div class="section">
+    <div class="section-title">Order Items</div>
+    <table>
+      <thead>
+        <tr><th>Item</th><th class="text-right">Qty</th><th class="text-right">Price</th><th class="text-right">Subtotal</th></tr>
+      </thead>
+      <tbody>
+        ${items.map((item: any) => `
+        <tr>
+          <td>${item.name}</td>
+          <td class="text-right">${item.qty}</td>
+          <td class="text-right">₹${item.price}</td>
+          <td class="text-right">₹${item.subtotal}</td>
+        </tr>`).join('')}
+      </tbody>
+    </table>
+  </div>
+
+  <div class="section">
+    <div class="totals">
+      <div class="total-row"><span>Subtotal</span><span>₹${subtotal.toFixed(2)}</span></div>
+      <div class="total-row"><span>GST (18%)</span><span>₹${tax}</span></div>
+      <div class="total-row grand"><span>Total</span><span>₹${total}</span></div>
+    </div>
+  </div>
+
+  <div class="section">
+    <div class="section-title">Payment</div>
+    <div class="info-box">
+      <p>Status: <strong>${order.payment_status}</strong></p>
+      ${order.cashfree_order_id ? `<p>Cashfree Order: #${order.cashfree_order_id}</p>` : ''}
+      ${order.cashfree_payment_id ? `<p>Payment ID: ${order.cashfree_payment_id}</p>` : ''}
+    </div>
+  </div>
+
+  <div class="footer">
+    <p>Thank you for your order! This is a computer-generated invoice.</p>
+  </div>
+
+  <div class="no-print">
+    <button onclick="window.print()">🖨 Print Invoice</button>
+  </div>
+</body>
+</html>`;
+
+    const printWindow = window.open('', '_blank', 'width=800,height=600');
+    if (printWindow) {
+      printWindow.document.write(invoiceHTML);
+      printWindow.document.close();
     }
   };
 
@@ -261,6 +404,17 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
                         </div>
                       </div>
                     )}
+
+                    {/* Generate Invoice Button */}
+                    <div>
+                      <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">Invoice</h4>
+                      <button
+                        onClick={() => generateInvoice(order)}
+                        className="inline-flex items-center gap-1.5 px-4 py-2 bg-primary text-primary-foreground rounded-xl text-xs font-bold hover:bg-primary-hover transition-colors cursor-pointer"
+                      >
+                        <FileText className="h-3.5 w-3.5" /> Generate Invoice
+                      </button>
+                    </div>
 
                     {/* Status Update */}
                     <div>

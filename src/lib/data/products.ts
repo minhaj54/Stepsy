@@ -534,9 +534,9 @@ export async function getAdminOrders() {
 
     const { data } = await supabase
       .from('orders')
-      .select('*, users(full_name, email), order_items(*, products(title))')
-      .order('created_at', { ascending: false })
-      .limit(50);
+       .select('*, users(full_name, email, phone), order_items(*, products(title, price, sale_price))')
+       .order('created_at', { ascending: false })
+       .limit(50);
 
     return data ?? [];
   } catch {
@@ -829,10 +829,10 @@ export async function getStoreOrders(storeId: string) {
     // Get orders with user info
     const { data } = await supabase
       .from('orders')
-      .select('*, users(full_name, email), order_items(*, products(title))')
-      .in('id', orderIds)
-      .order('created_at', { ascending: false })
-      .limit(50);
+       .select('*, users(full_name, email, phone), order_items(*, products(title, price, sale_price))')
+       .in('id', orderIds)
+       .order('created_at', { ascending: false })
+       .limit(50);
 
     return data ?? [];
   } catch {

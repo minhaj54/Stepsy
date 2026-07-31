@@ -46,13 +46,6 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
           </div>
           <div className="flex flex-col sm:flex-row gap-3 justify-center">
             <Link
-              href={`/store/${store.slug}/manage`}
-              className="inline-flex items-center justify-center gap-2 bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-semibold text-sm transition-all"
-            >
-              <Settings className="h-4 w-4" />
-              Manage Store
-            </Link>
-            <Link
               href="/account"
               className="inline-flex items-center justify-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground px-6 py-3 rounded-xl font-semibold text-sm transition-all border border-border"
             >
@@ -164,10 +157,15 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
 
       <div className="px-4 sm:px-6 lg:px-8 max-w-6xl mx-auto">
         {/* Description */}
-        {store.description && (
+        {store.description ? (
           <div className="mt-6 sm:mt-8 mb-6 sm:mb-8">
             <h2 className="text-lg font-bold text-foreground mb-3">About This Store</h2>
             <p className="text-muted-foreground text-sm leading-relaxed max-w-3xl">{store.description}</p>
+          </div>
+        ) : (
+          <div className="mt-6 sm:mt-8 mb-6 sm:mb-8">
+            <h2 className="text-lg font-bold text-foreground mb-3">About This Store</h2>
+            <p className="text-muted-foreground text-sm leading-relaxed">No description provided yet.</p>
           </div>
         )}
 

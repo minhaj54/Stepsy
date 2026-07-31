@@ -347,6 +347,38 @@ export default function OpenStorePage() {
         </p>
       </div>
 
+      {/* Tutorial Video */}
+      <div className="glass-card rounded-2xl overflow-hidden mb-8">
+        <div className="aspect-video rounded-t-2xl overflow-hidden bg-zinc-900">
+          <iframe
+            width="100%"
+            height="100%"
+            src="https://www.youtube.com/embed/CeLVlvszCVM"
+            title="How to Open Your Store - Tutorial"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+            className="block"
+          />
+        </div>
+        <div className="p-5">
+          <h3 className="text-sm font-bold text-foreground flex items-center gap-2">
+            <span>▶️</span> How to Open Your Store
+          </h3>
+          <p className="text-xs text-muted-foreground mt-2 leading-relaxed">
+            Watch this quick tutorial to learn how to set up and open your store on Zarwinto.
+          </p>
+          <a
+            href="https://youtu.be/CeLVlvszCVM?si=S0UAubD4kDgHtcnc"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="mt-3 inline-flex items-center gap-1.5 text-xs font-semibold text-primary hover:text-primary-hover transition-colors"
+          >
+            Open in YouTube <span className="text-base">↗</span>
+          </a>
+        </div>
+      </div>
+
       {/* Progress Steps */}
       <div className="flex items-center justify-center gap-2 mb-8">
         {[1, 2, 3, 4].map((s) => (
@@ -776,10 +808,10 @@ export default function OpenStorePage() {
             >
               {submitting ? <Loader2 className="h-5 w-5 animate-spin" /> : <CheckCircle2 className="h-5 w-5" />}
               {submitting ? 'Creating your store...' : 'Create Store'}
-            </button>
-          )}
-        </div>
-      </form>
-    </div>
-  );
-}
+             </button>
+           )}
+         </div>
+        </form>
+      </div>
+    );
+  }
