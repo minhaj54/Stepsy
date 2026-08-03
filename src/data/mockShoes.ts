@@ -101,6 +101,11 @@ export const mockProducts: Product[] = [
       'Upper': 'HyperWarp Engineered Mesh',
       'Outsole': 'GripTraction High-Abrasion Rubber'
     },
+    // Compact sneaker packaging: 20x12x8cm, 0.5kg
+    weight_kg: 0.5,
+    length_cm: 20,
+    breadth_cm: 12,
+    height_cm: 8,
     variants: [
       { id: 'v1_1', product_id: 'p1', size: '8', color: 'Volt Electric', stock_quantity: 12 },
       { id: 'v1_2', product_id: 'p1', size: '9', color: 'Volt Electric', stock_quantity: 24 },
@@ -139,6 +144,11 @@ export const mockProducts: Product[] = [
       'Insole': 'Ortholite Comfort Foam',
       'Outsole': 'Margom Italian Rubber Cupsole'
     },
+    // Compact casual shoe packaging: 20x12x8cm, 0.5kg
+    weight_kg: 0.5,
+    length_cm: 20,
+    breadth_cm: 12,
+    height_cm: 8,
     variants: [
       { id: 'v2_1', product_id: 'p2', size: '8', color: 'Stealth Black', stock_quantity: 15 },
       { id: 'v2_2', product_id: 'p2', size: '9', color: 'Stealth Black', stock_quantity: 20 },
@@ -178,6 +188,11 @@ export const mockProducts: Product[] = [
       'Midsole': 'Encapsulated Air-Sole Unit',
       'Outsole': 'Herringbone Pattern Durable Rubber'
     },
+    // High-top sneaker: slightly taller box 22x12x10cm, 0.55kg
+    weight_kg: 0.55,
+    length_cm: 22,
+    breadth_cm: 12,
+    height_cm: 10,
     variants: [
       { id: 'v3_1', product_id: 'p3', size: '8', color: 'Varsity Red/White', stock_quantity: 9 },
       { id: 'v3_2', product_id: 'p3', size: '9', color: 'Varsity Red/White', stock_quantity: 14 },
@@ -214,6 +229,11 @@ export const mockProducts: Product[] = [
       'Outsole': 'Vibram MegaGrip Rubber Outsole',
       'Hardware': 'Rustproof Speed Lacing Eyelets'
     },
+    // Boot: taller box 24x14x12cm, 0.7kg
+    weight_kg: 0.7,
+    length_cm: 24,
+    breadth_cm: 14,
+    height_cm: 12,
     variants: [
       { id: 'v4_1', product_id: 'p4', size: '8', color: 'Sahara Sand', stock_quantity: 11 },
       { id: 'v4_2', product_id: 'p4', size: '9', color: 'Sahara Sand', stock_quantity: 18 },
@@ -250,6 +270,11 @@ export const mockProducts: Product[] = [
       'Footbed': 'Natural Cork Fill with Steel Shank',
       'Resolable': 'Yes'
     },
+    // Formal brogues: standard box 20x12x8cm, 0.5kg
+    weight_kg: 0.5,
+    length_cm: 20,
+    breadth_cm: 12,
+    height_cm: 8,
     variants: [
       { id: 'v5_1', product_id: 'p5', size: '8', color: 'Burnished Mahogany', stock_quantity: 5 },
       { id: 'v5_2', product_id: 'p5', size: '9', color: 'Burnished Mahogany', stock_quantity: 10 },
@@ -286,6 +311,11 @@ export const mockProducts: Product[] = [
       'Strap': 'Adjustable Padded Velcro Strap',
       'Arch Support': 'Orthopedic Contour Support'
     },
+    // Slides: ultra-compact 16x10x6cm, 0.25kg - much smaller than shoes!
+    weight_kg: 0.25,
+    length_cm: 16,
+    breadth_cm: 10,
+    height_cm: 6,
     variants: [
       { id: 'v6_1', product_id: 'p6', size: '8', color: 'Navy Blue', stock_quantity: 30 },
       { id: 'v6_2', product_id: 'p6', size: '9', color: 'Navy Blue', stock_quantity: 45 },
@@ -322,6 +352,11 @@ export const mockProducts: Product[] = [
       'Midsole': 'AeroBounce Energy Returning Cushioning',
       'Versatility': 'Optimized for Crosstraining and HIIT'
     },
+    // Lightweight trainer: 20x12x8cm, 0.45kg
+    weight_kg: 0.45,
+    length_cm: 20,
+    breadth_cm: 12,
+    height_cm: 8,
     variants: [
       { id: 'v7_1', product_id: 'p7', size: '8', color: 'Space Grey', stock_quantity: 14 },
       { id: 'v7_2', product_id: 'p7', size: '9', color: 'Space Grey', stock_quantity: 26 },
@@ -358,6 +393,11 @@ export const mockProducts: Product[] = [
       'Insole': 'Full Leather Footbed with Cork Filler',
       'Hardware': 'Solid Brass Eyelets and Speed Hooks'
     },
+    // Heritage boot: sturdy box 26x15x13cm, 0.8kg
+    weight_kg: 0.8,
+    length_cm: 26,
+    breadth_cm: 15,
+    height_cm: 13,
     variants: [
       { id: 'v8_1', product_id: 'p8', size: '8', color: 'Copper Rough & Tough', stock_quantity: 8 },
       { id: 'v8_2', product_id: 'p8', size: '9', color: 'Copper Rough & Tough', stock_quantity: 15 },

@@ -45,6 +45,10 @@ interface DbProduct {
   categories: { slug: string } | null;
   product_images: { image_url: string; sort_order: number }[];
   product_variants: { id: string; product_id: string; size: string; color: string; stock_quantity: number }[];
+  weight_kg: number | null;
+  length_cm: number | null;
+  breadth_cm: number | null;
+  height_cm: number | null;
 }
 
 export function mapDbProduct(row: DbProduct): Product {
@@ -79,6 +83,10 @@ export function mapDbProduct(row: DbProduct): Product {
     newArrival: row.new_arrival,
     bestSeller: row.best_seller,
     specifications: row.specifications ?? undefined,
+    weight_kg: row.weight_kg ?? undefined,
+    length_cm: row.length_cm ?? undefined,
+    breadth_cm: row.breadth_cm ?? undefined,
+    height_cm: row.height_cm ?? undefined,
   };
 }
 

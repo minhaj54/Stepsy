@@ -45,6 +45,11 @@ export default function AdminProductsClient({
   const [newArrival, setNewArrival] = useState(false);
   const [bestSeller, setBestSeller] = useState(false);
   const [stock, setStock] = useState('25');
+  // Shipping dimensions (used for rate calculation)
+  const [weightKg, setWeightKg] = useState('0.5');
+  const [lengthCm, setLengthCm] = useState('20');
+  const [breadthCm, setBreadthCm] = useState('12');
+  const [heightCm, setHeightCm] = useState('8');
   const [variants, setVariants] = useState<Array<{ size: string; color: string; stock: number }>>([
     { size: '6', color: 'Default', stock: 10 },
     { size: '7', color: 'Default', stock: 10 },
@@ -76,6 +81,10 @@ export default function AdminProductsClient({
     setNewArrival(true);
     setBestSeller(false);
     setStock('50');
+    setWeightKg('0.5');
+    setLengthCm('20');
+    setBreadthCm('12');
+    setHeightCm('8');
     setVariants([
       { size: '6', color: 'Default', stock: 10 },
       { size: '7', color: 'Default', stock: 10 },
@@ -102,6 +111,10 @@ export default function AdminProductsClient({
     setNewArrival(product.new_arrival || false);
     setBestSeller(product.best_seller || false);
     setStock(product.stock.toString());
+    setWeightKg(product.weight_kg?.toString() || '0.5');
+    setLengthCm(product.length_cm?.toString() || '20');
+    setBreadthCm(product.breadth_cm?.toString() || '12');
+    setHeightCm(product.height_cm?.toString() || '8');
     setVariants(product.variants || [
       { size: '6', color: 'Default', stock: 10 },
       { size: '7', color: 'Default', stock: 10 },
@@ -182,6 +195,10 @@ export default function AdminProductsClient({
       best_seller: bestSeller,
       rating: 0,
       reviews_count: 0,
+      weight_kg: parseFloat(weightKg) || 0.5,
+      length_cm: parseInt(lengthCm) || 20,
+      breadth_cm: parseInt(breadthCm) || 12,
+      height_cm: parseInt(heightCm) || 8,
     };
 
     // Associate new products with the vendor's store (admins leave it null).
@@ -712,6 +729,74 @@ export default function AdminProductsClient({
                       className="w-full bg-card text-foreground border border-border rounded-xl px-4 py-2.5 text-xs outline-none focus:border-primary"
                     />
                   </div>
+                </div>
+
+                {/* Shipping Package Dimensions */}
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Shipping Package Dimensions (per unit)
+                  </label>
+                  <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-medium text-muted-foreground">
+                        Weight (kg)
+                      </label>
+                      <input
+                        type="number"
+                        step="0.01"
+                        min="0.1"
+                        max="50"
+                        value={weightKg}
+                        onChange={e => setWeightKg(e.target.value)}
+                        className="w-full bg-card text-foreground border border-border rounded-xl px-3 py-2 text-xs outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-medium text-muted-foreground">
+                        Length (cm)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="5"
+                        max="100"
+                        value={lengthCm}
+                        onChange={e => setLengthCm(e.target.value)}
+                        className="w-full bg-card text-foreground border border-border rounded-xl px-3 py-2 text-xs outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-medium text-muted-foreground">
+                        Breadth (cm)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="5"
+                        max="100"
+                        value={breadthCm}
+                        onChange={e => setBreadthCm(e.target.value)}
+                        className="w-full bg-card text-foreground border border-border rounded-xl px-3 py-2 text-xs outline-none focus:border-primary"
+                      />
+                    </div>
+                    <div className="space-y-1">
+                      <label className="block text-[10px] font-medium text-muted-foreground">
+                        Height (cm)
+                      </label>
+                      <input
+                        type="number"
+                        step="1"
+                        min="5"
+                        max="100"
+                        value={heightCm}
+                        onChange={e => setHeightCm(e.target.value)}
+                        className="w-full bg-card text-foreground border border-border rounded-xl px-3 py-2 text-xs outline-none focus:border-primary"
+                      />
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-muted-foreground">
+                    These dimensions are used to calculate shipping rates. Smaller packages = lower shipping costs.
+                  </p>
                 </div>
 
                 {/* Image Upload */}

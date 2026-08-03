@@ -46,7 +46,7 @@ const shippingForSellers = [
   {
     icon: Package,
     title: 'Packaging Guidelines',
-    description: 'Use standard shoe boxes (25cm × 16cm × 10cm). Ensure proper padding and sealing. Include the invoice and any necessary documentation.',
+    description: 'Each product has optimized packaging dimensions to minimize shipping costs. Sneakers use compact 20×12×8cm boxes (~0.5kg), slides use ultra-compact 16×10×6cm boxes (~0.25kg), and boots use sturdy 24-26×14-15×12-13cm boxes (~0.7-0.8kg). All packages include protective padding.',
   },
   {
     icon: MapPin,
@@ -147,6 +147,11 @@ export default function ShippingPage() {
               <p className="text-sm text-muted-foreground mt-1">Standard Delivery</p>
             </div>
           </div>
+          <p className="text-center text-xs text-muted-foreground mt-4 max-w-2xl mx-auto">
+            We use per-product optimized packaging to minimize dimensional weight and keep shipping costs low.
+            Sneakers: 20×12×8cm (~0.5kg), Slides: 16×10×6cm (~0.25kg), Boots: 24-26×14-15×12-13cm (~0.7-0.8kg).
+            Surface shipping is preferred for cost efficiency.
+          </p>
         </section>
 
         {/* CTA */}

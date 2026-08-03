@@ -228,7 +228,7 @@ export async function getShippingRates(request: ShippingRateRequest): Promise<Sh
   const data = await response.json();
   const companies = data?.data?.available_courier_companies || [];
 
-  return companies.map((item: any) => ({
+  const rates = companies.map((item: any) => ({
     courier_company_id: item.courier_company_id || item.courier_id || 0,
     courier_name: item.courier_name || 'Courier',
     rate: Number(item.rate || item.total_charges || 0),
@@ -240,6 +240,16 @@ export async function getShippingRates(request: ShippingRateRequest): Promise<Sh
     freight_charges: Number(item.freight_charges || item.rate || 0),
     total_charges: Number(item.total_charges || item.rate || 0),
   }));
+
+  // Sort to prefer surface (cheaper) couriers first, then by total charges
+  // Surface shipping is typically 20-40% cheaper than air shipping
+  return rates.sort((a: ShippingRateResponse['data'][number], b: ShippingRateResponse['data'][number]) => {
+    // Surface first
+    if (a.is_surface && !b.is_surface) return -1;
+    if (!a.is_surface && b.is_surface) return 1;
+    // Then by price (cheapest first)
+    return a.total_charges - b.total_charges;
+  });
 }
 
 /**

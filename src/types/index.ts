@@ -29,6 +29,11 @@ export interface Product {
   newArrival?: boolean;
   bestSeller?: boolean;
   specifications?: Record<string, string>;
+  // Shipping dimensions (cm) and weight (kg) for rate calculation
+  weight_kg?: number;
+  length_cm?: number;
+  breadth_cm?: number;
+  height_cm?: number;
 }
 
 export interface Brand {

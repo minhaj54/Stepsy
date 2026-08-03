@@ -31,6 +31,10 @@ class Product {
     this.newArrival = false,
     this.bestSeller = false,
     this.specifications = const {},
+    this.weightKg,
+    this.lengthCm,
+    this.breadthCm,
+    this.heightCm,
   });
 
   factory Product.fromSupabase(Map<String, dynamic> json) {
@@ -103,6 +107,10 @@ class Product {
       specifications: json['specifications'] != null
           ? Map<String, String>.from(json['specifications'] as Map)
           : const {},
+      weightKg: json['weight_kg'] as double?,
+      lengthCm: json['length_cm'] as int?,
+      breadthCm: json['breadth_cm'] as int?,
+      heightCm: json['height_cm'] as int?,
     );
   }
 
@@ -129,6 +137,10 @@ class Product {
     'new_arrival': newArrival,
     'best_seller': bestSeller,
     'specifications': specifications,
+    'weight_kg': weightKg,
+    'length_cm': lengthCm,
+    'breadth_cm': breadthCm,
+    'height_cm': heightCm,
   };
 
   final String id;
@@ -151,6 +163,10 @@ class Product {
   final bool newArrival;
   final bool bestSeller;
   final Map<String, String> specifications;
+  final double? weightKg;
+  final int? lengthCm;
+  final int? breadthCm;
+  final int? heightCm;
 
   double get currentPrice => salePrice ?? price;
 }
