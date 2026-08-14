@@ -1,0 +1,868 @@
+import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:shimmer/shimmer.dart';
+import '../core/theme.dart';
+import '../providers/zarwinto_store.dart';
+import '../models/shipping_address.dart';
+import '../models/address.dart';
+import '../models/order.dart';
+import '../services/payment_service.dart';
+import '../screens/order_confirmation_screen.dart';
+import '../screens/checkout_failure_screen.dart';
+import '../widgets/cart_row.dart';
+import '../widgets/common.dart';
+import '../widgets/z_button.dart';
+
+class CheckoutPage extends StatefulWidget {
+  const CheckoutPage({super.key});
+
+  @override
+  State<CheckoutPage> createState() => _CheckoutPageState();
+}
+
+class _CheckoutPageState extends State<CheckoutPage> {
+  final fullName = TextEditingController();
+  final phone = TextEditingController();
+  final address = TextEditingController();
+  final city = TextEditingController();
+  final state = TextEditingController();
+  final pincode = TextEditingController();
+  String paymentMethod = 'cod';
+  bool busy = false;
+  bool editing = false;
+  bool _addressesLoaded = false;
+  Address? selectedAddress;
+  List<Address> addresses = [];
+
+  @override
+  void initState() {
+    super.initState();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) {
+        _loadAddresses();
+      }
+    });
+  }
+
+  Future<void> _loadAddresses() async {
+    debugPrint('[CheckoutPage] _loadAddresses START');
+    try {
+      final store = ZarwintoScope.of(context);
+      debugPrint('[CheckoutPage] store.addresses cached=${store.addresses.length}');
+
+      if (store.addresses.isNotEmpty) {
+        debugPrint('[CheckoutPage] _loadAddresses: using cached addresses=${store.addresses.length}');
+        if (!mounted) return;
+        setState(() {
+          addresses = store.addresses;
+          selectedAddress = addresses.isNotEmpty
+              ? addresses.firstWhere((addr) => addr.isDefault, orElse: () => addresses.first)
+              : null;
+          _addressesLoaded = true;
+          if (selectedAddress != null) {
+            fullName.text = selectedAddress!.fullName;
+            phone.text = selectedAddress!.phone;
+            address.text = selectedAddress!.addressLine1;
+            city.text = selectedAddress!.city;
+            state.text = selectedAddress!.state;
+            pincode.text = selectedAddress!.pincode;
+          }
+        });
+        return;
+      }
+
+      bool timedOut = false;
+      try {
+        await store.loadAddresses().timeout(
+          const Duration(seconds: 10),
+          onTimeout: () {
+            debugPrint('[CheckoutPage] _loadAddresses TIMEOUT after 10s');
+            timedOut = true;
+            return;
+          },
+        );
+      } catch (e) {
+        debugPrint('[CheckoutPage] _loadAddresses ERROR: $e');
+      }
+      if (!mounted) return;
+      setState(() {
+        addresses = store.addresses;
+        debugPrint('[CheckoutPage] _loadAddresses END: addresses=${addresses.length}, timedOut=$timedOut');
+        selectedAddress = addresses.isNotEmpty
+            ? addresses.firstWhere((addr) => addr.isDefault, orElse: () => addresses.first)
+            : null;
+        _addressesLoaded = true;
+        if (selectedAddress != null) {
+          fullName.text = selectedAddress!.fullName;
+          phone.text = selectedAddress!.phone;
+          address.text = selectedAddress!.addressLine1;
+          city.text = selectedAddress!.city;
+          state.text = selectedAddress!.state;
+          pincode.text = selectedAddress!.pincode;
+        }
+      });
+    } catch (e) {
+      debugPrint('[CheckoutPage] _loadAddresses UNCAUGHT: $e');
+      if (mounted) {
+        setState(() => _addressesLoaded = true);
+      }
+    }
+  }
+
+  @override
+  void dispose() {
+    fullName.dispose();
+    phone.dispose();
+    address.dispose();
+    city.dispose();
+    state.dispose();
+    pincode.dispose();
+    super.dispose();
+  }
+
+  Future<void> _placeOrder() async {
+    if (!mounted) return;
+    final store = ZarwintoScope.of(context);
+    final colors = ZarwintoColors.of(context);
+    final shippingCost = store.total > 999 ? 0 : 99;
+    final grandTotal = store.total + shippingCost;
+
+    if (selectedAddress == null &&
+        (fullName.text.trim().isEmpty ||
+         phone.text.trim().isEmpty ||
+         address.text.trim().isEmpty ||
+         city.text.trim().isEmpty ||
+         state.text.trim().isEmpty ||
+         pincode.text.trim().isEmpty)) {
+      ScaffoldMessenger.of(context).showSnackBar(
+        const SnackBar(content: Text('Please select or fill in your shipping address')),
+      );
+      return;
+    }
+
+    setState(() => busy = true);
+
+    try {
+      final addressData = selectedAddress != null
+          ? ShippingAddress(
+              fullName: selectedAddress!.fullName,
+              phone: selectedAddress!.phone,
+              addressLine1: selectedAddress!.fullAddress,
+              city: selectedAddress!.city,
+              state: selectedAddress!.state,
+              pincode: selectedAddress!.pincode,
+            )
+          : ShippingAddress(
+              fullName: fullName.text.trim(),
+              phone: phone.text.trim(),
+              addressLine1: address.text.trim(),
+              city: city.text.trim(),
+              state: state.text.trim(),
+              pincode: pincode.text.trim(),
+            );
+
+       if (paymentMethod == 'cod') {
+        String? orderId;
+        try {
+          orderId = await store.placeOrder(addressData, paymentMethod: 'cod');
+        } catch (e) {
+          debugPrint('[CheckoutPage] COD placeOrder error: $e');
+        }
+        if (!mounted || orderId == null) {
+          if (!mounted) return;
+          setState(() => busy = false);
+          _navigateToFailure(context, 'Failed to place order. Please try again.');
+          return;
+        }
+
+        try {
+          final paymentService = PaymentService(store.prefs);
+          final shiprocketResult = await paymentService.syncOrderWithShiprocket(
+            orderId: orderId,
+            cartItems: store.cart,
+            shippingAddress: addressData.toJson(),
+            paymentMethod: 'cod',
+            subtotal: store.subtotal,
+            discount: store.discount,
+            shippingCost: shippingCost.toDouble(),
+            fullName: addressData.fullName,
+            phone: addressData.phone,
+            email: store.profile?.email ?? '',
+          );
+          if (shiprocketResult != null && mounted) {
+            await store.repository.updateOrderShiprocketIds(
+              orderId,
+              shiprocketResult['order_id'] as int,
+              shiprocketResult['shipment_id'] as int,
+            );
+          }
+        } catch (e) {
+          debugPrint('[CheckoutPage] Shiprocket sync error: $e');
+        }
+
+        final order = await store.fetchOrder(orderId);
+        if (!mounted) return;
+        final displayOrder = order ?? _buildFallbackOrder(orderId, addressData, paymentMethod, store);
+        Navigator.pushReplacement(
+          context,
+          MaterialPageRoute(
+            builder: (_) => OrderConfirmationScreen(
+              order: displayOrder,
+              onContinueShopping: () {
+                Navigator.popUntil(context, (route) => route.isFirst);
+              },
+            ),
+          ),
+        );
+      } else {
+        String? orderId;
+        try {
+          orderId = await store.createPendingOrder(addressData, paymentMethod: paymentMethod);
+        } catch (e) {
+          debugPrint('[CheckoutPage] Online createPendingOrder error: $e');
+        }
+        if (!mounted || orderId == null) {
+          if (!mounted) return;
+          setState(() => busy = false);
+          _navigateToFailure(context, 'Failed to create order. Please try again.');
+          return;
+        }
+
+        final order = await store.fetchOrder(orderId);
+        if (!mounted) return;
+        if (order == null) {
+          setState(() => busy = false);
+          _navigateToFailure(context, 'Order created but details not loaded. Please check My Orders.');
+          return;
+        }
+
+        final paymentService = PaymentService(store.prefs);
+        final cashfreeResult = await paymentService.createCashfreeOrder(
+          orderId: order.id,
+          amount: grandTotal,
+          name: order.shippingAddress['fullName'] ?? '',
+          email: 'customer@example.com',
+          phone: order.shippingAddress['phone'] ?? '',
+        );
+
+        if (cashfreeResult != null && mounted) {
+          final sessionId = cashfreeResult['paymentSessionId'] as String;
+          await Navigator.push(
+            context,
+            MaterialPageRoute(
+              builder: (_) => paymentService.buildCashfreeCheckout(
+                paymentSessionId: sessionId,
+                onSuccess: () async {
+                  await paymentService.verifyCashfreePayment(order.id);
+
+                  try {
+                    final shiprocketResult = await paymentService.syncOrderWithShiprocket(
+                      orderId: order.id,
+                      cartItems: store.cart,
+                      shippingAddress: order.shippingAddress,
+                      paymentMethod: paymentMethod,
+                      subtotal: store.subtotal,
+                      discount: store.discount,
+                      shippingCost: shippingCost.toDouble(),
+                      fullName: order.shippingAddress['fullName'] ?? '',
+                      phone: order.shippingAddress['phone'] ?? '',
+                      email: store.profile?.email ?? '',
+                    );
+                    if (shiprocketResult != null) {
+                      await store.repository.updateOrderShiprocketIds(
+                        order.id,
+                        shiprocketResult['order_id'] as int,
+                        shiprocketResult['shipment_id'] as int,
+                      );
+                    }
+                  } catch (e) {
+                    debugPrint('[CheckoutPage] Shiprocket sync error: $e');
+                  }
+
+                  await store.loadOrders();
+                  final updatedOrder = store.orders.firstWhere(
+                    (o) => o.id == order.id,
+                    orElse: () => order,
+                  );
+                  if (mounted) {
+                    Navigator.pushReplacement(
+                      context,
+                      MaterialPageRoute(
+                        builder: (_) => OrderConfirmationScreen(order: updatedOrder),
+                      ),
+                    );
+                  }
+                },
+                onError: () {
+                  if (mounted) {
+                    ScaffoldMessenger.of(context).showSnackBar(
+                      SnackBar(
+                        content: const Text('Payment failed. Please try again.'),
+                        backgroundColor: colors.error,
+                      ),
+                    );
+                  }
+                },
+              ),
+            ),
+          );
+        } else if (mounted) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            SnackBar(
+              content: const Text('Payment gateway unavailable. Please try again later.'),
+              backgroundColor: colors.error,
+            ),
+          );
+        }
+      }
+    } catch (e) {
+      debugPrint('[CheckoutPage] Unexpected error: $e');
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(
+            content: Text('Something went wrong: ${e.toString()}'),
+            backgroundColor: colors.error,
+          ),
+        );
+      }
+    } finally {
+      if (mounted) {
+        setState(() => busy = false);
+      }
+    }
+  }
+
+  void _navigateToFailure(BuildContext ctx, String message) {
+    Navigator.pushReplacement(
+      ctx,
+      MaterialPageRoute(
+        builder: (_) => CheckoutFailureScreen(
+          errorMessage: message,
+          onRetry: () => Navigator.pop(ctx),
+        ),
+      ),
+    );
+  }
+
+  Order _buildFallbackOrder(String orderId, ShippingAddress address, String paymentMethod, ZarwintoStore store) {
+    final items = store.cart.asMap().entries.map((entry) {
+      final item = entry.value;
+      return OrderItem(
+        id: 'oi_fallback_${entry.key}',
+        orderId: orderId,
+        productId: item.product.id,
+        variantId: item.variant.id,
+        quantity: item.quantity,
+        price: item.product.currentPrice,
+      );
+    }).toList();
+
+    final status = paymentMethod == 'cod' ? 'processing' : 'pending';
+    final paymentStatus = paymentMethod == 'cod' ? 'cod_pending' : 'unpaid';
+
+    return Order(
+      id: orderId,
+      userId: '',
+      status: status,
+      paymentStatus: paymentStatus,
+      paymentMethod: paymentMethod,
+      totalAmount: store.total,
+      shippingAddress: address.toJson(),
+      items: items,
+      createdAt: DateTime.now(),
+    );
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final store = ZarwintoScope.of(context);
+    final colors = ZarwintoColors.of(context);
+    final money = inrFormat;
+    final shippingCost = store.total > 999 ? 0 : 99;
+    final grandTotal = store.total + shippingCost;
+
+    return Scaffold(
+      backgroundColor: ZarwintoColors.background,
+      appBar: AppBar(
+        title: const Text('Checkout'),
+        actions: [
+          if (store.cart.isNotEmpty)
+            TextButton.icon(
+              onPressed: () => Navigator.pop(context),
+              icon: const HugeIcon(icon: HugeIcons.strokeRoundedShoppingBag01, size: 18),
+              label: Text('${store.cart.length} items'),
+            ),
+        ],
+      ),
+      body: store.cart.isEmpty
+          ? Center(
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  const HugeIcon(
+                    icon: HugeIcons.strokeRoundedShoppingBag01,
+                    size: 64,
+                  ),
+                  const SizedBox(height: ZarwintoSpacing.lg),
+                  Text(
+                    'Your cart is empty',
+                    style: ZarwintoTypography.title.copyWith(color: colors.foreground),
+                  ),
+                  const SizedBox(height: ZarwintoSpacing.md),
+                  ZButton.primary(
+                    onPressed: () => Navigator.pop(context),
+                    label: 'Continue Shopping',
+                  ),
+                ],
+              ),
+            )
+           : !_addressesLoaded
+              ? _buildShimmerCheckout(colors)
+              : ListView(
+                  padding: const EdgeInsets.all(ZarwintoSpacing.lg),
+                  children: [
+                    Text(
+                      'Your Items',
+                      style: ZarwintoTypography.title.copyWith(color: colors.foreground),
+                    ),
+                    const SizedBox(height: ZarwintoSpacing.md),
+                    ...store.cart.map((item) => CartRow(item)),
+                    const SizedBox(height: ZarwintoSpacing.lg),
+
+                    Text(
+                      'Shipping Address',
+                  style: ZarwintoTypography.title.copyWith(color: colors.foreground),
+                ),
+                const SizedBox(height: ZarwintoSpacing.md),
+
+                if (!editing && selectedAddress != null) ...[
+                  _AddressCard(
+                    address: selectedAddress!,
+                    onEdit: () => setState(() => editing = true),
+                    colors: colors,
+                  ),
+                  const SizedBox(height: ZarwintoSpacing.sm),
+                  TextButton.icon(
+                    onPressed: () => setState(() => editing = true),
+                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedEdit01, size: 18),
+                    label: const Text('Change Address'),
+                  ),
+                ] else ...[
+                  TextField(
+                    controller: fullName,
+                    decoration: const InputDecoration(labelText: 'Full name'),
+                    style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                  ),
+                  const SizedBox(height: ZarwintoSpacing.sm),
+                  TextField(
+                    controller: phone,
+                    decoration: const InputDecoration(labelText: 'Phone'),
+                    style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                  ),
+                  const SizedBox(height: ZarwintoSpacing.sm),
+                  TextField(
+                    controller: address,
+                    decoration: const InputDecoration(labelText: 'Address'),
+                    style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                  ),
+                  const SizedBox(height: ZarwintoSpacing.sm),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: TextField(
+                          controller: city,
+                          decoration: const InputDecoration(labelText: 'City'),
+                          style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                        ),
+                      ),
+                      const SizedBox(width: ZarwintoSpacing.sm),
+                      Expanded(
+                        child: TextField(
+                          controller: state,
+                          decoration: const InputDecoration(labelText: 'State'),
+                          style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: ZarwintoSpacing.sm),
+                  TextField(
+                    controller: pincode,
+                    decoration: const InputDecoration(labelText: 'Pincode'),
+                    style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                    keyboardType: TextInputType.number,
+                  ),
+                  const SizedBox(height: ZarwintoSpacing.xs),
+                  if (addresses.isNotEmpty)
+                    TextButton.icon(
+                      onPressed: () {
+                        setState(() {
+                          editing = false;
+                          final defaultAddr = addresses.firstWhere(
+                            (addr) => addr.isDefault,
+                            orElse: () => addresses.first,
+                          );
+                          selectedAddress = defaultAddr;
+                          fullName.text = defaultAddr.fullName;
+                          phone.text = defaultAddr.phone;
+                          address.text = defaultAddr.addressLine1;
+                          city.text = defaultAddr.city;
+                          state.text = defaultAddr.state;
+                          pincode.text = defaultAddr.pincode;
+                        });
+                      },
+                      icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 18),
+                      label: const Text('Use saved address'),
+                    ),
+                ],
+
+                const SizedBox(height: ZarwintoSpacing.lg),
+
+                Text(
+                  'Payment Method',
+                  style: ZarwintoTypography.title.copyWith(color: colors.foreground),
+                ),
+                const SizedBox(height: ZarwintoSpacing.sm),
+                Wrap(
+                  spacing: ZarwintoSpacing.sm,
+                  runSpacing: ZarwintoSpacing.sm,
+                  children: [
+                    _PaymentOption(
+                      label: 'UPI',
+                      icon: HugeIcons.strokeRoundedSmartPhone01,
+                      selected: paymentMethod == 'cashfree_upi',
+                      onTap: () => setState(() => paymentMethod = 'cashfree_upi'),
+                      colors: colors,
+                    ),
+                    _PaymentOption(
+                      label: 'Card',
+                      icon: HugeIcons.strokeRoundedCreditCard,
+                      selected: paymentMethod == 'card',
+                      onTap: () => setState(() => paymentMethod = 'card'),
+                      colors: colors,
+                    ),
+                    _PaymentOption(
+                      label: 'Net Banking',
+                      icon: HugeIcons.strokeRoundedBank,
+                      selected: paymentMethod == 'netbanking',
+                      onTap: () => setState(() => paymentMethod = 'netbanking'),
+                      colors: colors,
+                    ),
+                    _PaymentOption(
+                      label: 'Cash on Delivery',
+                      icon: HugeIcons.strokeRoundedMoney01,
+                      selected: paymentMethod == 'cod',
+                      onTap: () => setState(() => paymentMethod = 'cod'),
+                      colors: colors,
+                    ),
+                  ],
+                ),
+
+                const SizedBox(height: ZarwintoSpacing.lg),
+
+                Container(
+                  padding: const EdgeInsets.all(ZarwintoSpacing.md),
+                  decoration: BoxDecoration(
+                    color: colors.background,
+                    borderRadius: ZarwintoRadius.all12,
+                  ),
+                  child: Column(
+                    children: [
+                      PriceLine(
+                        label: 'Subtotal',
+                        value: money.format(store.subtotal),
+                      ),
+                      if (store.discount > 0) ...[
+                        const SizedBox(height: ZarwintoSpacing.xs),
+                        Row(
+                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                          children: [
+                            Text(
+                              'Discount',
+                              style: ZarwintoTypography.caption.copyWith(
+                                fontWeight: FontWeight.w500,
+                                color: colors.success,
+                              ),
+                            ),
+                            Text(
+                              '-${money.format(store.discount)}',
+                              style: ZarwintoTypography.caption.copyWith(
+                                fontWeight: FontWeight.w600,
+                                color: colors.success,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
+                      const SizedBox(height: ZarwintoSpacing.xs),
+                      PriceLine(
+                        label: 'Shipping',
+                        value: shippingCost == 0 ? 'FREE' : money.format(shippingCost),
+                      ),
+                      const Divider(height: 20),
+                      PriceLine(
+                        label: 'Total',
+                        value: money.format(grandTotal),
+                        emphasis: true,
+                      ),
+                    ],
+                  ),
+                ),
+                const SizedBox(height: ZarwintoSpacing.lg),
+                ZButton.primary(
+                  onPressed: busy ? null : _placeOrder,
+                  label: paymentMethod == 'cod' ? 'Place Order (COD)' : 'Pay & Place Order',
+                ),
+                const SizedBox(height: ZarwintoSpacing.lg),
+              ],
+            ),
+    );
+  }
+
+  Widget _buildShimmerCheckout(ZarwintoColorBundle colors) {
+    return ListView(
+      padding: const EdgeInsets.all(ZarwintoSpacing.lg),
+      children: [
+        Shimmer.fromColors(
+          baseColor: colors.border,
+          highlightColor: Colors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShimmerBox(width: 100, height: 20, borderRadius: BorderRadius.circular(4)),
+              const SizedBox(height: ZarwintoSpacing.md),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 3,
+                itemBuilder: (context, index) => const Padding(
+                  padding: EdgeInsets.only(bottom: ZarwintoSpacing.md),
+                  child: ShimmerCheckoutItem(),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: ZarwintoSpacing.md),
+        Shimmer.fromColors(
+          baseColor: colors.border,
+          highlightColor: Colors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShimmerBox(width: 140, height: 20, borderRadius: BorderRadius.circular(4)),
+              const SizedBox(height: ZarwintoSpacing.md),
+              ListView.builder(
+                shrinkWrap: true,
+                physics: const NeverScrollableScrollPhysics(),
+                itemCount: 2,
+                itemBuilder: (context, index) => Padding(
+                  padding: const EdgeInsets.only(bottom: ZarwintoSpacing.sm),
+                  child: ShimmerBox(
+                    width: double.infinity,
+                    height: 48,
+                    borderRadius: BorderRadius.circular(ZarwintoRadius.md),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: ZarwintoSpacing.md),
+        Shimmer.fromColors(
+          baseColor: colors.border,
+          highlightColor: Colors.white,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              ShimmerBox(width: 160, height: 20, borderRadius: BorderRadius.circular(4)),
+              const SizedBox(height: ZarwintoSpacing.md),
+              Column(
+                children: List.generate(4, (i) => Padding(
+                  padding: const EdgeInsets.only(bottom: ZarwintoSpacing.sm),
+                  child: ShimmerBox(width: double.infinity, height: 13, borderRadius: BorderRadius.circular(4)),
+                )),
+              ),
+              const SizedBox(height: ZarwintoSpacing.xs),
+              ShimmerBox(width: double.infinity, height: 48, borderRadius: BorderRadius.circular(ZarwintoRadius.md)),
+            ],
+          ),
+        ),
+      ],
+    );
+  }
+}
+
+class ShimmerCheckoutItem extends StatelessWidget {
+  const ShimmerCheckoutItem({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Card(
+      child: Padding(
+        padding: const EdgeInsets.all(ZarwintoSpacing.md),
+        child: Row(
+          children: [
+            ShimmerBox(
+              width: 76,
+              height: 76,
+              borderRadius: ZarwintoRadius.all12,
+            ),
+            const SizedBox(width: ZarwintoSpacing.md),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  ShimmerBox(width: double.infinity, height: 14, borderRadius: BorderRadius.circular(4)),
+                  const SizedBox(height: ZarwintoSpacing.xs),
+                  ShimmerBox(width: 100, height: 12, borderRadius: BorderRadius.circular(4)),
+                  const SizedBox(height: ZarwintoSpacing.sm),
+                  ShimmerBox(width: 60, height: 16, borderRadius: BorderRadius.circular(4)),
+                ],
+              ),
+            ),
+            Column(
+              children: List.generate(3, (i) => Padding(
+                padding: const EdgeInsets.only(bottom: ZarwintoSpacing.xs),
+                child: ShimmerBox(width: 24, height: 24, borderRadius: BorderRadius.circular(12)),
+              )),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _AddressCard extends StatelessWidget {
+  const _AddressCard({required this.address, required this.onEdit, required this.colors});
+
+  final Address address;
+  final VoidCallback onEdit;
+  final ZarwintoColorBundle colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      padding: const EdgeInsets.all(ZarwintoSpacing.md),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: ZarwintoRadius.all12,
+        border: Border.all(color: colors.border),
+      ),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Container(
+            padding: const EdgeInsets.all(ZarwintoSpacing.xs),
+            decoration: BoxDecoration(
+              color: colors.primary.withValues(alpha: 0.08),
+              borderRadius: ZarwintoRadius.all12,
+            ),
+            child: HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 20, color: colors.primary),
+          ),
+          const SizedBox(width: ZarwintoSpacing.md),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Row(
+                  children: [
+                    Text(
+                      address.fullName,
+                      style: ZarwintoTypography.caption.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: colors.foreground,
+                      ),
+                    ),
+                    if (address.isDefault) ...[
+                      const SizedBox(width: ZarwintoSpacing.xs),
+                      Container(
+                        padding: const EdgeInsets.symmetric(horizontal: ZarwintoSpacing.xs, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: colors.primary.withValues(alpha: 0.1),
+                          borderRadius: BorderRadius.circular(ZarwintoRadius.sm),
+                        ),
+                        child: Text(
+                          'Default',
+                          style: ZarwintoTypography.small.copyWith(color: colors.primary),
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+                const SizedBox(height: ZarwintoSpacing.xs),
+                Text(
+                  address.fullAddress,
+                  style: ZarwintoTypography.caption.copyWith(
+                    color: colors.secondaryText,
+                    height: 1.4,
+                  ),
+                ),
+                const SizedBox(height: ZarwintoSpacing.xs),
+                Text(
+                  address.phone,
+                  style: ZarwintoTypography.small.copyWith(color: colors.secondaryText),
+                ),
+              ],
+            ),
+          ),
+          IconButton(
+            onPressed: onEdit,
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedEdit01, size: 20),
+            color: colors.primary,
+          ),
+        ],
+      ),
+    );
+  }
+}
+
+class _PaymentOption extends StatelessWidget {
+  const _PaymentOption({
+    required this.label,
+    required this.icon,
+    required this.selected,
+    required this.onTap,
+    required this.colors,
+  });
+
+  final String label;
+  final List<List<dynamic>> icon;
+  final bool selected;
+  final VoidCallback onTap;
+  final ZarwintoColorBundle colors;
+
+  @override
+  Widget build(BuildContext context) {
+    return GestureDetector(
+      onTap: onTap,
+      child: Container(
+        padding: const EdgeInsets.symmetric(vertical: ZarwintoSpacing.sm, horizontal: ZarwintoSpacing.md),
+        decoration: BoxDecoration(
+          color: selected ? colors.primary.withValues(alpha: 0.1) : colors.background,
+          borderRadius: BorderRadius.circular(ZarwintoRadius.md),
+          border: Border.all(
+            color: selected ? colors.primary : colors.border,
+            width: selected ? 2 : 1,
+          ),
+        ),
+        child: Row(
+          children: [
+            HugeIcon(icon: icon, size: 20, color: selected ? colors.primary : colors.secondaryText),
+            const SizedBox(width: ZarwintoSpacing.sm),
+            Text(
+              label,
+              style: ZarwintoTypography.caption.copyWith(
+                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                color: selected ? colors.primary : colors.foreground,
+              ),
+            ),
+            if (selected)
+              HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle01, color: colors.primary, size: 20),
+          ],
+        ),
+      ),
+    );
+  }
+}
