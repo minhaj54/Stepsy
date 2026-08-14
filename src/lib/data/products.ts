@@ -42,6 +42,7 @@ interface DbProduct {
   reviews_count: number;
   created_at: string;
   brands: { name: string; slug: string } | null;
+  brand_name: string | null;
   categories: { slug: string } | null;
   product_images: { image_url: string; sort_order: number }[];
   product_variants: { id: string; product_id: string; size: string; color: string; stock_quantity: number }[];
@@ -56,7 +57,7 @@ export function mapDbProduct(row: DbProduct): Product {
     id: row.id,
     brand_id: row.brand_id,
     store_id: row.store_id ?? undefined,
-    brand_name: row.brands?.name ?? '',
+    brand_name: row.brand_name || row.brands?.name || '',
     category_id: row.category_id,
     category_slug: row.categories?.slug ?? '',
     title: row.title,

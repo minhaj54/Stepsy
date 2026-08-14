@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '../../../components/Toast';
 import ShimmerImage from '../../../components/ShimmerImage';
+import VerifiedBadge from '../../../components/VerifiedBadge';
 
 interface ProductDetailClientProps {
   product: Product;
@@ -594,6 +595,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
               className="text-base font-bold text-foreground hover:text-primary transition-colors truncate block"
             >
               {store.name}
+              <VerifiedBadge className="ml-1" />
             </Link>
             {store.description && (
               <p className="text-xs text-muted-foreground truncate mt-0.5">{store.description}</p>

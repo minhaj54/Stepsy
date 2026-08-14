@@ -9,6 +9,7 @@ import { createClient, isSupabaseConfigured } from '../../lib/supabase/client';
 import { Product } from '../../types';
 import { User, ShoppingBag, Heart, MapPin, Check, Plus, Edit3, LogOut, ArrowRight, Star, Store, XCircle, RefreshCw } from 'lucide-react';
 import ShimmerImage from '../../components/ShimmerImage';
+import VerifiedBadge from '../../components/VerifiedBadge';
 
 export default function AccountContent({ products }: { products: Product[] }) {
   const router = useRouter();
@@ -329,6 +330,7 @@ export default function AccountContent({ products }: { products: Product[] }) {
                 >
                   <Store className="h-4 w-4" />
                   {store.name}
+                  <VerifiedBadge className="ml-0.5" />
                   <span className={`ml-auto px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
                     store.status === 'active' ? 'bg-green-500/10 text-green-400' :
                     store.status === 'pending' ? 'bg-yellow-500/10 text-yellow-400' :

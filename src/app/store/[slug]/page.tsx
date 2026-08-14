@@ -5,6 +5,7 @@ import { Store as StoreIcon, AtSign, Package, ArrowRight, Settings, Star, Trendi
 import { getStoreBySlug, getProductsByStore } from '../../../lib/data/stores';
 import { getCurrentUser } from '../../../lib/supabase/server';
 import ShimmerImage from '../../../components/ShimmerImage';
+import VerifiedBadge from '../../../components/VerifiedBadge';
 
 const SOCIAL_PLATFORMS: Record<string, { icon: string; label: string }> = {
   instagram: { icon: '📷', label: 'Instagram' },
@@ -90,6 +91,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
                   <h1 className="text-2xl sm:text-3xl lg:text-4xl font-extrabold text-white tracking-tight truncate">
                     {store.name}
                   </h1>
+                  <VerifiedBadge />
                   {isOwner && (
                     <span className="px-2 py-0.5 text-[10px] uppercase font-bold tracking-wider bg-primary/20 text-primary rounded-md">
                       Owner

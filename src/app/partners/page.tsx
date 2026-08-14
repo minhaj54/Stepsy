@@ -3,6 +3,7 @@ import Link from 'next/link';
 import { Store as StoreIcon, Users, ArrowRight, ExternalLink } from 'lucide-react';
 import { getStores, getProductsByStore } from '../../lib/data/stores';
 import ShimmerImage from '../../components/ShimmerImage';
+import VerifiedBadge from '../../components/VerifiedBadge';
 
 export const metadata = {
   title: "Partner Stores | Independent Sellers & Premium Brands - Zarwinto",
@@ -123,9 +124,10 @@ export default async function PartnersPage() {
                     </div>
                     
                     <div className="flex-1 min-w-0 pt-8 sm:pt-10">
-                      <h3 className="text-lg font-bold text-foreground tracking-tight truncate group-hover:text-primary transition-colors">
-                        {store.name}
-                      </h3>
+                       <h3 className="text-lg font-bold text-foreground tracking-tight truncate group-hover:text-primary transition-colors">
+                         {store.name}
+                         <VerifiedBadge className="ml-1" />
+                       </h3>
                       {store.social_handle && (
                         <p className="text-xs text-muted-foreground mt-0.5">@{store.social_handle}</p>
                       )}

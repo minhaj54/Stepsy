@@ -5,6 +5,7 @@ import Link from 'next/link';
 import { ArrowLeft, Search, Filter, Store as StoreIcon, ExternalLink, CheckCircle, XCircle, Clock, Eye, Phone, MapPin, FileText, Globe, X, Trash2, Plus, Upload, Image as ImageIcon, Building2, Hash, Save } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '../../../lib/supabase/client';
 import { SocialHandle, PickupAddress } from '../../../types';
+import VerifiedBadge from '../../../components/VerifiedBadge';
 
 interface AdminStoresClientProps {
   initialStores: any[];
@@ -426,6 +427,7 @@ function StoreDetailsModal({ store, onClose, onEdit }: { store: any; onClose: ()
             </div>
             <div className="min-w-0 pb-1">
               <h2 className="text-xl font-bold text-foreground truncate">{store.name}</h2>
+              <VerifiedBadge className="ml-1" />
               <p className="text-sm text-muted-foreground">by {store.users?.full_name || 'Unknown'}</p>
             </div>
           </div>
@@ -738,7 +740,8 @@ export default function AdminStoresClient({ initialStores }: AdminStoresClientPr
                       )}
                     </div>
                     <div className="min-w-0">
-                      <h3 className="font-bold text-foreground text-sm truncate">{store.name}</h3>
+                       <h3 className="font-bold text-foreground text-sm truncate">{store.name}</h3>
+                       <VerifiedBadge className="ml-1 flex-shrink-0" />
                       <p className="text-xs text-muted-foreground">by {store.users?.full_name || 'Unknown'}</p>
                     </div>
                   </div>
