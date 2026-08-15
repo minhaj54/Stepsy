@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import '../providers/zarwinto_store.dart';
 import '../core/theme.dart';
 import '../models/address.dart';
+import '../services/location_resolver.dart';
 
 class AddressesScreen extends StatefulWidget {
   const AddressesScreen({super.key});
@@ -17,64 +18,95 @@ class _AddressesScreenState extends State<AddressesScreen> {
   @override
   void initState() {
     super.initState();
-    _loadAddresses();
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (mounted) _loadAddresses();
+    });
   }
 
   Future<void> _loadAddresses() async {
     final store = ZarwintoScope.of(context);
     setState(() => _loading = true);
     await store.loadAddresses();
-    setState(() {
-      _addresses = store.addresses;
-      _loading = false;
-    });
+    if (mounted) {
+      setState(() {
+        _addresses = store.addresses;
+        _loading = false;
+      });
+    }
   }
 
   void _showAddAddressDialog() {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => const AddAddressDialog(),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => const AddAddressBottomSheet(),
     ).then((_) => _loadAddresses());
   }
 
   void _editAddress(Address address) {
-    showDialog(
+    showModalBottomSheet(
       context: context,
-      builder: (context) => AddAddressDialog(address: address),
+      isScrollControlled: true,
+      backgroundColor: Colors.transparent,
+      builder: (context) => AddAddressBottomSheet(address: address),
     ).then((_) => _loadAddresses());
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: ZarwintoColors.background,
       appBar: AppBar(
         title: const Text('My Addresses'),
+        backgroundColor: ZarwintoColors.background,
+        foregroundColor: ZarwintoColors.foreground,
+        elevation: 0,
         actions: [
           IconButton(
             onPressed: _showAddAddressDialog,
-            icon: const Icon(Icons.add_rounded),
+            icon: const Icon(Icons.add_location_alt_outlined),
+            tooltip: 'Add Address',
           ),
         ],
       ),
       body: _loading
-          ? const Center(child: CircularProgressIndicator())
+          ? const Center(child: CircularProgressIndicator(color: ZarwintoColors.primary))
           : _addresses.isEmpty
               ? Center(
-                  child: Column(
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Icon(Icons.location_on_outlined, size: 64, color: ZarwintoColors.muted),
-                      const SizedBox(height: 16),
-                      Text(
-                        'No addresses saved',
-                        style: Theme.of(context).textTheme.titleLarge,
-                      ),
-                      const SizedBox(height: 8),
-                      Text(
-                        'Add an address for faster checkout',
-                        style: Theme.of(context).textTheme.bodyMedium,
-                      ),
-                    ],
+                  child: Padding(
+                    padding: const EdgeInsets.all(32),
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.center,
+                      children: [
+                        Container(
+                          width: 80,
+                          height: 80,
+                          decoration: BoxDecoration(
+                            color: ZarwintoColors.primary.withValues(alpha: 0.08),
+                            shape: BoxShape.circle,
+                          ),
+                          child: const Icon(Icons.location_on_outlined, size: 40, color: ZarwintoColors.muted),
+                        ),
+                        const SizedBox(height: 16),
+                        Text(
+                          'No addresses saved',
+                          style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+                        ),
+                        const SizedBox(height: 8),
+                        const Text(
+                          'Add an address for quick and effortless checkout.',
+                          style: TextStyle(color: ZarwintoColors.muted, fontSize: 13),
+                          textAlign: TextAlign.center,
+                        ),
+                        const SizedBox(height: 24),
+                        FilledButton.icon(
+                          onPressed: _showAddAddressDialog,
+                          icon: const Icon(Icons.add_rounded, size: 18),
+                          label: const Text('Add New Address'),
+                        ),
+                      ],
+                    ),
                   ),
                 )
               : ListView.builder(
@@ -94,11 +126,12 @@ class _AddressesScreenState extends State<AddressesScreen> {
                             content: const Text('Are you sure you want to delete this address?'),
                             actions: [
                               TextButton(
-                                onPressed: () => Navigator.pop(context, false),
+                                onPressed: () => Navigator.pop(ctx, false),
                                 child: const Text('Cancel'),
                               ),
                               TextButton(
-                                onPressed: () => Navigator.pop(context, true),
+                                onPressed: () => Navigator.pop(ctx, true),
+                                style: TextButton.styleFrom(foregroundColor: ZarwintoColors.error),
                                 child: const Text('Delete'),
                               ),
                             ],
@@ -154,7 +187,7 @@ class AddressCard extends StatelessWidget {
                           color: ZarwintoColors.primary.withValues(alpha: 0.1),
                           borderRadius: BorderRadius.circular(12),
                         ),
-                        child: Text(
+                        child: const Text(
                           'Default',
                           style: TextStyle(
                             color: ZarwintoColors.primary,
@@ -175,7 +208,7 @@ class AddressCard extends StatelessWidget {
                     ),
                     IconButton(
                       onPressed: onDelete,
-                      icon: const Icon(Icons.delete_outline, size: 20),
+                      icon: const Icon(Icons.delete_outline_rounded, size: 20),
                       color: ZarwintoColors.error,
                     ),
                   ],
@@ -185,12 +218,18 @@ class AddressCard extends StatelessWidget {
             const SizedBox(height: 8),
             Text(
               address.fullAddress,
-              style: TextStyle(color: ZarwintoColors.foregroundSecondary, fontSize: 14, height: 1.5),
+              style: const TextStyle(color: ZarwintoColors.foregroundSecondary, fontSize: 14, height: 1.5),
             ),
-            const SizedBox(height: 4),
-            Text(
-              address.phone,
-              style: TextStyle(color: ZarwintoColors.muted, fontSize: 13),
+            const SizedBox(height: 6),
+            Row(
+              children: [
+                const Icon(Icons.phone_outlined, size: 14, color: ZarwintoColors.muted),
+                const SizedBox(width: 4),
+                Text(
+                  address.phone,
+                  style: const TextStyle(color: ZarwintoColors.muted, fontSize: 13),
+                ),
+              ],
             ),
           ],
         ),
@@ -199,16 +238,16 @@ class AddressCard extends StatelessWidget {
   }
 }
 
-class AddAddressDialog extends StatefulWidget {
-  const AddAddressDialog({super.key, this.address});
+class AddAddressBottomSheet extends StatefulWidget {
+  const AddAddressBottomSheet({super.key, this.address});
 
   final Address? address;
 
   @override
-  State<AddAddressDialog> createState() => _AddAddressDialogState();
+  State<AddAddressBottomSheet> createState() => _AddAddressBottomSheetState();
 }
 
-class _AddAddressDialogState extends State<AddAddressDialog> {
+class _AddAddressBottomSheetState extends State<AddAddressBottomSheet> {
   final _formKey = GlobalKey<FormState>();
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
@@ -222,6 +261,7 @@ class _AddAddressDialogState extends State<AddAddressDialog> {
   @override
   void initState() {
     super.initState();
+    _pincodeController.addListener(_onPincodeChanged);
     if (widget.address != null) {
       _fullNameController.text = widget.address!.fullName;
       _phoneController.text = widget.address!.phone;
@@ -233,8 +273,24 @@ class _AddAddressDialogState extends State<AddAddressDialog> {
     }
   }
 
+  void _onPincodeChanged() async {
+    final text = _pincodeController.text.trim();
+    if (text.length == 6 && RegExp(r'^\d{6}$').hasMatch(text)) {
+      final loc = await LocationResolver.resolvePincode(text);
+      if (loc != null && mounted) {
+        if (loc.cityName != null && _cityController.text.trim().isEmpty) {
+          _cityController.text = loc.cityName!;
+        }
+        if (loc.stateName != null && _stateController.text.trim().isEmpty) {
+          _stateController.text = loc.stateName!;
+        }
+      }
+    }
+  }
+
   @override
   void dispose() {
+    _pincodeController.removeListener(_onPincodeChanged);
     _fullNameController.dispose();
     _phoneController.dispose();
     _addressLine1Controller.dispose();
@@ -249,7 +305,7 @@ class _AddAddressDialogState extends State<AddAddressDialog> {
 
     setState(() => _saving = true);
     final store = ZarwintoScope.of(context);
-    
+
     final address = Address(
       id: widget.address?.id ?? '',
       userId: widget.address?.userId ?? '',
@@ -269,36 +325,65 @@ class _AddAddressDialogState extends State<AddAddressDialog> {
       await store.updateAddress(address);
     }
 
-    setState(() => _saving = false);
-    if (mounted) Navigator.pop(context);
+    if (mounted) {
+      setState(() => _saving = false);
+      Navigator.pop(context);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
-    return AlertDialog(
-      title: Text(widget.address == null ? 'Add Address' : 'Edit Address'),
-      content: Form(
+    return Container(
+      decoration: const BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+      ),
+      padding: EdgeInsets.only(
+        left: 20,
+        right: 20,
+        top: 20,
+        bottom: MediaQuery.of(context).viewInsets.bottom + 24,
+      ),
+      child: Form(
         key: _formKey,
         child: SingleChildScrollView(
           child: Column(
             mainAxisSize: MainAxisSize.min,
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
+              Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Text(
+                    widget.address == null ? 'Add Delivery Address' : 'Edit Delivery Address',
+                    style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                  ),
+                  IconButton(
+                    onPressed: () => Navigator.pop(context),
+                    icon: const Icon(Icons.close_rounded),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 16),
               TextFormField(
                 controller: _fullNameController,
                 decoration: const InputDecoration(labelText: 'Full Name'),
                 validator: (v) => v?.trim().isEmpty ?? true ? 'Required' : null,
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _phoneController,
-                decoration: const InputDecoration(labelText: 'Phone Number'),
+                decoration: const InputDecoration(labelText: 'Phone Number (10 digits)'),
                 keyboardType: TextInputType.phone,
                 validator: (v) => v?.trim().isEmpty ?? true ? 'Required' : null,
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _addressLine1Controller,
-                decoration: const InputDecoration(labelText: 'Address'),
+                decoration: const InputDecoration(labelText: 'House/Flat No., Street, Landmark'),
                 validator: (v) => v?.trim().isEmpty ?? true ? 'Required' : null,
               ),
+              const SizedBox(height: 12),
               Row(
                 children: [
                   Expanded(
@@ -318,34 +403,39 @@ class _AddAddressDialogState extends State<AddAddressDialog> {
                   ),
                 ],
               ),
+              const SizedBox(height: 12),
               TextFormField(
                 controller: _pincodeController,
-                decoration: const InputDecoration(labelText: 'Pincode'),
+                decoration: const InputDecoration(
+                  labelText: 'Pincode (6 digits)',
+                  hintText: 'e.g. 110001',
+                ),
                 keyboardType: TextInputType.number,
-                validator: (v) => v?.trim().isEmpty ?? true ? 'Required' : null,
+                validator: (v) => v?.trim().length != 6 ? 'Enter 6-digit pin' : null,
               ),
+              const SizedBox(height: 12),
               CheckboxListTile(
-                title: const Text('Set as default address'),
+                title: const Text('Set as default delivery address', style: TextStyle(fontSize: 14)),
                 value: _isDefault,
                 onChanged: (v) => setState(() => _isDefault = v ?? false),
                 contentPadding: EdgeInsets.zero,
+                controlAffinity: ListTileControlAffinity.leading,
+              ),
+              const SizedBox(height: 16),
+              SizedBox(
+                width: double.infinity,
+                height: 48,
+                child: FilledButton(
+                  onPressed: _saving ? null : _saveAddress,
+                  child: _saving
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : Text(widget.address == null ? 'Save Address' : 'Update Address'),
+                ),
               ),
             ],
           ),
         ),
       ),
-      actions: [
-        TextButton(
-          onPressed: _saving ? null : () => Navigator.pop(context),
-          child: const Text('Cancel'),
-        ),
-        ElevatedButton(
-          onPressed: _saving ? null : _saveAddress,
-          child: _saving
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : Text(widget.address == null ? 'Add' : 'Save'),
-        ),
-      ],
     );
   }
 }

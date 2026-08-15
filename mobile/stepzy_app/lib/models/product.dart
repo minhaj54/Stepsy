@@ -65,10 +65,14 @@ class Product {
       ];
     }
 
-    // Parse product_variants relation
+    // Parse product_variants relation or variants key
     List<ProductVariant> parsedVariants = [];
     if (json['product_variants'] is List) {
       parsedVariants = (json['product_variants'] as List<dynamic>)
+          .map((row) => ProductVariant.fromJson(row as Map<String, dynamic>))
+          .toList();
+    } else if (json['variants'] is List) {
+      parsedVariants = (json['variants'] as List<dynamic>)
           .map((row) => ProductVariant.fromJson(row as Map<String, dynamic>))
           .toList();
     }

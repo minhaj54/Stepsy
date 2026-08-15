@@ -1,102 +1,91 @@
 import 'dart:convert';
-
-import 'package:geolocator/geolocator.dart';
 import 'package:http/http.dart' as http;
-
 import '../data/india_locations.dart';
 
-/// Result of resolving the device location into a structured address.
+/// Result of resolving the location/pincode into a structured address.
 class ResolvedLocation {
   const ResolvedLocation({
     this.state,
     this.district,
     this.pincode,
+    this.cityName,
+    this.stateName,
   });
 
   final IndiaState? state;
   final IndiaDistrict? district;
   final String? pincode;
+  final String? cityName;
+  final String? stateName;
 
-  bool get hasAny => state != null || district != null || pincode != null;
+  bool get hasAny =>
+      state != null ||
+      district != null ||
+      pincode != null ||
+      (cityName != null && cityName!.isNotEmpty);
 }
 
-/// Handles "use my current location": requests GPS permission + position, then
-/// reverse-geocodes the coordinates via OpenStreetMap Nominatim (free, no API key).
+/// Fast Postal PIN code resolver using India Post API + local dataset fallback.
 class LocationResolver {
   const LocationResolver._();
 
-  /// Returns null when permission is denied or geocoding fails.
-  static Future<ResolvedLocation?> resolveCurrent() async {
-    LocationPermission permission = await Geolocator.checkPermission();
-    if (permission == LocationPermission.denied) {
-      permission = await Geolocator.requestPermission();
-    }
-    if (permission == LocationPermission.denied ||
-        permission == LocationPermission.deniedForever) {
-      return null;
-    }
-
-    final Position position;
-    try {
-      position = await Geolocator.getCurrentPosition(
-        locationSettings: const LocationSettings(
-          accuracy: LocationAccuracy.high,
-          timeLimit: Duration(seconds: 15),
-        ),
-      );
-    } catch (_) {
-      return null;
-    }
+  /// Resolve City, District and State from a 6-digit Indian PIN code.
+  static Future<ResolvedLocation?> resolvePincode(String pincode) async {
+    final cleanPin = pincode.trim().replaceAll(RegExp(r'\D'), '');
+    if (cleanPin.length != 6) return null;
 
     try {
-      final uri = Uri.https(
-        'nominatim.openstreetmap.org',
-        '/reverse',
-        {
-          'format': 'json',
-          'lat': position.latitude.toString(),
-          'lon': position.longitude.toString(),
-          'zoom': '18',
-          'addressdetails': '1',
-        },
-      );
+      final uri = Uri.parse('https://api.postalpincode.in/pincode/$cleanPin');
       final response = await http
-          .get(uri, headers: {'User-Agent': 'Zarwinto/1.0'})
-          .timeout(const Duration(seconds: 15));
+          .get(uri)
+          .timeout(const Duration(seconds: 5));
 
-      if (response.statusCode != 200) return null;
-      final data = json.decode(response.body) as Map<String, dynamic>;
-      final addr = data['address'] as Map<String, dynamic>? ?? {};
+      if (response.statusCode == 200) {
+        final List<dynamic> data = json.decode(response.body);
+        if (data.isNotEmpty && data[0]['Status'] == 'Success') {
+          final postOffices = data[0]['PostOffice'] as List<dynamic>?;
+          if (postOffices != null && postOffices.isNotEmpty) {
+            final primary = postOffices[0];
+            final districtName = primary['District'] as String? ?? primary['Block'] as String? ?? '';
+            final stateName = primary['State'] as String? ?? '';
 
-      final rawState = _firstNonEmpty([
-        addr['state'],
-        addr['state_district'],
-      ]);
-      final rawDistrict = _firstNonEmpty([
-        addr['city_district'],
-        addr['county'],
-        addr['city'],
-        addr['town'],
-        addr['village'],
-        addr['suburb'],
-        addr['municipality'],
-      ]);
-      final rawPincode = _firstNonEmpty([addr['postcode']]);
+            final state = IndiaLocationData.findState(stateName);
+            final district = state != null ? IndiaLocationData.findDistrict(state, districtName) : null;
 
-      final state = IndiaLocationData.findState(rawState);
-      final district = state != null ? IndiaLocationData.findDistrict(state, rawDistrict) : null;
-      final pincode = (rawPincode ?? '').trim().isEmpty ? null : rawPincode!.trim();
-
-      return ResolvedLocation(state: state, district: district, pincode: pincode);
+            return ResolvedLocation(
+              state: state,
+              district: district,
+              pincode: cleanPin,
+              cityName: districtName.isNotEmpty ? districtName : primary['Name'] as String?,
+              stateName: stateName,
+            );
+          }
+        }
+      }
     } catch (_) {
-      return null;
+      // Fall through to local lookup
     }
+
+    // Local fallback matching
+    for (final s in IndiaLocationData.states) {
+      for (final d in s.districts) {
+        if (d.pincodes.contains(cleanPin)) {
+          return ResolvedLocation(
+            state: s,
+            district: d,
+            pincode: cleanPin,
+            cityName: d.name,
+            stateName: s.name,
+          );
+        }
+      }
+    }
+
+    return null;
   }
 
-  static String? _firstNonEmpty(List<dynamic> values) {
-    for (final v in values) {
-      if (v is String && v.trim().isNotEmpty) return v.trim();
-    }
+  /// Resolve current (alias to pincode lookup or empty)
+  static Future<ResolvedLocation?> resolveCurrent() async {
     return null;
   }
 }

@@ -1,6 +1,4 @@
-import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:shimmer/shimmer.dart';
 import '../providers/zarwinto_store.dart';
 import '../core/theme.dart';
@@ -15,46 +13,11 @@ class WishlistScreen extends StatefulWidget {
 }
 
 class _WishlistScreenState extends State<WishlistScreen> {
-  bool _loading = true;
-  Timer? _retryTimer;
-
-  @override
-  void initState() {
-    super.initState();
-    _loadWishlist();
-  }
-
-  @override
-  void dispose() {
-    _retryTimer?.cancel();
-    super.dispose();
-  }
-
-  Future<void> _loadWishlist() async {
-    final store = ZarwintoScope.of(context);
-    
-    if (store.products.isEmpty) {
-      setState(() {
-        _loading = true;
-      });
-      
-      _retryTimer?.cancel();
-      _retryTimer = Timer(const Duration(milliseconds: 800), () {
-        if (mounted) _loadWishlist();
-      });
-      return;
-    }
-    
-    _retryTimer?.cancel();
-    
-    setState(() {
-      _loading = false;
-    });
-  }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: ZarwintoColors.background,
       appBar: AppBar(
         title: const Text('My Wishlist'),
         backgroundColor: ZarwintoColors.background,
@@ -76,8 +39,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
     final store = ZarwintoScope.of(context);
     final wishlistIds = store.wishlist;
     final products = store.products;
-    
-    if (products.isEmpty && _loading) {
+
+    if (products.isEmpty && store.loading) {
       return Shimmer.fromColors(
         baseColor: ZarwintoColors.border,
         highlightColor: Colors.white,
@@ -85,7 +48,7 @@ class _WishlistScreenState extends State<WishlistScreen> {
           padding: const EdgeInsets.all(ZarwintoSpacing.lg),
           gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
             crossAxisCount: 2,
-            childAspectRatio: 0.72,
+            childAspectRatio: 0.68,
             crossAxisSpacing: 12,
             mainAxisSpacing: 12,
           ),
@@ -94,37 +57,54 @@ class _WishlistScreenState extends State<WishlistScreen> {
         ),
       );
     }
-    
+
     final matched = products.where((p) => wishlistIds.contains(p.id)).toList();
-    
+
     return SafeArea(
       child: RefreshIndicator(
-        onRefresh: _loadWishlist,
+        onRefresh: store.refresh,
         child: matched.isEmpty
             ? Center(
-                child: Column(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: [
-                    HugeIcon(icon: HugeIcons.strokeRoundedFavourite, size: 64, color: ZarwintoColors.muted),
-                    const SizedBox(height: ZarwintoSpacing.lg),
-                    Text(
-                      'No wishlist items yet',
-                      style: Theme.of(context).textTheme.titleLarge,
-                    ),
-                    const SizedBox(height: ZarwintoSpacing.sm),
-                    Text(
-                      'Tap the heart icon on products to save them here',
-                      style: Theme.of(context).textTheme.bodyMedium,
-                      textAlign: TextAlign.center,
-                    ),
-                  ],
+                child: Padding(
+                  padding: const EdgeInsets.all(32),
+                  child: Column(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Container(
+                        width: 80,
+                        height: 80,
+                        decoration: BoxDecoration(
+                          color: ZarwintoColors.primary.withValues(alpha: 0.08),
+                          shape: BoxShape.circle,
+                        ),
+                        child: const Icon(
+                          Icons.favorite_border_rounded,
+                          size: 40,
+                          color: ZarwintoColors.muted,
+                        ),
+                      ),
+                      const SizedBox(height: ZarwintoSpacing.lg),
+                      Text(
+                        'No wishlist items yet',
+                        style: Theme.of(context).textTheme.titleLarge?.copyWith(
+                              fontWeight: FontWeight.w700,
+                            ),
+                      ),
+                      const SizedBox(height: ZarwintoSpacing.sm),
+                      const Text(
+                        'Tap the heart icon on any shoe to save it to your personal wishlist.',
+                        style: TextStyle(color: ZarwintoColors.muted, fontSize: 14),
+                        textAlign: TextAlign.center,
+                      ),
+                    ],
+                  ),
                 ),
               )
             : GridView.builder(
                 padding: const EdgeInsets.all(ZarwintoSpacing.lg),
                 gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
                   crossAxisCount: 2,
-                  childAspectRatio: 0.72,
+                  childAspectRatio: 0.68,
                   crossAxisSpacing: 12,
                   mainAxisSpacing: 12,
                 ),

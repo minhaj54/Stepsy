@@ -275,7 +275,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
           foregroundColor: ZarwintoColors.foreground,
           leading: IconButton(
             onPressed: widget.onError,
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01),
+            icon: const HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: ZarwintoColors.foreground),
           ),
         ),
         body: Stack(

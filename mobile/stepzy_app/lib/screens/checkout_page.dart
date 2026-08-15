@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:shimmer/shimmer.dart';
 import '../core/theme.dart';
 import '../providers/zarwinto_store.dart';
@@ -7,6 +6,7 @@ import '../models/shipping_address.dart';
 import '../models/address.dart';
 import '../models/order.dart';
 import '../services/payment_service.dart';
+import '../services/location_resolver.dart';
 import '../screens/order_confirmation_screen.dart';
 import '../screens/checkout_failure_screen.dart';
 import '../widgets/cart_row.dart';
@@ -37,6 +37,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
   @override
   void initState() {
     super.initState();
+    pincode.addListener(_onPincodeChanged);
     WidgetsBinding.instance.addPostFrameCallback((_) {
       if (mounted) {
         _loadAddresses();
@@ -44,14 +45,25 @@ class _CheckoutPageState extends State<CheckoutPage> {
     });
   }
 
+  void _onPincodeChanged() async {
+    final text = pincode.text.trim();
+    if (text.length == 6 && RegExp(r'^\d{6}$').hasMatch(text)) {
+      final loc = await LocationResolver.resolvePincode(text);
+      if (loc != null && mounted) {
+        if (loc.cityName != null && city.text.trim().isEmpty) {
+          city.text = loc.cityName!;
+        }
+        if (loc.stateName != null && state.text.trim().isEmpty) {
+          state.text = loc.stateName!;
+        }
+      }
+    }
+  }
+
   Future<void> _loadAddresses() async {
-    debugPrint('[CheckoutPage] _loadAddresses START');
     try {
       final store = ZarwintoScope.of(context);
-      debugPrint('[CheckoutPage] store.addresses cached=${store.addresses.length}');
-
       if (store.addresses.isNotEmpty) {
-        debugPrint('[CheckoutPage] _loadAddresses: using cached addresses=${store.addresses.length}');
         if (!mounted) return;
         setState(() {
           addresses = store.addresses;
@@ -71,23 +83,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
         return;
       }
 
-      bool timedOut = false;
-      try {
-        await store.loadAddresses().timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            debugPrint('[CheckoutPage] _loadAddresses TIMEOUT after 10s');
-            timedOut = true;
-            return;
-          },
-        );
-      } catch (e) {
-        debugPrint('[CheckoutPage] _loadAddresses ERROR: $e');
-      }
+      await store.loadAddresses().timeout(
+        const Duration(seconds: 5),
+        onTimeout: () {},
+      );
+
       if (!mounted) return;
       setState(() {
         addresses = store.addresses;
-        debugPrint('[CheckoutPage] _loadAddresses END: addresses=${addresses.length}, timedOut=$timedOut');
         selectedAddress = addresses.isNotEmpty
             ? addresses.firstWhere((addr) => addr.isDefault, orElse: () => addresses.first)
             : null;
@@ -101,8 +104,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           pincode.text = selectedAddress!.pincode;
         }
       });
-    } catch (e) {
-      debugPrint('[CheckoutPage] _loadAddresses UNCAUGHT: $e');
+    } catch (_) {
       if (mounted) {
         setState(() => _addressesLoaded = true);
       }
@@ -111,6 +113,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
   @override
   void dispose() {
+    pincode.removeListener(_onPincodeChanged);
     fullName.dispose();
     phone.dispose();
     address.dispose();
@@ -161,7 +164,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               pincode: pincode.text.trim(),
             );
 
-       if (paymentMethod == 'cod') {
+      if (paymentMethod == 'cod') {
         String? orderId;
         try {
           orderId = await store.placeOrder(addressData, paymentMethod: 'cod');
@@ -241,7 +244,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           orderId: order.id,
           amount: grandTotal,
           name: order.shippingAddress['fullName'] ?? '',
-          email: 'customer@example.com',
+          email: store.profile?.email ?? 'customer@example.com',
           phone: order.shippingAddress['phone'] ?? '',
         );
 
@@ -297,7 +300,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                   if (mounted) {
                     ScaffoldMessenger.of(context).showSnackBar(
                       SnackBar(
-                        content: const Text('Payment failed. Please try again.'),
+                        content: const Text('Payment failed or cancelled.'),
                         backgroundColor: colors.error,
                       ),
                     );
@@ -309,7 +312,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         } else if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
-              content: const Text('Payment gateway unavailable. Please try again later.'),
+              content: const Text('Payment gateway unavailable. Please try Cash on Delivery.'),
               backgroundColor: colors.error,
             ),
           );
@@ -389,7 +392,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           if (store.cart.isNotEmpty)
             TextButton.icon(
               onPressed: () => Navigator.pop(context),
-              icon: const HugeIcon(icon: HugeIcons.strokeRoundedShoppingBag01, size: 18),
+              icon: const Icon(Icons.shopping_bag_outlined, size: 18),
               label: Text('${store.cart.length} items'),
             ),
         ],
@@ -399,9 +402,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const HugeIcon(
-                    icon: HugeIcons.strokeRoundedShoppingBag01,
+                  const Icon(
+                    Icons.shopping_bag_outlined,
                     size: 64,
+                    color: ZarwintoColors.muted,
                   ),
                   const SizedBox(height: ZarwintoSpacing.lg),
                   Text(
@@ -416,7 +420,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 ],
               ),
             )
-           : !_addressesLoaded
+          : !_addressesLoaded
               ? _buildShimmerCheckout(colors)
               : ListView(
                   padding: const EdgeInsets.all(ZarwintoSpacing.lg),
@@ -431,191 +435,197 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
                     Text(
                       'Shipping Address',
-                  style: ZarwintoTypography.title.copyWith(color: colors.foreground),
-                ),
-                const SizedBox(height: ZarwintoSpacing.md),
+                      style: ZarwintoTypography.title.copyWith(color: colors.foreground),
+                    ),
+                    const SizedBox(height: ZarwintoSpacing.md),
 
-                if (!editing && selectedAddress != null) ...[
-                  _AddressCard(
-                    address: selectedAddress!,
-                    onEdit: () => setState(() => editing = true),
-                    colors: colors,
-                  ),
-                  const SizedBox(height: ZarwintoSpacing.sm),
-                  TextButton.icon(
-                    onPressed: () => setState(() => editing = true),
-                    icon: const HugeIcon(icon: HugeIcons.strokeRoundedEdit01, size: 18),
-                    label: const Text('Change Address'),
-                  ),
-                ] else ...[
-                  TextField(
-                    controller: fullName,
-                    decoration: const InputDecoration(labelText: 'Full name'),
-                    style: ZarwintoTypography.body.copyWith(color: colors.foreground),
-                  ),
-                  const SizedBox(height: ZarwintoSpacing.sm),
-                  TextField(
-                    controller: phone,
-                    decoration: const InputDecoration(labelText: 'Phone'),
-                    style: ZarwintoTypography.body.copyWith(color: colors.foreground),
-                  ),
-                  const SizedBox(height: ZarwintoSpacing.sm),
-                  TextField(
-                    controller: address,
-                    decoration: const InputDecoration(labelText: 'Address'),
-                    style: ZarwintoTypography.body.copyWith(color: colors.foreground),
-                  ),
-                  const SizedBox(height: ZarwintoSpacing.sm),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: TextField(
-                          controller: city,
-                          decoration: const InputDecoration(labelText: 'City'),
-                          style: ZarwintoTypography.body.copyWith(color: colors.foreground),
-                        ),
+                    if (!editing && selectedAddress != null) ...[
+                      _AddressCard(
+                        address: selectedAddress!,
+                        onEdit: () => setState(() => editing = true),
+                        colors: colors,
                       ),
-                      const SizedBox(width: ZarwintoSpacing.sm),
-                      Expanded(
-                        child: TextField(
-                          controller: state,
-                          decoration: const InputDecoration(labelText: 'State'),
-                          style: ZarwintoTypography.body.copyWith(color: colors.foreground),
-                        ),
+                      const SizedBox(height: ZarwintoSpacing.sm),
+                      TextButton.icon(
+                        onPressed: () => setState(() => editing = true),
+                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        label: const Text('Change Address'),
                       ),
+                    ] else ...[
+                      TextField(
+                        controller: fullName,
+                        decoration: const InputDecoration(labelText: 'Full name'),
+                        style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                      ),
+                      const SizedBox(height: ZarwintoSpacing.sm),
+                      TextField(
+                        controller: phone,
+                        decoration: const InputDecoration(labelText: 'Phone'),
+                        style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                        keyboardType: TextInputType.phone,
+                      ),
+                      const SizedBox(height: ZarwintoSpacing.sm),
+                      TextField(
+                        controller: address,
+                        decoration: const InputDecoration(labelText: 'Street Address, Flat / House No.'),
+                        style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                      ),
+                      const SizedBox(height: ZarwintoSpacing.sm),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: TextField(
+                              controller: city,
+                              decoration: const InputDecoration(labelText: 'City'),
+                              style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                            ),
+                          ),
+                          const SizedBox(width: ZarwintoSpacing.sm),
+                          Expanded(
+                            child: TextField(
+                              controller: state,
+                              decoration: const InputDecoration(labelText: 'State'),
+                              style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                            ),
+                          ),
+                        ],
+                      ),
+                      const SizedBox(height: ZarwintoSpacing.sm),
+                      TextField(
+                        controller: pincode,
+                        decoration: const InputDecoration(
+                          labelText: 'Pincode (6 digits)',
+                          hintText: 'e.g. 110001',
+                        ),
+                        style: ZarwintoTypography.body.copyWith(color: colors.foreground),
+                        keyboardType: TextInputType.number,
+                      ),
+                      const SizedBox(height: ZarwintoSpacing.xs),
+                      if (addresses.isNotEmpty)
+                        TextButton.icon(
+                          onPressed: () {
+                            setState(() {
+                              editing = false;
+                              final defaultAddr = addresses.firstWhere(
+                                (addr) => addr.isDefault,
+                                orElse: () => addresses.first,
+                              );
+                              selectedAddress = defaultAddr;
+                              fullName.text = defaultAddr.fullName;
+                              phone.text = defaultAddr.phone;
+                              address.text = defaultAddr.addressLine1;
+                              city.text = defaultAddr.city;
+                              state.text = defaultAddr.state;
+                              pincode.text = defaultAddr.pincode;
+                            });
+                          },
+                          icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                          label: const Text('Use saved address'),
+                        ),
                     ],
-                  ),
-                  const SizedBox(height: ZarwintoSpacing.sm),
-                  TextField(
-                    controller: pincode,
-                    decoration: const InputDecoration(labelText: 'Pincode'),
-                    style: ZarwintoTypography.body.copyWith(color: colors.foreground),
-                    keyboardType: TextInputType.number,
-                  ),
-                  const SizedBox(height: ZarwintoSpacing.xs),
-                  if (addresses.isNotEmpty)
-                    TextButton.icon(
-                      onPressed: () {
-                        setState(() {
-                          editing = false;
-                          final defaultAddr = addresses.firstWhere(
-                            (addr) => addr.isDefault,
-                            orElse: () => addresses.first,
-                          );
-                          selectedAddress = defaultAddr;
-                          fullName.text = defaultAddr.fullName;
-                          phone.text = defaultAddr.phone;
-                          address.text = defaultAddr.addressLine1;
-                          city.text = defaultAddr.city;
-                          state.text = defaultAddr.state;
-                          pincode.text = defaultAddr.pincode;
-                        });
-                      },
-                      icon: const HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 18),
-                      label: const Text('Use saved address'),
-                    ),
-                ],
 
-                const SizedBox(height: ZarwintoSpacing.lg),
+                    const SizedBox(height: ZarwintoSpacing.lg),
 
-                Text(
-                  'Payment Method',
-                  style: ZarwintoTypography.title.copyWith(color: colors.foreground),
-                ),
-                const SizedBox(height: ZarwintoSpacing.sm),
-                Wrap(
-                  spacing: ZarwintoSpacing.sm,
-                  runSpacing: ZarwintoSpacing.sm,
-                  children: [
-                    _PaymentOption(
-                      label: 'UPI',
-                      icon: HugeIcons.strokeRoundedSmartPhone01,
-                      selected: paymentMethod == 'cashfree_upi',
-                      onTap: () => setState(() => paymentMethod = 'cashfree_upi'),
-                      colors: colors,
+                    Text(
+                      'Payment Method',
+                      style: ZarwintoTypography.title.copyWith(color: colors.foreground),
                     ),
-                    _PaymentOption(
-                      label: 'Card',
-                      icon: HugeIcons.strokeRoundedCreditCard,
-                      selected: paymentMethod == 'card',
-                      onTap: () => setState(() => paymentMethod = 'card'),
-                      colors: colors,
-                    ),
-                    _PaymentOption(
-                      label: 'Net Banking',
-                      icon: HugeIcons.strokeRoundedBank,
-                      selected: paymentMethod == 'netbanking',
-                      onTap: () => setState(() => paymentMethod = 'netbanking'),
-                      colors: colors,
-                    ),
-                    _PaymentOption(
-                      label: 'Cash on Delivery',
-                      icon: HugeIcons.strokeRoundedMoney01,
-                      selected: paymentMethod == 'cod',
-                      onTap: () => setState(() => paymentMethod = 'cod'),
-                      colors: colors,
-                    ),
-                  ],
-                ),
-
-                const SizedBox(height: ZarwintoSpacing.lg),
-
-                Container(
-                  padding: const EdgeInsets.all(ZarwintoSpacing.md),
-                  decoration: BoxDecoration(
-                    color: colors.background,
-                    borderRadius: ZarwintoRadius.all12,
-                  ),
-                  child: Column(
-                    children: [
-                      PriceLine(
-                        label: 'Subtotal',
-                        value: money.format(store.subtotal),
-                      ),
-                      if (store.discount > 0) ...[
-                        const SizedBox(height: ZarwintoSpacing.xs),
-                        Row(
-                          mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                          children: [
-                            Text(
-                              'Discount',
-                              style: ZarwintoTypography.caption.copyWith(
-                                fontWeight: FontWeight.w500,
-                                color: colors.success,
-                              ),
-                            ),
-                            Text(
-                              '-${money.format(store.discount)}',
-                              style: ZarwintoTypography.caption.copyWith(
-                                fontWeight: FontWeight.w600,
-                                color: colors.success,
-                              ),
-                            ),
-                          ],
+                    const SizedBox(height: ZarwintoSpacing.sm),
+                    Wrap(
+                      spacing: ZarwintoSpacing.sm,
+                      runSpacing: ZarwintoSpacing.sm,
+                      children: [
+                        _PaymentOption(
+                          label: 'UPI (GPay, PhonePe, Paytm)',
+                          icon: Icons.smartphone_rounded,
+                          selected: paymentMethod == 'cashfree_upi',
+                          onTap: () => setState(() => paymentMethod = 'cashfree_upi'),
+                          colors: colors,
+                        ),
+                        _PaymentOption(
+                          label: 'Credit / Debit Card',
+                          icon: Icons.credit_card_rounded,
+                          selected: paymentMethod == 'card',
+                          onTap: () => setState(() => paymentMethod = 'card'),
+                          colors: colors,
+                        ),
+                        _PaymentOption(
+                          label: 'Net Banking',
+                          icon: Icons.account_balance_rounded,
+                          selected: paymentMethod == 'netbanking',
+                          onTap: () => setState(() => paymentMethod = 'netbanking'),
+                          colors: colors,
+                        ),
+                        _PaymentOption(
+                          label: 'Cash on Delivery (COD)',
+                          icon: Icons.payments_outlined,
+                          selected: paymentMethod == 'cod',
+                          onTap: () => setState(() => paymentMethod = 'cod'),
+                          colors: colors,
                         ),
                       ],
-                      const SizedBox(height: ZarwintoSpacing.xs),
-                      PriceLine(
-                        label: 'Shipping',
-                        value: shippingCost == 0 ? 'FREE' : money.format(shippingCost),
+                    ),
+
+                    const SizedBox(height: ZarwintoSpacing.lg),
+
+                    Container(
+                      padding: const EdgeInsets.all(ZarwintoSpacing.md),
+                      decoration: BoxDecoration(
+                        color: colors.card,
+                        borderRadius: ZarwintoRadius.all12,
+                        border: Border.all(color: colors.border),
                       ),
-                      const Divider(height: 20),
-                      PriceLine(
-                        label: 'Total',
-                        value: money.format(grandTotal),
-                        emphasis: true,
+                      child: Column(
+                        children: [
+                          PriceLine(
+                            label: 'Subtotal',
+                            value: money.format(store.subtotal),
+                          ),
+                          if (store.discount > 0) ...[
+                            const SizedBox(height: ZarwintoSpacing.xs),
+                            Row(
+                              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                              children: [
+                                Text(
+                                  'Discount',
+                                  style: ZarwintoTypography.caption.copyWith(
+                                    fontWeight: FontWeight.w500,
+                                    color: colors.success,
+                                  ),
+                                ),
+                                Text(
+                                  '-${money.format(store.discount)}',
+                                  style: ZarwintoTypography.caption.copyWith(
+                                    fontWeight: FontWeight.w600,
+                                    color: colors.success,
+                                  ),
+                                ),
+                              ],
+                            ),
+                          ],
+                          const SizedBox(height: ZarwintoSpacing.xs),
+                          PriceLine(
+                            label: 'Shipping',
+                            value: shippingCost == 0 ? 'FREE' : money.format(shippingCost),
+                          ),
+                          const Divider(height: 20),
+                          PriceLine(
+                            label: 'Total',
+                            value: money.format(grandTotal),
+                            emphasis: true,
+                          ),
+                        ],
                       ),
-                    ],
-                  ),
+                    ),
+                    const SizedBox(height: ZarwintoSpacing.lg),
+                    ZButton.primary(
+                      onPressed: busy ? null : _placeOrder,
+                      label: paymentMethod == 'cod' ? 'Place Order (COD)' : 'Pay ₹${grandTotal.toInt()}',
+                      isLoading: busy,
+                    ),
+                    const SizedBox(height: ZarwintoSpacing.lg),
+                  ],
                 ),
-                const SizedBox(height: ZarwintoSpacing.lg),
-                ZButton.primary(
-                  onPressed: busy ? null : _placeOrder,
-                  label: paymentMethod == 'cod' ? 'Place Order (COD)' : 'Pay & Place Order',
-                ),
-                const SizedBox(height: ZarwintoSpacing.lg),
-              ],
-            ),
     );
   }
 
@@ -629,7 +639,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ShimmerBox(width: 100, height: 20, borderRadius: BorderRadius.circular(4)),
+              const ShimmerBox(width: 100, height: 20, borderRadius: 4),
               const SizedBox(height: ZarwintoSpacing.md),
               ListView.builder(
                 shrinkWrap: true,
@@ -650,18 +660,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ShimmerBox(width: 140, height: 20, borderRadius: BorderRadius.circular(4)),
+              const ShimmerBox(width: 140, height: 20, borderRadius: 4),
               const SizedBox(height: ZarwintoSpacing.md),
               ListView.builder(
                 shrinkWrap: true,
                 physics: const NeverScrollableScrollPhysics(),
                 itemCount: 2,
-                itemBuilder: (context, index) => Padding(
-                  padding: const EdgeInsets.only(bottom: ZarwintoSpacing.sm),
+                itemBuilder: (context, index) => const Padding(
+                  padding: EdgeInsets.only(bottom: ZarwintoSpacing.sm),
                   child: ShimmerBox(
                     width: double.infinity,
                     height: 48,
-                    borderRadius: BorderRadius.circular(ZarwintoRadius.md),
+                    borderRadius: 12,
                   ),
                 ),
               ),
@@ -675,16 +685,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              ShimmerBox(width: 160, height: 20, borderRadius: BorderRadius.circular(4)),
+              const ShimmerBox(width: 160, height: 20, borderRadius: 4),
               const SizedBox(height: ZarwintoSpacing.md),
               Column(
-                children: List.generate(4, (i) => Padding(
-                  padding: const EdgeInsets.only(bottom: ZarwintoSpacing.sm),
-                  child: ShimmerBox(width: double.infinity, height: 13, borderRadius: BorderRadius.circular(4)),
+                children: List.generate(4, (i) => const Padding(
+                  padding: EdgeInsets.only(bottom: ZarwintoSpacing.sm),
+                  child: ShimmerBox(width: double.infinity, height: 13, borderRadius: 4),
                 )),
               ),
               const SizedBox(height: ZarwintoSpacing.xs),
-              ShimmerBox(width: double.infinity, height: 48, borderRadius: BorderRadius.circular(ZarwintoRadius.md)),
+              const ShimmerBox(width: double.infinity, height: 48, borderRadius: 12),
             ],
           ),
         ),
@@ -703,28 +713,28 @@ class ShimmerCheckoutItem extends StatelessWidget {
         padding: const EdgeInsets.all(ZarwintoSpacing.md),
         child: Row(
           children: [
-            ShimmerBox(
+            const ShimmerBox(
               width: 76,
               height: 76,
-              borderRadius: ZarwintoRadius.all12,
+              borderRadius: 12,
             ),
             const SizedBox(width: ZarwintoSpacing.md),
-            Expanded(
+            const Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  ShimmerBox(width: double.infinity, height: 14, borderRadius: BorderRadius.circular(4)),
-                  const SizedBox(height: ZarwintoSpacing.xs),
-                  ShimmerBox(width: 100, height: 12, borderRadius: BorderRadius.circular(4)),
-                  const SizedBox(height: ZarwintoSpacing.sm),
-                  ShimmerBox(width: 60, height: 16, borderRadius: BorderRadius.circular(4)),
+                  ShimmerBox(width: double.infinity, height: 14, borderRadius: 4),
+                  SizedBox(height: ZarwintoSpacing.xs),
+                  ShimmerBox(width: 100, height: 12, borderRadius: 4),
+                  SizedBox(height: ZarwintoSpacing.sm),
+                  ShimmerBox(width: 60, height: 16, borderRadius: 4),
                 ],
               ),
             ),
             Column(
-              children: List.generate(3, (i) => Padding(
-                padding: const EdgeInsets.only(bottom: ZarwintoSpacing.xs),
-                child: ShimmerBox(width: 24, height: 24, borderRadius: BorderRadius.circular(12)),
+              children: List.generate(3, (i) => const Padding(
+                padding: EdgeInsets.only(bottom: ZarwintoSpacing.xs),
+                child: ShimmerBox(width: 24, height: 24, borderRadius: 12),
               )),
             ),
           ],
@@ -759,7 +769,7 @@ class _AddressCard extends StatelessWidget {
               color: colors.primary.withValues(alpha: 0.08),
               borderRadius: ZarwintoRadius.all12,
             ),
-            child: HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 20, color: colors.primary),
+            child: Icon(Icons.location_on_outlined, size: 20, color: colors.primary),
           ),
           const SizedBox(width: ZarwintoSpacing.md),
           Expanded(
@@ -809,7 +819,7 @@ class _AddressCard extends StatelessWidget {
           ),
           IconButton(
             onPressed: onEdit,
-            icon: const HugeIcon(icon: HugeIcons.strokeRoundedEdit01, size: 20),
+            icon: const Icon(Icons.edit_outlined, size: 20),
             color: colors.primary,
           ),
         ],
@@ -828,7 +838,7 @@ class _PaymentOption extends StatelessWidget {
   });
 
   final String label;
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final bool selected;
   final VoidCallback onTap;
   final ZarwintoColorBundle colors;
@@ -840,8 +850,8 @@ class _PaymentOption extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: ZarwintoSpacing.sm, horizontal: ZarwintoSpacing.md),
         decoration: BoxDecoration(
-          color: selected ? colors.primary.withValues(alpha: 0.1) : colors.background,
-          borderRadius: BorderRadius.circular(ZarwintoRadius.md),
+          color: selected ? colors.primary.withValues(alpha: 0.08) : colors.card,
+          borderRadius: BorderRadius.circular(12),
           border: Border.all(
             color: selected ? colors.primary : colors.border,
             width: selected ? 2 : 1,
@@ -849,17 +859,19 @@ class _PaymentOption extends StatelessWidget {
         ),
         child: Row(
           children: [
-            HugeIcon(icon: icon, size: 20, color: selected ? colors.primary : colors.secondaryText),
+            Icon(icon, size: 20, color: selected ? colors.primary : colors.secondaryText),
             const SizedBox(width: ZarwintoSpacing.sm),
-            Text(
-              label,
-              style: ZarwintoTypography.caption.copyWith(
-                fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                color: selected ? colors.primary : colors.foreground,
+            Expanded(
+              child: Text(
+                label,
+                style: ZarwintoTypography.caption.copyWith(
+                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                  color: selected ? colors.primary : colors.foreground,
+                ),
               ),
             ),
             if (selected)
-              HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle01, color: colors.primary, size: 20),
+              Icon(Icons.check_circle_rounded, color: colors.primary, size: 20),
           ],
         ),
       ),

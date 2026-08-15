@@ -14,7 +14,7 @@ interface Coupon {
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product, variant: ProductVariant, quantity?: number) => void;
+  addToCart: (product: Product, variant: ProductVariant, quantity?: number, selectedColor?: string) => void;
   removeFromCart: (variantId: string) => void;
   updateCartQuantity: (variantId: string, quantity: number) => void;
   clearCart: () => void;
@@ -156,7 +156,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
                 product_image: images[0] ?? '',
                 variant_id: item.variant_id,
                 size: item.product_variants?.size ?? '',
-                color: item.product_variants?.color ?? '',
+                color: item.color || item.product_variants?.color || '',
                 quantity: item.quantity,
                 price: Number(item.price)
               };
@@ -185,14 +185,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     localStorage.setItem('zarwinto_cart', JSON.stringify(newCart));
   };
 
-  const addToCart = (product: Product, variant: ProductVariant, quantity = 1) => {
+  const addToCart = (product: Product, variant: ProductVariant, quantity = 1, selectedColor?: string) => {
     const existingIndex = cart.findIndex(item => item.variant.id === variant.id);
     const newCart = [...cart];
-    
+
     if (existingIndex > -1) {
-      newCart[existingIndex].quantity += quantity;
+      newCart[existingIndex] = {
+        ...newCart[existingIndex],
+        quantity: newCart[existingIndex].quantity + quantity,
+        color: selectedColor || newCart[existingIndex].color,
+      };
     } else {
-      newCart.push({ product, variant, quantity });
+      newCart.push({ product, variant, quantity, color: selectedColor });
     }
     saveCart(newCart);
   };
@@ -306,16 +310,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
      payment_method: internalPaymentMethod,
       total_amount: orderTotal,
      shipping_address: address,
-     items: items.map(item => ({
-       product_id: item.product.id,
-       product_title: item.product.title,
-       product_image: item.product.images[0],
-       variant_id: item.variant.id,
-       size: item.variant.size,
-       color: item.variant.color,
-       quantity: item.quantity,
-       price: item.product.sale_price || item.product.price
-     })),
+      items: items.map(item => ({
+        product_id: item.product.id,
+        product_title: item.product.title,
+        product_image: item.product.images[0],
+        variant_id: item.variant.id,
+        size: item.variant.size,
+        color: item.color ?? item.variant.color,
+        quantity: item.quantity,
+        price: item.product.sale_price || item.product.price
+      })),
      created_at: new Date().toISOString()
    };
 
@@ -379,7 +383,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           product_id: item.product.id,
           variant_id: item.variant.id,
           quantity: item.quantity,
-          price: item.product.sale_price || item.product.price
+          price: item.product.sale_price || item.product.price,
+          color: item.color ?? item.variant.color
         }));
 
         const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);

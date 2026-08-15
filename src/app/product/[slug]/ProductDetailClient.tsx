@@ -57,6 +57,26 @@ const SIZE_CHART = [
   { us: '12', uk: '11.5', eu: '46', cm: '30.0' },
 ];
 
+// Maps common colorway names to a swatch hex (falls back to indigo for unknown names).
+const COLOR_HEX: Record<string, string> = {
+  black: '#111827',
+  white: '#f4f4f5',
+  red: '#dc2626',
+  blue: '#2563eb',
+  green: '#16a34a',
+  navy: '#1e3a8a',
+  brown: '#92400e',
+  grey: '#6b7280',
+  gray: '#6b7280',
+  beige: '#d6c3a3',
+  pink: '#ec4899',
+  yellow: '#eab308',
+  orange: '#ea580c',
+};
+
+const hexForColor = (name: string): string =>
+  COLOR_HEX[name.toLowerCase()] || '#6366f1';
+
 export default function ProductDetailClient({ product, store, initialReviews, relatedProducts }: ProductDetailClientProps) {
   const { addToCart, wishlist, toggleWishlist } = useCart();
   const { user } = useAuth();
@@ -71,7 +91,11 @@ export default function ProductDetailClient({ product, store, initialReviews, re
   
   // Selection states
   const [selectedSize, setSelectedSize] = useState('');
-  const [selectedColor, setSelectedColor] = useState(product.variants[0]?.color || '');
+  const [selectedColor, setSelectedColor] = useState(
+    (product.colors && product.colors.length > 0 ? product.colors[0] : '') ||
+    product.variants[0]?.color ||
+    ''
+  );
   const [quantity, setQuantity] = useState(1);
   const [cartSuccess, setCartSuccess] = useState(false);
 
@@ -101,11 +125,25 @@ export default function ProductDetailClient({ product, store, initialReviews, re
   const price = product.price;
   const salePrice = product.sale_price;
 
-  // Filter variants based on color
+  // Unique sizes available for this product, sorted numerically
+  const availableSizes = Array.from(
+    new Set(product.variants.map(v => v.size).filter(Boolean))
+  ).sort((a, b) => parseFloat(a) - parseFloat(b));
+
+  // Resolve a variant for a given size: prefer one matching the selected color,
+  // otherwise fall back to any variant with that size (so selection always works
+  // even when variant.color differs from the product-level colorway name).
+  const variantForSize = (size: string): ProductVariant | undefined =>
+    product.variants.find(v => v.size === size && v.color === selectedColor) ||
+    product.variants.find(v => v.size === size);
+
+  // Filter variants based on color (fallback to all variants when none match)
   const colorVariants = product.variants.filter(v => v.color === selectedColor);
-  
+  const matchingVariants = colorVariants.length > 0 ? colorVariants : product.variants;
+
   // Get active variant
-  const activeVariant = colorVariants.find(v => v.size === selectedSize) || colorVariants[0];
+  const activeVariant =
+    (selectedSize ? variantForSize(selectedSize) : matchingVariants[0]) || matchingVariants[0] || null;
 
   const handleAddToCart = () => {
     if (!selectedSize) {
@@ -113,7 +151,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       return;
     }
     if (activeVariant) {
-      addToCart(product, activeVariant, quantity);
+      addToCart(product, activeVariant, quantity, selectedColor);
       setCartSuccess(true);
       setTimeout(() => setCartSuccess(false), 3000);
       addToast('Added to cart!', 'success', {
@@ -137,6 +175,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
         product,
         variant: activeVariant,
         quantity,
+        color: selectedColor,
       }));
       // Redirect directly to checkout page
       router.push('/checkout');
@@ -225,8 +264,10 @@ export default function ProductDetailClient({ product, store, initialReviews, re
     setTimeout(() => setReviewSuccess(false), 4000);
   };
 
-  // Related products are provided by the server (getRelatedProducts)
-  const uniqueColors = Array.from(new Set(product.variants.map(v => v.color)));
+  // Available colors: prefer the seller-curated list, fall back to variant colors
+  const uniqueColors = (product.colors && product.colors.length > 0)
+    ? product.colors
+    : Array.from(new Set(product.variants.map(v => v.color)));
 
   // Format description with line breaks
   const formatDescription = (desc: string) => {
@@ -413,7 +454,7 @@ export default function ProductDetailClient({ product, store, initialReviews, re
               </div>
               {salePrice && (
                 <span className="px-2.5 py-1 bg-accent/20 border border-accent/30 text-accent rounded-lg text-xs font-bold uppercase tracking-wide">
-                  Save ₹{price - salePrice}
+                  Save {Math.round((1 - salePrice / price) * 100)}%
                 </span>
               )}
             </div>
@@ -430,12 +471,16 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                     setSelectedColor(color);
                     setSelectedSize('');
                   }}
-                  className={`px-4 py-2 border rounded-xl text-xs font-bold transition-all cursor-pointer ${
+                  className={`flex items-center gap-2 px-4 py-2 border rounded-xl text-xs font-bold transition-all cursor-pointer ${
                     selectedColor === color
                       ? 'bg-primary text-white border-primary shadow-[0_0_10px_rgba(99,102,241,0.25)]'
                       : 'bg-card border-border hover:border-muted-foreground/50 text-muted-foreground'
                   }`}
                 >
+                  <span
+                    className="h-3.5 w-3.5 rounded-full border border-black/10"
+                    style={{ backgroundColor: hexForColor(color) }}
+                  />
                   {color}
                 </button>
               ))}
@@ -456,8 +501,8 @@ export default function ProductDetailClient({ product, store, initialReviews, re
             </div>
             
             <div className="grid grid-cols-4 sm:grid-cols-5 gap-2">
-               {['8', '9', '10', '11', '12'].map((size) => {
-                 const variant = product.variants.find(v => v.color === selectedColor && v.size === size);
+               {availableSizes.map((size) => {
+                 const variant = variantForSize(size);
                  const hasStock = variant ? variant.stock_quantity > 0 : false;
                  const isSelected = selectedSize === size;
 

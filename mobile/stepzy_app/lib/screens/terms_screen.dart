@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 
@@ -45,7 +44,7 @@ class TermsScreen extends StatelessWidget {
     },
     {
       'title': '10. Changes to Terms',
-      'body': 'We may revise these Terms of Service from time to time. Continued use of the Marketplace after changes are posted constitutes acceptance of the updated terms. The "last updated" date reflects the latest revision.',
+      'body': 'We may revise these Terms of Service from time to time. Continued use of the Marketplace after changes are posted constitutes acceptance of the updated terms.',
     },
   ];
 
@@ -90,23 +89,23 @@ class TermsScreen extends StatelessWidget {
             ),
             Container(
               padding: const EdgeInsets.all(ZarwintoSpacing.lg),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: ZarwintoColors.card,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(ZarwintoRadius.lg)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 border: Border(top: BorderSide(color: ZarwintoColors.border)),
               ),
               child: Column(
                 children: [
                   const Text('Still have questions?', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                   const SizedBox(height: ZarwintoSpacing.xs),
-                  Text('Our support team is here to help clarify anything about your orders or account.', style: TextStyle(color: ZarwintoColors.muted, fontSize: 13)),
+                  const Text('Our support team is here to help clarify anything about your orders or account.', style: TextStyle(color: ZarwintoColors.muted, fontSize: 13)),
                   const SizedBox(height: ZarwintoSpacing.md),
                   Row(
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _launchEmail(),
-                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedMail01, size: 18),
+                          icon: const Icon(Icons.email_outlined, size: 18),
                           label: const Text('Email Support'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ZarwintoColors.primary,
@@ -118,7 +117,7 @@ class TermsScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _launchWhatsApp(),
-                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedMessage01, size: 18),
+                          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
                           label: const Text('WhatsApp'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ZarwintoColors.whatsappGreen,

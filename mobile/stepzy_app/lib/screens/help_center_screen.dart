@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 
@@ -48,7 +47,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     {
       'category': 'Sizing',
       'question': 'How do I find the right size?',
-      'answer': 'Each product page lists size options (UK/US/UK). If you are between sizes, we recommend going a half size up for sneakers and a full size up for boots. Check our Size Guide for brand-specific notes.',
+      'answer': 'Each product page lists size options (UK/US/EU). If you are between sizes, we recommend going a half size up for sneakers and a full size up for boots. Check our Size Guide for brand-specific notes.',
     },
     {
       'category': 'Payments',
@@ -101,7 +100,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     controller: _query,
                     decoration: InputDecoration(
                       hintText: 'Search questions...',
-                      prefixIcon: const HugeIcon(icon: HugeIcons.strokeRoundedSearch01, size: 20),
+                      prefixIcon: const Icon(Icons.search_rounded, size: 20, color: ZarwintoColors.muted),
                       filled: true,
                       fillColor: ZarwintoColors.card,
                       border: OutlineInputBorder(
@@ -152,9 +151,9 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
             ),
             Expanded(
               child: _filtered.isEmpty
-                  ? Center(
+                  ? const Center(
                       child: Padding(
-                        padding: const EdgeInsets.all(ZarwintoSpacing.xxl),
+                        padding: EdgeInsets.all(ZarwintoSpacing.xxl),
                         child: Text(
                           'No questions match your search. Try a different keyword or contact support.',
                           style: TextStyle(color: ZarwintoColors.muted, fontSize: 14),
@@ -175,21 +174,21 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
               padding: const EdgeInsets.all(ZarwintoSpacing.lg),
               decoration: BoxDecoration(
                 color: ZarwintoColors.card,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(ZarwintoRadius.lg)),
-                border: Border(top: BorderSide(color: ZarwintoColors.border)),
+                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
+                border: const Border(top: BorderSide(color: ZarwintoColors.border)),
               ),
               child: Column(
                 children: [
                   const Text('Still have questions?', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                   const SizedBox(height: ZarwintoSpacing.xs),
-                  Text('Our support team is happy to help you with anything.', style: TextStyle(color: ZarwintoColors.muted, fontSize: 13)),
+                  const Text('Our support team is happy to help you with anything.', style: TextStyle(color: ZarwintoColors.muted, fontSize: 13)),
                   const SizedBox(height: ZarwintoSpacing.md),
                   Row(
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _launchEmail(),
-                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedMail01, size: 18),
+                          icon: const Icon(Icons.email_outlined, size: 18),
                           label: const Text('Email Support'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ZarwintoColors.primary,
@@ -201,7 +200,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _launchWhatsApp(),
-                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedMessage01, size: 18),
+                          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
                           label: const Text('WhatsApp'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ZarwintoColors.whatsappGreen,
@@ -249,44 +248,32 @@ class _FaqCardState extends State<_FaqCard> {
       margin: const EdgeInsets.only(bottom: 10),
       child: InkWell(
         onTap: () => setState(() => _expanded = !_expanded),
-        borderRadius: ZarwintoRadius.all16,
+        borderRadius: BorderRadius.circular(16),
         child: Padding(
-          padding: const EdgeInsets.all(14),
+          padding: const EdgeInsets.all(16),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
                 children: [
-                  Container(
-                    padding: const EdgeInsets.symmetric(horizontal: ZarwintoSpacing.sm, vertical: 3),
-                    decoration: BoxDecoration(
-                      color: ZarwintoColors.primary,
-                      borderRadius: ZarwintoRadius.all20,
-                    ),
-                    child: Text(
-                      widget.faq['category']!,
-                      style: const TextStyle(color: Colors.white, fontSize: 10, fontWeight: FontWeight.w700),
-                    ),
-                  ),
-                  const SizedBox(width: 10),
                   Expanded(
                     child: Text(
-                      widget.faq['question']!,
-                      style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                      widget.faq['question'] ?? '',
+                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                     ),
                   ),
-                  HugeIcon(
-                    icon: _expanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
+                  Icon(
+                    _expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
                     color: ZarwintoColors.muted,
-                    size: 20,
                   ),
                 ],
               ),
               if (_expanded) ...[
                 const SizedBox(height: 10),
-                const Divider(height: 1),
-                const SizedBox(height: 10),
-                Text(widget.faq['answer']!, style: TextStyle(color: ZarwintoColors.foregroundSecondary, fontSize: 13, height: 1.5)),
+                Text(
+                  widget.faq['answer'] ?? '',
+                  style: const TextStyle(color: ZarwintoColors.foregroundSecondary, fontSize: 13, height: 1.5),
+                ),
               ],
             ],
           ),

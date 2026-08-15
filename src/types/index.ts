@@ -29,6 +29,7 @@ export interface Product {
   newArrival?: boolean;
   bestSeller?: boolean;
   specifications?: Record<string, string>;
+  colors?: string[];
   // Shipping dimensions (cm) and weight (kg) for rate calculation
   weight_kg?: number;
   length_cm?: number;
@@ -123,6 +124,7 @@ export interface CartItem {
   product: Product;
   variant: ProductVariant;
   quantity: number;
+  color?: string;
 }
 
 export interface ShippingAddress {

@@ -97,7 +97,7 @@ export default function CartPage() {
                   <div className="flex flex-wrap justify-center sm:justify-start gap-3 text-xs text-muted-foreground font-medium pt-1">
                     <span>Size: <strong className="text-foreground">{item.variant.size}</strong></span>
                     <span className="h-3 w-[1px] bg-border" />
-                    <span>Color: <strong className="text-foreground">{item.variant.color}</strong></span>
+                    <span>Color: <strong className="text-foreground">{item.color || item.variant.color}</strong></span>
                   </div>
                 </div>
 

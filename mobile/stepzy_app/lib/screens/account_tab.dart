@@ -3,10 +3,14 @@ import 'package:flutter/material.dart';
 import '../providers/zarwinto_store.dart';
 import '../widgets/common.dart';
 import '../core/theme.dart';
-import '../core/constants.dart';
 import '../models/user_profile.dart';
 import 'orders_screen.dart';
 import 'addresses_screen.dart';
+import 'wishlist_screen.dart';
+import 'help_center_screen.dart';
+import 'privacy_screen.dart';
+import 'terms_screen.dart';
+import 'about_screen.dart';
 
 class AccountTab extends StatefulWidget {
   const AccountTab({super.key});
@@ -15,23 +19,29 @@ class AccountTab extends StatefulWidget {
   State<AccountTab> createState() => _AccountTabState();
 }
 
+enum AuthMode { phoneOtp, emailPassword }
 enum AuthStep { phone, otp }
 
 class _AccountTabState extends State<AccountTab> {
+  AuthMode mode = AuthMode.phoneOtp;
   AuthStep step = AuthStep.phone;
-  bool signup = false;
+  bool isSignUp = false;
   bool busy = false;
   int resendCooldown = 0;
   Timer? cooldownTimer;
 
   final phoneController = TextEditingController();
   final otpController = TextEditingController();
+  final emailController = TextEditingController();
+  final passwordController = TextEditingController();
   final nameController = TextEditingController();
 
   @override
   void dispose() {
     phoneController.dispose();
     otpController.dispose();
+    emailController.dispose();
+    passwordController.dispose();
     nameController.dispose();
     cooldownTimer?.cancel();
     super.dispose();
@@ -52,8 +62,13 @@ class _AccountTabState extends State<AccountTab> {
   }
 
   Future<void> handleSendOtp(ZarwintoStore store) async {
+    final phone = phoneController.text.trim();
+    if (phone.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter phone number')));
+      return;
+    }
     setState(() => busy = true);
-    final message = await store.sendOtp(phoneController.text.trim());
+    final message = await store.sendOtp(phone);
     setState(() => busy = false);
     if (!mounted) return;
     if (message != null) {
@@ -61,16 +76,21 @@ class _AccountTabState extends State<AccountTab> {
     } else {
       setState(() => step = AuthStep.otp);
       startResendCooldown();
-      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('OTP sent successfully!')));
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('OTP sent to your phone!')));
     }
   }
 
   Future<void> handleVerifyOtp(ZarwintoStore store) async {
+    final code = otpController.text.trim();
+    if (code.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter OTP code')));
+      return;
+    }
     setState(() => busy = true);
     final message = await store.verifyOtp(
       phoneController.text.trim(),
-      otpController.text.trim(),
-      signup ? nameController.text.trim() : null,
+      code,
+      isSignUp ? nameController.text.trim() : null,
     );
     setState(() => busy = false);
     if (!mounted) return;
@@ -81,51 +101,72 @@ class _AccountTabState extends State<AccountTab> {
     }
   }
 
+  Future<void> handleEmailAuth(ZarwintoStore store) async {
+    final email = emailController.text.trim();
+    final password = passwordController.text.trim();
+    if (email.isEmpty || password.isEmpty) {
+      ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Please enter email and password')));
+      return;
+    }
+    setState(() => busy = true);
+    final message = isSignUp
+        ? await store.signUp(email, password, nameController.text.trim())
+        : await store.signIn(email, password);
+    setState(() => busy = false);
+    if (!mounted) return;
+    if (message != null) {
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text(message)));
+    } else {
+      ScaffoldMessenger.of(context).showSnackBar(
+        SnackBar(content: Text(isSignUp ? 'Account created successfully!' : 'Welcome back!')),
+      );
+    }
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = ZarwintoScope.of(context);
     final profile = store.profile;
 
-    return ListView(
-      padding: const EdgeInsets.fromLTRB(18, 12, 18, 28),
-      children: [
-        const ZarwintoHeader(title: 'Account'),
-        const SizedBox(height: 18),
-        if (!store.isSupabaseConfigured)
-          const NoticeCard(
-            title: 'Supabase not configured',
-            body:
-                'Run with SUPABASE_URL and SUPABASE_ANON_KEY dart-defines to connect live data.',
-          ),
-        if (zarwintoApiBaseUrl.isEmpty)
-          const NoticeCard(
-            title: 'API base URL not configured',
-            body:
-                'Run with ZARWINTO_API_BASE_URL dart-define to enable phone OTP authentication.',
-          ),
-        if (profile != null) ...[
-          _buildProfileCard(store, profile),
-          const SizedBox(height: 16),
-          _buildMenuSection(store),
-        ] else
-          _buildAuthCard(store),
-      ],
+    return Scaffold(
+      backgroundColor: ZarwintoColors.background,
+      body: SafeArea(
+        child: ListView(
+          padding: const EdgeInsets.fromLTRB(18, 12, 18, 120),
+          children: [
+            const ZarwintoHeader(title: 'Account'),
+            const SizedBox(height: 18),
+            if (profile != null) ...[
+              _buildProfileCard(store, profile),
+              const SizedBox(height: 16),
+              _buildMenuSection(store),
+            ] else
+              _buildAuthCard(store),
+          ],
+        ),
+      ),
     );
   }
 
   Widget _buildProfileCard(ZarwintoStore store, UserProfile profile) {
+    final displayName = profile.fullName.isNotEmpty ? profile.fullName : 'Zarwinto Member';
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         child: Column(
           children: [
             Row(
               children: [
                 CircleAvatar(
-                  radius: 30,
-                  backgroundColor: ZarwintoColors.secondary,
-                  backgroundImage: NetworkImage(
-                    'https://i.pravatar.cc/150?u=${profile.email}',
+                  radius: 32,
+                  backgroundColor: ZarwintoColors.primary.withValues(alpha: 0.15),
+                  child: Text(
+                    displayName.isNotEmpty ? displayName[0].toUpperCase() : 'Z',
+                    style: const TextStyle(
+                      fontSize: 24,
+                      fontWeight: FontWeight.w800,
+                      color: ZarwintoColors.primary,
+                    ),
                   ),
                 ),
                 const SizedBox(width: 16),
@@ -134,8 +175,8 @@ class _AccountTabState extends State<AccountTab> {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        profile.fullName.isEmpty ? 'Zarwinto member' : profile.fullName,
-                        style: titleStyle,
+                        displayName,
+                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
                       ),
                       const SizedBox(height: 4),
                       if (profile.phone.isNotEmpty)
@@ -152,8 +193,12 @@ class _AccountTabState extends State<AccountTab> {
               width: double.infinity,
               child: OutlinedButton.icon(
                 onPressed: store.signOut,
-                icon: const Icon(Icons.logout),
-                label: const Text('Sign out'),
+                style: OutlinedButton.styleFrom(
+                  side: const BorderSide(color: ZarwintoColors.border),
+                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                ),
+                icon: const Icon(Icons.logout_rounded, size: 18, color: ZarwintoColors.muted),
+                label: const Text('Sign Out', style: TextStyle(color: ZarwintoColors.foreground)),
               ),
             ),
           ],
@@ -167,7 +212,7 @@ class _AccountTabState extends State<AccountTab> {
       _MenuItem(
         icon: Icons.shopping_bag_outlined,
         title: 'My Orders',
-        subtitle: 'View order history',
+        subtitle: 'View and track all past orders',
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const OrdersScreen()),
@@ -176,8 +221,8 @@ class _AccountTabState extends State<AccountTab> {
       ),
       _MenuItem(
         icon: Icons.location_on_outlined,
-        title: 'Addresses',
-        subtitle: 'Manage delivery addresses',
+        title: 'Delivery Addresses',
+        subtitle: 'Manage saved shipping addresses',
         onTap: () {
           Navigator.of(context).push(
             MaterialPageRoute(builder: (_) => const AddressesScreen()),
@@ -185,35 +230,52 @@ class _AccountTabState extends State<AccountTab> {
         },
       ),
       _MenuItem(
-        icon: Icons.favorite_outline,
+        icon: Icons.favorite_outline_rounded,
         title: 'Wishlist',
-        subtitle: '${store.wishlist.length} items saved',
+        subtitle: '${store.wishlist.length} saved pairs',
         onTap: () {
-          // Navigate to wishlist - for now show a message
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Wishlist feature coming soon!')),
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const WishlistScreen()),
           );
         },
       ),
       _MenuItem(
-        icon: Icons.support_agent_outlined,
-        title: 'Help & Support',
-        subtitle: 'Get help with your orders',
+        icon: Icons.headset_mic_outlined,
+        title: 'Help & FAQ Center',
+        subtitle: 'Delivery, returns, and support FAQs',
         onTap: () {
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(content: Text('Support feature coming soon!')),
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const HelpCenterScreen()),
           );
         },
       ),
       _MenuItem(
-        icon: Icons.info_outline,
-        title: 'About',
+        icon: Icons.shield_outlined,
+        title: 'Privacy Policy',
+        subtitle: 'Data security and terms',
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const PrivacyScreen()),
+          );
+        },
+      ),
+      _MenuItem(
+        icon: Icons.description_outlined,
+        title: 'Terms of Service',
+        subtitle: 'Marketplace conditions',
+        onTap: () {
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const TermsScreen()),
+          );
+        },
+      ),
+      _MenuItem(
+        icon: Icons.info_outline_rounded,
+        title: 'About Zarwinto',
         subtitle: 'Version 1.0.0',
         onTap: () {
-          showAboutDialog(
-            context: context,
-            applicationName: appName,
-            applicationVersion: '1.0.0',
+          Navigator.of(context).push(
+            MaterialPageRoute(builder: (_) => const AboutScreen()),
           );
         },
       ),
@@ -223,10 +285,17 @@ class _AccountTabState extends State<AccountTab> {
       child: Column(
         children: menuItems.map((item) {
           return ListTile(
-            leading: Icon(item.icon, color: ZarwintoColors.primary),
-            title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.w600)),
+            leading: Container(
+              padding: const EdgeInsets.all(8),
+              decoration: BoxDecoration(
+                color: ZarwintoColors.primary.withValues(alpha: 0.08),
+                borderRadius: BorderRadius.circular(10),
+              ),
+              child: Icon(item.icon, color: ZarwintoColors.primary, size: 20),
+            ),
+            title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
             subtitle: Text(item.subtitle, style: mutedStyle),
-            trailing: const Icon(Icons.chevron_right, color: ZarwintoColors.muted),
+            trailing: const Icon(Icons.chevron_right_rounded, color: ZarwintoColors.muted),
             onTap: item.onTap,
           );
         }).toList(),
@@ -237,80 +306,162 @@ class _AccountTabState extends State<AccountTab> {
   Widget _buildAuthCard(ZarwintoStore store) {
     return Card(
       child: Padding(
-        padding: const EdgeInsets.all(18),
+        padding: const EdgeInsets.all(20),
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Text(
-              step == AuthStep.phone
-                  ? (signup ? 'Create your account' : 'Welcome back')
-                  : 'Enter verification code',
-              style: titleStyle,
+            Row(
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+                Text(
+                  isSignUp ? 'Create Account' : 'Welcome to Zarwinto',
+                  style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                ),
+                TextButton(
+                  onPressed: () {
+                    setState(() {
+                      isSignUp = !isSignUp;
+                      step = AuthStep.phone;
+                    });
+                  },
+                  child: Text(isSignUp ? 'Sign In' : 'Sign Up'),
+                ),
+              ],
             ),
-            const SizedBox(height: 14),
-            if (step == AuthStep.phone) ...[
-              if (signup) ...[
+            const SizedBox(height: 8),
+            Text(
+              isSignUp
+                  ? 'Sign up to manage orders, save addresses, and get special drops.'
+                  : 'Sign in to access your orders and saved wishlist.',
+              style: const TextStyle(color: ZarwintoColors.muted, fontSize: 13),
+            ),
+            const SizedBox(height: 16),
+
+            // Mode Selector: Phone OTP vs Email
+            Row(
+              children: [
+                Expanded(
+                  child: ChoiceChip(
+                    label: const Center(child: Text('Phone OTP')),
+                    selected: mode == AuthMode.phoneOtp,
+                    onSelected: (_) => setState(() {
+                      mode = AuthMode.phoneOtp;
+                      step = AuthStep.phone;
+                    }),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: ChoiceChip(
+                    label: const Center(child: Text('Email & Password')),
+                    selected: mode == AuthMode.emailPassword,
+                    onSelected: (_) => setState(() => mode = AuthMode.emailPassword),
+                  ),
+                ),
+              ],
+            ),
+            const SizedBox(height: 20),
+
+            if (mode == AuthMode.phoneOtp) ...[
+              if (isSignUp && step == AuthStep.phone) ...[
                 TextField(
                   controller: nameController,
-                  textInputAction: TextInputAction.next,
-                  decoration: const InputDecoration(labelText: 'Full name'),
+                  decoration: const InputDecoration(
+                    labelText: 'Full Name',
+                    prefixIcon: Icon(Icons.person_outline, size: 20),
+                  ),
+                ),
+                const SizedBox(height: 12),
+              ],
+              if (step == AuthStep.phone) ...[
+                TextField(
+                  controller: phoneController,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone Number (10 digits)',
+                    prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                    hintText: '9876543210',
+                  ),
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: busy ? null : () => handleSendOtp(store),
+                  child: busy
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Send Verification OTP'),
+                ),
+              ] else ...[
+                Text(
+                  'OTP sent to ${phoneController.text}',
+                  style: const TextStyle(color: ZarwintoColors.muted, fontSize: 13),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: otpController,
+                  keyboardType: TextInputType.number,
+                  decoration: const InputDecoration(
+                    labelText: 'Enter 6-digit OTP',
+                    prefixIcon: Icon(Icons.lock_outline, size: 20),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                FilledButton(
+                  onPressed: busy ? null : () => handleVerifyOtp(store),
+                  child: busy
+                      ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                      : const Text('Verify & Sign In'),
+                ),
+                const SizedBox(height: 10),
+                Row(
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                  children: [
+                    TextButton(
+                      onPressed: () => setState(() => step = AuthStep.phone),
+                      child: const Text('Change Phone'),
+                    ),
+                    TextButton(
+                      onPressed: resendCooldown > 0 ? null : () => handleSendOtp(store),
+                      child: Text(resendCooldown > 0 ? 'Resend in ${resendCooldown}s' : 'Resend OTP'),
+                    ),
+                  ],
+                ),
+              ],
+            ] else ...[
+              if (isSignUp) ...[
+                TextField(
+                  controller: nameController,
+                  decoration: const InputDecoration(
+                    labelText: 'Full Name',
+                    prefixIcon: Icon(Icons.person_outline, size: 20),
+                  ),
                 ),
                 const SizedBox(height: 12),
               ],
               TextField(
-                controller: phoneController,
-                keyboardType: TextInputType.phone,
-                textInputAction: TextInputAction.done,
-                decoration: const InputDecoration(labelText: 'Phone number'),
-              ),
-              const SizedBox(height: 16),
-              FilledButton(
-                onPressed: busy ? null : () => handleSendOtp(store),
-                child: Text(busy ? 'Sending OTP...' : 'Send OTP'),
-              ),
-            ] else ...[
-              TextField(
-                controller: otpController,
-                keyboardType: TextInputType.number,
-                textInputAction: TextInputAction.done,
+                controller: emailController,
+                keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
-                  labelText: 'OTP code',
-                  hintText: '123456',
+                  labelText: 'Email Address',
+                  prefixIcon: Icon(Icons.email_outlined, size: 20),
                 ),
-                maxLength: 6,
+              ),
+              const SizedBox(height: 12),
+              TextField(
+                controller: passwordController,
+                obscureText: true,
+                decoration: const InputDecoration(
+                  labelText: 'Password',
+                  prefixIcon: Icon(Icons.lock_outline, size: 20),
+                ),
               ),
               const SizedBox(height: 16),
               FilledButton(
-                onPressed: busy ? null : () => handleVerifyOtp(store),
-                child: Text(busy ? 'Verifying...' : 'Verify & continue'),
-              ),
-              const SizedBox(height: 8),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  TextButton(
-                    onPressed: busy ? null : () => setState(() => step = AuthStep.phone),
-                    child: const Text('Change number'),
-                  ),
-                  TextButton(
-                    onPressed: (resendCooldown > 0 || busy) ? null : () => handleSendOtp(store),
-                    child: Text(resendCooldown > 0 ? 'Resend in $resendCooldown s' : 'Resend OTP'),
-                  ),
-                ],
+                onPressed: busy ? null : () => handleEmailAuth(store),
+                child: busy
+                    ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                    : Text(isSignUp ? 'Create Account' : 'Sign In'),
               ),
             ],
-            const SizedBox(height: 8),
-            TextButton(
-              onPressed: busy ? null : () => setState(() {
-                signup = !signup;
-                step = AuthStep.phone;
-              }),
-              child: Text(
-                signup
-                    ? 'Already have an account? Sign in'
-                    : 'New here? Create an account',
-              ),
-            ),
           ],
         ),
       ),

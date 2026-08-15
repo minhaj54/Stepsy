@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 
 enum ZButtonStyle { primary, secondary, cta, text }
@@ -21,7 +20,7 @@ class ZButton extends StatelessWidget {
   final VoidCallback? onPressed;
   final String label;
   final ZButtonStyle style;
-  final List<List<dynamic>>? icon;
+  final IconData? icon;
   final bool isDense;
   final bool isLoading;
   final double? width;
@@ -31,7 +30,7 @@ class ZButton extends StatelessWidget {
   static Widget primary({
     required VoidCallback? onPressed,
     required String label,
-    List<List<dynamic>>? icon,
+    IconData? icon,
     bool isLoading = false,
     double? width,
     double? height,
@@ -50,7 +49,7 @@ class ZButton extends StatelessWidget {
   static Widget secondary({
     required VoidCallback? onPressed,
     required String label,
-    List<List<dynamic>>? icon,
+    IconData? icon,
     bool isLoading = false,
     double? width,
     double? height,
@@ -69,7 +68,7 @@ class ZButton extends StatelessWidget {
   static Widget cta({
     required VoidCallback? onPressed,
     required String label,
-    List<List<dynamic>>? icon,
+    IconData? icon,
     bool isLoading = false,
     double? width,
     double? height,
@@ -106,7 +105,7 @@ class ZButton extends StatelessWidget {
     final bgColor = ZarwintoColors.of(context).background;
     final fgColor = ZarwintoColors.of(context).foreground;
     final effectiveWidth = width ?? (isDense ? null : double.infinity);
-    final effectiveHeight = height ?? (isDense ? 44 : 56);
+    final effectiveHeight = height ?? (isDense ? 44.0 : 54.0);
 
     Widget child;
     final iconData = icon;
@@ -123,9 +122,7 @@ class ZButton extends StatelessWidget {
               color: _textColor,
             ),
           ),
-          if (iconData != null) ...[
-            const SizedBox(width: 8),
-          ],
+          const SizedBox(width: 10),
           Text(label, style: _labelStyle),
         ],
       );
@@ -135,7 +132,7 @@ class ZButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (iconData != null) ...[
-            HugeIcon(icon: iconData, size: 18, color: _textColor),
+            Icon(iconData, size: 18, color: _textColor),
             const SizedBox(width: 8),
           ],
           Text(label, style: _labelStyle),
@@ -161,7 +158,6 @@ class ZButton extends StatelessWidget {
       case ZButtonStyle.cta:
         return ZarwintoColors.white;
       case ZButtonStyle.secondary:
-        return ZarwintoColors.primary;
       case ZButtonStyle.text:
         return ZarwintoColors.primary;
     }
@@ -178,7 +174,7 @@ class ZButton extends StatelessWidget {
         backgroundColor: ZarwintoColors.primary,
         foregroundColor: ZarwintoColors.white,
         minimumSize: Size(width ?? 0, height),
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: ZarwintoRadius.all16,
         ),
         padding: padding,
@@ -193,7 +189,7 @@ class ZButton extends StatelessWidget {
       style: OutlinedButton.styleFrom(
         foregroundColor: ZarwintoColors.primary,
         minimumSize: Size(width ?? 0, height),
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: ZarwintoRadius.all16,
         ),
         side: const BorderSide(color: ZarwintoColors.primary),
@@ -210,19 +206,13 @@ class ZButton extends StatelessWidget {
         backgroundColor: ZarwintoColors.primary,
         foregroundColor: ZarwintoColors.white,
         minimumSize: Size(width ?? 0, height),
-        shape: RoundedRectangleBorder(
+        shape: const RoundedRectangleBorder(
           borderRadius: ZarwintoRadius.all16,
         ),
         padding: padding,
         elevation: 0,
       ),
-      child: Container(
-        decoration: BoxDecoration(
-          borderRadius: ZarwintoRadius.all16,
-          border: Border.all(color: ZarwintoColors.accent, width: 1.5),
-        ),
-        child: child,
-      ),
+      child: child,
     );
   }
 
@@ -231,7 +221,8 @@ class ZButton extends StatelessWidget {
       onPressed: onPressed,
       style: TextButton.styleFrom(
         minimumSize: Size(width ?? double.infinity, height),
-        padding: padding,      ),
+        padding: padding,
+      ),
       child: child,
     );
   }

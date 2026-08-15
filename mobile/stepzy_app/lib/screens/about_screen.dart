@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 
@@ -29,7 +28,7 @@ class AboutScreen extends StatelessWidget {
                   borderRadius: ZarwintoRadius.all20,
                   border: Border.all(color: ZarwintoColors.primary.withValues(alpha: 0.25)),
                 ),
-                child: const HugeIcon(icon: HugeIcons.strokeRoundedFlash, size: 48, color: ZarwintoColors.accent),
+                child: const Icon(Icons.flash_on_rounded, size: 48, color: ZarwintoColors.accent),
               ),
             ),
             const SizedBox(height: ZarwintoSpacing.lg),
@@ -43,9 +42,9 @@ class AboutScreen extends StatelessWidget {
               ),
             ),
             const SizedBox(height: ZarwintoSpacing.md),
-            Center(
+            const Center(
               child: Text(
-                'World of shoes',
+                'World of Shoes & Sneaker Marketplace',
                 style: TextStyle(color: ZarwintoColors.muted, fontSize: 14),
               ),
             ),
@@ -57,14 +56,14 @@ class AboutScreen extends StatelessWidget {
                 borderRadius: ZarwintoRadius.all16,
                 border: Border.all(color: ZarwintoColors.border),
               ),
-              child: Column(
+              child: const Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const Text(
+                  Text(
                     'About Us',
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
                   ),
-                  const SizedBox(height: ZarwintoSpacing.sm),
+                  SizedBox(height: ZarwintoSpacing.sm),
                   Text(
                     'Zarwinto is a state-of-the-art premium footwear marketplace offering elite performance shoes, luxury craft sneakers, and all-weather boots.',
                     style: TextStyle(color: ZarwintoColors.foregroundSecondary, fontSize: 13, height: 1.5),
@@ -88,15 +87,15 @@ class AboutScreen extends StatelessWidget {
                     style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
                   ),
                   const SizedBox(height: ZarwintoSpacing.md),
-                  _ContactRow(
-                    icon: HugeIcons.strokeRoundedLocation01,
+                  const _ContactRow(
+                    icon: Icons.location_on_outlined,
                     text: 'Block - 2 Sharda Launchpad - Sharda University, Greater Noida - UP, India',
                   ),
                   const SizedBox(height: 10),
                   InkWell(
                     onTap: () => _launchEmail(),
-                    child: _ContactRow(
-                      icon: HugeIcons.strokeRoundedMail01,
+                    child: const _ContactRow(
+                      icon: Icons.email_outlined,
                       text: 'zarwinto12@gmail.com',
                       isLink: true,
                     ),
@@ -104,8 +103,8 @@ class AboutScreen extends StatelessWidget {
                   const SizedBox(height: 10),
                   InkWell(
                     onTap: () => _launchWhatsApp(),
-                    child: _ContactRow(
-                      icon: HugeIcons.strokeRoundedMessage01,
+                    child: const _ContactRow(
+                      icon: Icons.chat_bubble_outline_rounded,
                       text: '+91 79823 69183 (WhatsApp)',
                       isLink: true,
                     ),
@@ -117,7 +116,7 @@ class AboutScreen extends StatelessWidget {
             Center(
               child: Text(
                 '© ${DateTime.now().year} Zarwinto Inc. All rights reserved.',
-                style: TextStyle(color: ZarwintoColors.muted, fontSize: 12),
+                style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12),
               ),
             ),
           ],
@@ -140,7 +139,7 @@ class AboutScreen extends StatelessWidget {
 class _ContactRow extends StatelessWidget {
   const _ContactRow({required this.icon, required this.text, this.isLink = false});
 
-  final List<List<dynamic>> icon;
+  final IconData icon;
   final String text;
   final bool isLink;
 
@@ -155,7 +154,7 @@ class _ContactRow extends StatelessWidget {
             color: ZarwintoColors.primary.withValues(alpha: 0.08),
             borderRadius: ZarwintoRadius.all8,
           ),
-          child: HugeIcon(icon: icon, size: 18, color: ZarwintoColors.primary),
+          child: Icon(icon, size: 18, color: ZarwintoColors.primary),
         ),
         const SizedBox(width: ZarwintoSpacing.md),
         Expanded(

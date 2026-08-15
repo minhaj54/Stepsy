@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 
@@ -9,7 +8,7 @@ class PrivacyScreen extends StatelessWidget {
   static const _sections = [
     {
       'title': '1. Information We Collect',
-      'body': 'We collect information you provide directly — such as your name, email, phone number, shipping address, and payment details when you create an account, place an order, or contact support. We also collect limited technical data (device type, browser, and usage analytics) automatically through cookies to improve your experience.',
+      'body': 'We collect information you provide directly — such as your name, email, phone number, shipping address, and payment details when you create an account, place an order, or contact support. We also collect limited technical data (device type, browser, and usage analytics) automatically to improve your experience.',
     },
     {
       'title': '2. How We Use Your Information',
@@ -21,23 +20,23 @@ class PrivacyScreen extends StatelessWidget {
     },
     {
       'title': '4. Cookies & Tracking',
-      'body': 'We use essential cookies to keep you signed in and functional cookies to remember your cart and preferences. Analytics cookies help us understand site performance. You can disable non-essential cookies in your browser settings, though some features may be limited.',
+      'body': 'We use essential storage to keep you signed in and functional tokens to remember your cart and preferences. You can clear your session anytime from account settings.',
     },
     {
       'title': '5. Sharing with Sellers & Partners',
-      'body': 'To fulfill your order, we share the minimum necessary details (name, address, items ordered) with the partner store that sells the product and with our logistics partners. These parties are bound to use the data solely for order fulfillment.',
+      'body': 'To fulfill your order, we share the minimum necessary details (name, address, items ordered) with the partner store and logistics partners (Shiprocket). These parties are bound to use the data solely for order fulfillment.',
     },
     {
       'title': '6. Your Rights',
-      'body': 'You may request access to, correction of, or deletion of your personal data at any time from your account settings or by contacting our support team. You can also opt out of marketing communications with one click.',
+      'body': 'You may request access to, correction of, or deletion of your personal data at any time from your account settings or by contacting our support team.',
     },
     {
       'title': '7. Data Retention',
-      'body': 'We retain your account and order information for as long as your account is active or as needed to provide services, comply with legal obligations, resolve disputes, and enforce our agreements.',
+      'body': 'We retain your account and order information for as long as your account is active or as needed to provide services, comply with legal obligations, and resolve disputes.',
     },
     {
       'title': '8. Changes to This Policy',
-      'body': 'We may update this privacy policy from time to time. Material changes will be communicated via email or a notice on our site. The "last updated" date reflects the latest revision.',
+      'body': 'We may update this privacy policy from time to time. Material changes will be communicated via the app or email.',
     },
   ];
 
@@ -72,7 +71,7 @@ class PrivacyScreen extends StatelessWidget {
                         const SizedBox(height: 6),
                         Text(
                           section['body']!,
-                          style: TextStyle(color: ZarwintoColors.foregroundSecondary, fontSize: 13, height: 1.6),
+                          style: const TextStyle(color: ZarwintoColors.foregroundSecondary, fontSize: 13, height: 1.6),
                         ),
                       ],
                     ),
@@ -82,23 +81,23 @@ class PrivacyScreen extends StatelessWidget {
             ),
             Container(
               padding: const EdgeInsets.all(ZarwintoSpacing.lg),
-              decoration: BoxDecoration(
+              decoration: const BoxDecoration(
                 color: ZarwintoColors.card,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(ZarwintoRadius.lg)),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
                 border: Border(top: BorderSide(color: ZarwintoColors.border)),
               ),
               child: Column(
                 children: [
                   const Text('Questions about your data?', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
                   const SizedBox(height: ZarwintoSpacing.xs),
-                  Text('Our team is happy to help. Reach out and we\'ll get back to you promptly.', style: TextStyle(color: ZarwintoColors.muted, fontSize: 13)),
+                  const Text('Our team is happy to help. Reach out and we\'ll get back to you promptly.', style: TextStyle(color: ZarwintoColors.muted, fontSize: 13)),
                   const SizedBox(height: ZarwintoSpacing.md),
                   Row(
                     children: [
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _launchEmail(),
-                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedMail01, size: 18),
+                          icon: const Icon(Icons.email_outlined, size: 18),
                           label: const Text('Email Support'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ZarwintoColors.primary,
@@ -110,7 +109,7 @@ class PrivacyScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _launchWhatsApp(),
-                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedMessage01, size: 18),
+                          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
                           label: const Text('WhatsApp'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ZarwintoColors.whatsappGreen,

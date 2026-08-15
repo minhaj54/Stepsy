@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
+import 'package:intl/intl.dart';
 import '../core/theme.dart';
+
+final inrFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
 
 class ZarwintoHeader extends StatelessWidget {
   const ZarwintoHeader({super.key, this.title = 'Zarwinto'});
@@ -173,3 +176,70 @@ class EmptyState extends StatelessWidget {
     );
   }
 }
+
+class ShimmerBox extends StatelessWidget {
+  const ShimmerBox({
+    super.key,
+    required this.width,
+    required this.height,
+    this.borderRadius = 8,
+  });
+
+  final double width;
+  final double height;
+  final double borderRadius;
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: width,
+      height: height,
+      decoration: BoxDecoration(
+        color: Colors.white,
+        borderRadius: BorderRadius.circular(borderRadius),
+      ),
+    );
+  }
+}
+
+class ShimmerProductCard extends StatelessWidget {
+  const ShimmerProductCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      decoration: BoxDecoration(
+        color: ZarwintoColors.card,
+        borderRadius: BorderRadius.circular(16),
+        border: Border.all(color: ZarwintoColors.border),
+      ),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          Expanded(
+            child: Container(
+              decoration: const BoxDecoration(
+                color: Color(0xFFF4F4F5),
+                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
+              ),
+            ),
+          ),
+          Padding(
+            padding: const EdgeInsets.all(12),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Container(height: 10, width: 60, color: const Color(0xFFF4F4F5)),
+                const SizedBox(height: 6),
+                Container(height: 14, width: double.infinity, color: const Color(0xFFF4F4F5)),
+                const SizedBox(height: 8),
+                Container(height: 14, width: 80, color: const Color(0xFFF4F4F5)),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+}
+

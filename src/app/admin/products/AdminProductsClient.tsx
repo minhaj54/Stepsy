@@ -14,6 +14,22 @@ interface AdminProductsClientProps {
   storeId?: string;
 }
 
+// Curated palette of common footwear colorways sellers can pick from.
+const PRESET_COLORS: { name: string; hex: string }[] = [
+  { name: 'Black', hex: '#111827' },
+  { name: 'White', hex: '#f4f4f5' },
+  { name: 'Red', hex: '#dc2626' },
+  { name: 'Blue', hex: '#2563eb' },
+  { name: 'Green', hex: '#16a34a' },
+  { name: 'Navy', hex: '#1e3a8a' },
+  { name: 'Brown', hex: '#92400e' },
+  { name: 'Grey', hex: '#6b7280' },
+  { name: 'Beige', hex: '#d6c3a3' },
+  { name: 'Pink', hex: '#ec4899' },
+  { name: 'Yellow', hex: '#eab308' },
+  { name: 'Orange', hex: '#ea580c' },
+];
+
 export default function AdminProductsClient({
   initialProducts,
   brands,
@@ -48,6 +64,9 @@ export default function AdminProductsClient({
   const [newArrival, setNewArrival] = useState(false);
   const [bestSeller, setBestSeller] = useState(false);
   const [stock, setStock] = useState('25');
+  const [colors, setColors] = useState<{ name: string; hex: string }[]>([]);
+  const [customColorHex, setCustomColorHex] = useState('#6366f1');
+  const [customColorName, setCustomColorName] = useState('');
   const [variants, setVariants] = useState<Array<{ size: string; color: string; stock: number }>>([
     { size: '6', color: 'Default', stock: 10 },
     { size: '7', color: 'Default', stock: 10 },
@@ -80,6 +99,8 @@ export default function AdminProductsClient({
     setNewArrival(true);
     setBestSeller(false);
     setStock('50');
+    setColors([]);
+    setCustomColorName('');
     setVariants([
       { size: '6', color: 'Default', stock: 10 },
       { size: '7', color: 'Default', stock: 10 },
@@ -107,6 +128,11 @@ export default function AdminProductsClient({
     setNewArrival(product.new_arrival || false);
     setBestSeller(product.best_seller || false);
     setStock(product.stock.toString());
+    setColors((product.colors || []).map((name: string) => ({
+      name,
+      hex: PRESET_COLORS.find(c => c.name.toLowerCase() === name.toLowerCase())?.hex || '#6366f1',
+    })));
+    setCustomColorName('');
     setVariants(product.variants || [
       { size: '6', color: 'Default', stock: 10 },
       { size: '7', color: 'Default', stock: 10 },
@@ -184,6 +210,15 @@ export default function AdminProductsClient({
     if (fileInputRef.current) fileInputRef.current.value = '';
   };
 
+  const addCustomColor = () => {
+    const name = customColorName.trim() || customColorHex.toUpperCase();
+    setColors(prev => {
+      if (prev.some(c => c.name.toLowerCase() === name.toLowerCase())) return prev;
+      return [...prev, { name, hex: customColorHex }];
+    });
+    setCustomColorName('');
+  };
+
   const addVariant = () => {
     setVariants([...variants, { size: '', color: 'Default', stock: 0 }]);
   };
@@ -218,6 +253,7 @@ export default function AdminProductsClient({
       featured,
       new_arrival: newArrival,
       best_seller: bestSeller,
+      colors: colors.map(c => c.name),
       rating: 0,
       reviews_count: 0,
     };
@@ -255,6 +291,7 @@ export default function AdminProductsClient({
           addToast('Error updating product: ' + error.message, 'error');
         } else {
           console.log('Product updated successfully');
+          addToast('Product updated successfully!', 'success');
         }
 
         // Update images if changed
@@ -464,10 +501,10 @@ export default function AdminProductsClient({
         </div>
       </div>
 
-      {/* Product List - Mobile Cards / Desktop Table */}
+      {/* Product List - horizontally scrollable table on all screens */}
       <div className="glass-card rounded-2xl overflow-hidden border border-border">
-        {/* Desktop Table */}
-        <div className="hidden lg:block overflow-x-auto">
+        {/* Table */}
+        <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
               <tr className="border-b border-border text-muted-foreground text-xs uppercase tracking-wider bg-secondary">
@@ -614,116 +651,6 @@ export default function AdminProductsClient({
           </table>
         </div>
 
-        {/* Mobile Cards */}
-        <div className="lg:hidden divide-y divide-border">
-          {filteredProducts.length === 0 ? (
-            <div className="p-8 text-center text-muted-foreground italic">
-              No products found matching your filters.
-            </div>
-          ) : (
-            filteredProducts.map(product => (
-              <div key={product.id} className="p-4 hover:bg-muted/30 transition-colors">
-                <div className="flex gap-3">
-                  <Link href={`/product/${product.slug}`} className="flex-shrink-0">
-                    <img
-                      src={product.images?.[0] || product.image_url || 'https://images.unsplash.com/photo-1606107557195-0e29a4b5b4aa?auto=format&fit=crop&w=120&h=120'}
-                      alt=""
-                      className="w-16 h-16 sm:w-20 sm:h-20 object-contain bg-background/40 p-1.5 border border-border rounded-xl"
-                    />
-                  </Link>
-                  <div className="flex-1 min-w-0">
-                    <Link
-                      href={`/product/${product.slug}`}
-                      className="font-bold text-foreground hover:text-primary transition-colors line-clamp-2 text-sm"
-                    >
-                      {product.title}
-                    </Link>
-                    <div className="flex items-center gap-2 mt-1">
-                      <span className="text-xs text-muted-foreground font-mono">{product.sku}</span>
-                      <span
-                        className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${
-                          product.status === 'active'
-                            ? 'bg-green-500/10 text-green-400 border border-green-500/10'
-                            : product.status === 'draft'
-                            ? 'bg-yellow-500/10 text-yellow-400 border border-yellow-500/10'
-                            : 'bg-zinc-500/10 text-muted-foreground border border-zinc-500/10'
-                        }`}
-                      >
-                        {product.status}
-                      </span>
-                    </div>
-                    <div className="flex items-center justify-between mt-2">
-                      <div className="flex items-center gap-3">
-                        <span className="text-sm font-bold text-foreground">
-                          {product.sale_price ? (
-                            <span>
-                              <span className="line-through text-muted-foreground text-xs mr-1">₹{product.price}</span>
-                              <span className="text-accent">₹{product.sale_price}</span>
-                            </span>
-                          ) : (
-                            `₹{product.price}`
-                          )}
-                        </span>
-                        <span className={`text-xs font-semibold ${product.stock < 10 ? 'text-red-400' : 'text-green-400'}`}>
-                          {product.stock} left
-                        </span>
-                      </div>
-                      <div className="flex items-center gap-1.5">
-                        <button
-                          onClick={() => handleToggleFeatured(product.id, product.featured)}
-                          className={`p-2 rounded-lg transition-all cursor-pointer ${
-                            product.featured
-                              ? 'text-yellow-400 bg-yellow-500/10 border border-yellow-500/20'
-                              : 'text-muted-foreground bg-secondary border border-border'
-                          }`}
-                          title="Featured"
-                        >
-                          <Star className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleToggleNewArrival(product.id, product.new_arrival)}
-                          className={`p-2 rounded-lg transition-all cursor-pointer ${
-                            product.new_arrival
-                              ? 'text-green-400 bg-green-500/10 border border-green-500/20'
-                              : 'text-muted-foreground bg-secondary border border-border'
-                          }`}
-                          title="New Arrival"
-                        >
-                          <Sparkles className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleToggleBestSeller(product.id, product.best_seller)}
-                          className={`p-2 rounded-lg transition-all cursor-pointer ${
-                            product.best_seller
-                              ? 'text-accent bg-accent/10 border border-accent/20'
-                              : 'text-muted-foreground bg-secondary border border-border'
-                          }`}
-                          title="Best Seller"
-                        >
-                          <Trophy className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => openEditModal(product)}
-                          className="p-2 text-muted-foreground hover:text-foreground bg-secondary hover:bg-muted border border-border rounded-lg transition-all cursor-pointer"
-                          title="Edit"
-                        >
-                          <Edit className="h-3.5 w-3.5" />
-                        </button>
-                        <button
-                          onClick={() => handleDelete(product.id)}
-                          className="p-2 text-red-400 hover:text-red-300 bg-red-500/10 hover:bg-red-500/20 border border-red-500/20 rounded-lg transition-all cursor-pointer"
-                          title="Delete"
-                        >
-                          <Trash2 className="h-3.5 w-3.5" />
-                        </button>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            ))
-          )}
-        </div>
       </div>
 
       {/* Add / Edit Modal */}
@@ -884,6 +811,97 @@ export default function AdminProductsClient({
                       />
                     </div>
                   </div>
+                </div>
+
+                {/* Colors */}
+                <div className="space-y-3">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Available Colors
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {PRESET_COLORS.map(c => {
+                      const selected = colors.some(col => col.name === c.name);
+                      return (
+                        <button
+                          type="button"
+                          key={c.name}
+                          onClick={() =>
+                            setColors(prev =>
+                              selected ? prev.filter(col => col.name !== c.name) : [...prev, { name: c.name, hex: c.hex }]
+                            )
+                          }
+                          className={`flex items-center gap-2 px-3 py-2 rounded-xl border text-xs font-semibold transition-all cursor-pointer ${
+                            selected
+                              ? 'border-primary bg-primary/10 text-foreground'
+                              : 'border-border bg-card text-muted-foreground hover:border-muted-foreground/50'
+                          }`}
+                        >
+                          <span
+                            className="h-4 w-4 rounded-full border border-black/10"
+                            style={{ backgroundColor: c.hex }}
+                          />
+                          {c.name}
+                        </button>
+                      );
+                    })}
+                  </div>
+                  <div className="flex items-center gap-2">
+                    <label
+                      className="relative h-11 w-11 rounded-xl border border-border cursor-pointer overflow-hidden flex-shrink-0"
+                      style={{ backgroundColor: customColorHex }}
+                      title="Pick a custom color"
+                    >
+                      <input
+                        type="color"
+                        value={customColorHex}
+                        onChange={e => setCustomColorHex(e.target.value)}
+                        className="absolute inset-0 opacity-0 cursor-pointer w-full h-full"
+                      />
+                    </label>
+                    <input
+                      type="text"
+                      placeholder="Name this color (optional)"
+                      value={customColorName}
+                      onChange={e => setCustomColorName(e.target.value)}
+                      onKeyDown={e => {
+                        if (e.key === 'Enter') {
+                          e.preventDefault();
+                          addCustomColor();
+                        }
+                      }}
+                      className="flex-1 bg-card text-foreground border border-border rounded-xl px-4 py-3 text-sm outline-none focus:border-primary"
+                    />
+                    <button
+                      type="button"
+                      onClick={addCustomColor}
+                      className="px-4 py-3 rounded-xl bg-secondary border border-border text-sm font-semibold text-foreground hover:bg-muted transition-colors cursor-pointer"
+                    >
+                      Add
+                    </button>
+                  </div>
+                  {colors.length > 0 && (
+                    <div className="flex flex-wrap gap-2 pt-1">
+                      {colors.map(c => (
+                        <span
+                          key={c.name}
+                          className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-lg bg-secondary border border-border text-xs font-medium text-foreground"
+                        >
+                          <span
+                            className="h-3.5 w-3.5 rounded-full border border-black/10"
+                            style={{ backgroundColor: c.hex }}
+                          />
+                          {c.name}
+                          <button
+                            type="button"
+                            onClick={() => setColors(prev => prev.filter(n => n.name !== c.name))}
+                            className="text-muted-foreground hover:text-red-400 transition-colors"
+                          >
+                            <X className="h-3 w-3" />
+                          </button>
+                        </span>
+                      ))}
+                    </div>
+                  )}
                 </div>
 
                 {/* Image Upload */}

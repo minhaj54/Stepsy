@@ -33,6 +33,7 @@ interface DbProduct {
   brands: { name: string; slug: string } | null;
   brand_name: string | null;
   categories: { slug: string } | null;
+  colors: string[] | null;
   product_images: { image_url: string; sort_order: number }[];
   product_variants: { id: string; product_id: string; size: string; color: string; stock_quantity: number }[];
 }
@@ -69,6 +70,7 @@ function mapDbProduct(row: DbProduct): Product {
     newArrival: row.new_arrival,
     bestSeller: row.best_seller,
     specifications: row.specifications ?? undefined,
+    colors: row.colors ?? [],
   };
 }
 

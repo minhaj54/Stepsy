@@ -1,10 +1,8 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 import '../models/order.dart';
 import '../widgets/z_button.dart';
-import '../screens/main_shell.dart';
 import 'orders_screen.dart';
 
 class OrderConfirmationScreen extends StatefulWidget {
@@ -27,7 +25,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
   late final Animation<double> _scaleAnimation;
   late final Animation<double> _opacityAnimation;
   Timer? _redirectTimer;
-  int _countdown = 3;
+  int _countdown = 4;
 
   @override
   void initState() {
@@ -37,7 +35,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
       duration: const Duration(milliseconds: 900),
       vsync: this,
     );
-    _scaleAnimation = CurvedAnimation(parent: _controller, curve: ElasticOutCurve(0.8));
+    _scaleAnimation = CurvedAnimation(parent: _controller, curve: Curves.elasticOut);
     _opacityAnimation = CurvedAnimation(parent: _controller, curve: Curves.easeIn);
 
     WidgetsBinding.instance.addPostFrameCallback((_) {
@@ -65,18 +63,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     if (!mounted) return;
     _redirectTimer?.cancel();
 
-    final shell = context.findAncestorStateOfType<MainShellState>();
-    shell?.switchToTab(3);
-
-    Future.delayed(const Duration(milliseconds: 300), () {
-      if (!mounted) return;
-      Navigator.pushReplacement(
-        context,
-        MaterialPageRoute(
-          builder: (_) => OrdersScreen(initialOrderId: widget.order.id),
-        ),
-      );
-    });
+    Navigator.pushReplacement(
+      context,
+      MaterialPageRoute(
+        builder: (_) => OrdersScreen(initialOrderId: widget.order.id),
+      ),
+    );
   }
 
   @override
@@ -104,18 +96,19 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                     child: ScaleTransition(
                       scale: _scaleAnimation,
                       child: Container(
-                        width: 80,
-                        height: 80,
+                        width: 88,
+                        height: 88,
                         decoration: BoxDecoration(
-                          color: ZarwintoColors.success.withValues(alpha: 0.1),
-                          borderRadius: BorderRadius.circular(40),
+                          color: ZarwintoColors.success.withValues(alpha: 0.12),
+                          shape: BoxShape.circle,
                           border: Border.all(
                             color: ZarwintoColors.success.withValues(alpha: 0.3),
+                            width: 2,
                           ),
                         ),
-                        child: const HugeIcon(
-                          icon: HugeIcons.strokeRoundedCheckmarkCircle01,
-                          size: 40,
+                        child: const Icon(
+                          Icons.check_circle_rounded,
+                          size: 52,
                           color: ZarwintoColors.success,
                         ),
                       ),
@@ -129,12 +122,14 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                           color: ZarwintoColors.foreground,
                         ),
                   ),
-                  const SizedBox(height: ZarwintoSpacing.md),
-                  Text(
-                    'Your order has been placed successfully.',
-                    style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                          color: ZarwintoColors.muted,
-                        ),
+                  const SizedBox(height: ZarwintoSpacing.sm),
+                  const Text(
+                    'Your order has been placed and forwarded to the seller store for fast dispatch.',
+                    style: TextStyle(
+                      color: ZarwintoColors.muted,
+                      fontSize: 14,
+                      height: 1.4,
+                    ),
                     textAlign: TextAlign.center,
                   ),
                   const SizedBox(height: ZarwintoSpacing.xxl),
@@ -149,7 +144,7 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
-                        Text(
+                        const Text(
                           'Order ID',
                           style: TextStyle(
                             color: ZarwintoColors.muted,
@@ -162,12 +157,12 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                           widget.order.id,
                           style: const TextStyle(
                             fontWeight: FontWeight.w700,
-                            fontSize: 14,
+                            fontSize: 15,
                           ),
                         ),
-                        const SizedBox(height: ZarwintoSpacing.sm),
-                        Text(
-                          'Total',
+                        const Divider(height: 20),
+                        const Text(
+                          'Total Amount',
                           style: TextStyle(
                             color: ZarwintoColors.muted,
                             fontSize: 12,
@@ -176,20 +171,20 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                         ),
                         const SizedBox(height: ZarwintoSpacing.xs),
                         Text(
-                          '₹${widget.order.totalAmount.toStringAsFixed(2)}',
+                          '₹${widget.order.totalAmount.toStringAsFixed(0)}',
                           style: const TextStyle(
-                            fontWeight: FontWeight.w700,
-                            fontSize: 16,
+                            fontWeight: FontWeight.w800,
+                            fontSize: 18,
                             color: ZarwintoColors.primary,
                           ),
                         ),
                       ],
                     ),
                   ),
-                  const SizedBox(height: ZarwintoSpacing.xxxl),
+                  const SizedBox(height: ZarwintoSpacing.xxl),
                   Text(
                     'Redirecting to My Orders in $_countdown...',
-                    style: TextStyle(
+                    style: const TextStyle(
                       color: ZarwintoColors.primary,
                       fontSize: 13,
                       fontWeight: FontWeight.w600,
@@ -201,7 +196,19 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                       _redirectTimer?.cancel();
                       _goToOrders();
                     },
-                    label: 'View My Orders',
+                    label: 'View Order Details',
+                  ),
+                  const SizedBox(height: ZarwintoSpacing.sm),
+                  ZButton.text(
+                    onPressed: () {
+                      _redirectTimer?.cancel();
+                      if (widget.onContinueShopping != null) {
+                        widget.onContinueShopping!();
+                      } else {
+                        Navigator.popUntil(context, (route) => route.isFirst);
+                      }
+                    },
+                    label: 'Continue Shopping',
                   ),
                 ],
               ),

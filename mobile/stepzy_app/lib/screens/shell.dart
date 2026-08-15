@@ -1,8 +1,11 @@
 import 'package:flutter/material.dart';
+import '../core/theme.dart';
+import '../providers/zarwinto_store.dart';
 import 'home_tab.dart';
 import 'shop_tab.dart';
 import 'cart_tab.dart';
 import 'account_tab.dart';
+import 'checkout_page.dart';
 
 class StepzyShell extends StatefulWidget {
   const StepzyShell({super.key});
@@ -12,10 +15,11 @@ class StepzyShell extends StatefulWidget {
 }
 
 class _StepzyShellState extends State<StepzyShell> {
-  int index = 0;
-
   @override
   Widget build(BuildContext context) {
+    final store = ZarwintoScope.of(context);
+    final index = store.activeTab;
+
     final tabs = [
       const HomeTab(),
       const ShopTab(),
@@ -24,9 +28,9 @@ class _StepzyShellState extends State<StepzyShell> {
     ];
 
     return Scaffold(
-      backgroundColor: const Color(0xFFF7F8F6),
+      backgroundColor: ZarwintoColors.background,
       extendBody: true,
-      body: tabs[index],
+      body: IndexedStack(index: index, children: tabs),
       bottomNavigationBar: Container(
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
         height: 64,
@@ -46,20 +50,38 @@ class _StepzyShellState extends State<StepzyShell> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavItem(0, Icons.home_filled, 'Home'),
-            _buildNavItem(1, Icons.search_rounded, 'Search'),
-            _buildNavItem(2, Icons.shopping_bag_outlined, 'Cart'),
-            _buildNavItem(3, Icons.person_outline_rounded, 'Profile'),
+            _buildNavItem(store, 0, Icons.home_filled, 'Home'),
+            _buildNavItem(store, 1, Icons.grid_view_rounded, 'Shop'),
+            _buildNavItem(store, 2, Icons.shopping_bag_outlined, 'Bag', badge: store.cartCount),
+            _buildNavItem(store, 3, Icons.person_outline_rounded, 'Account'),
           ],
         ),
       ),
+      floatingActionButton: index == 2 && store.cart.isNotEmpty
+          ? FloatingActionButton.extended(
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const CheckoutPage()),
+                );
+              },
+              backgroundColor: ZarwintoColors.primary,
+              icon: const Icon(Icons.lock_outline),
+              label: const Text('Checkout'),
+            )
+          : null,
     );
   }
 
-  Widget _buildNavItem(int i, IconData icon, String label) {
-    final bool active = index == i;
+  Widget _buildNavItem(
+    ZarwintoStore store,
+    int i,
+    IconData icon,
+    String label, {
+    int badge = 0,
+  }) {
+    final active = store.activeTab == i;
     return GestureDetector(
-      onTap: () => setState(() => index = i),
+      onTap: () => store.setActiveTab(i),
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -68,16 +90,21 @@ class _StepzyShellState extends State<StepzyShell> {
           vertical: 8,
         ),
         decoration: BoxDecoration(
-          color: active ? Colors.black : Colors.transparent,
+          color: active ? ZarwintoColors.primary : Colors.transparent,
           borderRadius: BorderRadius.circular(24),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Icon(
-              icon,
-              color: active ? Colors.white : const Color(0xFF7D7D7D),
-              size: 20,
+            Badge.count(
+              count: badge,
+              isLabelVisible: badge > 0 && i == 2,
+              backgroundColor: ZarwintoColors.accent,
+              child: Icon(
+                icon,
+                color: active ? Colors.white : const Color(0xFF7D7D7D),
+                size: 20,
+              ),
             ),
             if (active) ...[
               const SizedBox(width: 8),

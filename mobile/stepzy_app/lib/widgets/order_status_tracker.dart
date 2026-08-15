@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 
 class OrderStatusTracker extends StatelessWidget {
@@ -14,35 +13,38 @@ class OrderStatusTracker extends StatelessWidget {
     _StepData(
       status: 'pending',
       label: 'Order Placed',
-      icon: HugeIcons.strokeRoundedReceiptText,
+      icon: Icons.receipt_long_rounded,
     ),
     _StepData(
       status: 'processing',
       label: 'Processing',
-      icon: HugeIcons.strokeRoundedClock01,
+      icon: Icons.inventory_2_outlined,
     ),
     _StepData(
       status: 'shipped',
       label: 'Shipped',
-      icon: HugeIcons.strokeRoundedDeliveryBox01,
+      icon: Icons.local_shipping_outlined,
     ),
     _StepData(
       status: 'delivered',
       label: 'Delivered',
-      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
+      icon: Icons.check_circle_outline_rounded,
     ),
   ];
 
   int get _currentIndex {
-    final idx = _steps.indexWhere((s) => s.status == currentStatus);
-    return idx >= 0 ? idx : 0;
+    final status = currentStatus.toLowerCase();
+    if (status == 'delivered') return 3;
+    if (status == 'shipped' || status == 'out_for_delivery') return 2;
+    if (status == 'processing' || status == 'confirmed') return 1;
+    return 0;
   }
 
   @override
   Widget build(BuildContext context) {
     final colors = ZarwintoColors.of(context);
     final current = _currentIndex;
-    final isCancelled = currentStatus == 'cancelled';
+    final isCancelled = currentStatus.toLowerCase() == 'cancelled';
 
     if (isCancelled) {
       return Container(
@@ -54,7 +56,7 @@ class OrderStatusTracker extends StatelessWidget {
         ),
         child: Row(
           children: [
-            HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: colors.error, size: 22),
+            Icon(Icons.cancel_outlined, color: colors.error, size: 22),
             const SizedBox(width: ZarwintoSpacing.md),
             Text(
               'This order has been cancelled',
@@ -125,7 +127,7 @@ class _StepData {
 
   final String status;
   final String label;
-  final List<List<dynamic>> icon;
+  final IconData icon;
 }
 
 class _StepCircle extends StatelessWidget {
@@ -157,9 +159,9 @@ class _StepCircle extends StatelessWidget {
           width: isCurrent ? 3 : 2,
         ),
       ),
-      child: HugeIcon(
-        icon: step.icon,
-        size: isCurrent ? 20 : 18,
+      child: Icon(
+        step.icon,
+        size: isCurrent ? 18 : 16,
         color: isActive ? colors.primary : colors.secondaryText,
       ),
     );

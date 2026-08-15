@@ -45,9 +45,9 @@ export default function CheckoutPage() {
 
    // Use buyNow item as cart if present, otherwise use regular cart
    const effectiveCart = React.useMemo(() => {
-     if (buyNowItem) {
-       return [{ product: buyNowItem.product, variant: buyNowItem.variant, quantity: buyNowItem.quantity }];
-     }
+      if (buyNowItem) {
+        return [{ product: buyNowItem.product, variant: buyNowItem.variant, quantity: buyNowItem.quantity, color: buyNowItem.color }];
+      }
      return cart;
    }, [buyNowItem, cart]);
    const effectiveTotal = React.useMemo(() => {
@@ -1091,7 +1091,7 @@ export default function CheckoutPage() {
                     <ShimmerImage src={item.product.images[0]} alt="" className="h-9 w-9" />
                     <div>
                       <p className="font-bold text-foreground line-clamp-1 max-w-[120px]">{item.product.title}</p>
-                      <p className="text-muted-foreground mt-0.5">Size {item.variant.size} • Qty {item.quantity}</p>
+                      <p className="text-muted-foreground mt-0.5">Size {item.variant.size} • Color {item.color || item.variant.color} • Qty {item.quantity}</p>
                     </div>
                   </div>
                   <span className="font-bold text-foreground">₹{(item.product.sale_price || item.product.price) * item.quantity}</span>

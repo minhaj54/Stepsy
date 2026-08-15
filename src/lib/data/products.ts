@@ -44,6 +44,7 @@ interface DbProduct {
   brands: { name: string; slug: string } | null;
   brand_name: string | null;
   categories: { slug: string } | null;
+  colors: string[] | null;
   product_images: { image_url: string; sort_order: number }[];
   product_variants: { id: string; product_id: string; size: string; color: string; stock_quantity: number }[];
   weight_kg: number | null;
@@ -84,6 +85,7 @@ export function mapDbProduct(row: DbProduct): Product {
     newArrival: row.new_arrival,
     bestSeller: row.best_seller,
     specifications: row.specifications ?? undefined,
+    colors: row.colors ?? [],
     weight_kg: row.weight_kg ?? undefined,
     length_cm: row.length_cm ?? undefined,
     breadth_cm: row.breadth_cm ?? undefined,

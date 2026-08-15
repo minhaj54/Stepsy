@@ -26,9 +26,11 @@ class ZarwintoScope extends InheritedNotifier<ZarwintoStore> {
     required super.child,
   }) : super(notifier: store);
 
-  static ZarwintoStore of(BuildContext context) {
-    final scope = context.dependOnInheritedWidgetOfExactType<ZarwintoScope>();
-    assert(scope != null, 'ZarwintoScope not found');
+  static ZarwintoStore of(BuildContext context, {bool listen = true}) {
+    final scope = listen
+        ? context.dependOnInheritedWidgetOfExactType<ZarwintoScope>()
+        : context.getInheritedWidgetOfExactType<ZarwintoScope>();
+    assert(scope != null, 'ZarwintoScope not found in widget tree');
     return scope!.notifier!;
   }
 }
@@ -54,6 +56,7 @@ class ZarwintoStore extends ChangeNotifier {
   List<BannerModel> banners = [];
   List<Testimonial> testimonials = [];
   Coupon? appliedCoupon;
+  int activeTab = 0;
 
   bool get isSupabaseConfigured => repository.client != null;
   int get cartCount => cart.fold(0, (sum, item) => sum + item.quantity);
@@ -194,14 +197,56 @@ class ZarwintoStore extends ChangeNotifier {
     return message;
   }
 
-  Future<String?> placeOrder(ShippingAddress address) async {
-    if (cart.isEmpty) return 'Your cart is empty.';
-    final message = await repository.placeOrder(cart, total, address);
-    if (message == null) {
+  void setActiveTab(int tab) {
+    activeTab = tab;
+    notifyListeners();
+  }
+
+  Future<String?> placeOrder(
+    ShippingAddress address, {
+    String paymentMethod = 'cod',
+  }) async {
+    if (cart.isEmpty) return null;
+    if (profile == null) return null;
+
+    final orderId = await repository.placeOrder(
+      cart,
+      address,
+      paymentMethod: paymentMethod,
+      couponCode: appliedCoupon?.code,
+      discountAmount: discount,
+    );
+
+    if (orderId != null) {
       clearCart();
-      await _loadOrders();
+      await loadOrders();
     }
-    return message;
+    return orderId;
+  }
+
+  Future<String?> createPendingOrder(
+    ShippingAddress address, {
+    required String paymentMethod,
+  }) async {
+    if (cart.isEmpty) return null;
+    if (profile == null) return null;
+
+    return repository.createPendingOrder(
+      cart,
+      address,
+      paymentMethod: paymentMethod,
+      couponCode: appliedCoupon?.code,
+      discountAmount: discount,
+    );
+  }
+
+  Future<Order?> fetchOrder(String orderId) async {
+    return repository.fetchOrder(orderId);
+  }
+
+  Future<void> loadOrders() async {
+    await _loadOrders();
+    notifyListeners();
   }
 
   Future<void> _loadProfileAndWishlist() async {

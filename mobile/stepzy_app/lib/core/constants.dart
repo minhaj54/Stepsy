@@ -16,3 +16,4 @@ String get zarwintoApiBaseUrl => _getEnv('ZARWINTO_API_BASE_URL', defaultValue: 
 String get appName => _getEnv('APP_NAME', defaultValue: const String.fromEnvironment('APP_NAME', defaultValue: 'Stepzy'));
 String get primaryColorHex => _getEnv('PRIMARY_COLOR', defaultValue: const String.fromEnvironment('PRIMARY_COLOR', defaultValue: '000000'));
 String get secondaryColorHex => _getEnv('SECONDARY_COLOR', defaultValue: const String.fromEnvironment('SECONDARY_COLOR', defaultValue: '5B9EE1'));
+String get shiprocketPickupLocation => _getEnv('SHIPROCKET_PICKUP_LOCATION', defaultValue: const String.fromEnvironment('SHIPROCKET_PICKUP_LOCATION', defaultValue: 'Primary'));
