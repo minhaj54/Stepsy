@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'dart:math' as math;
+import 'dart:io';
+import 'package:http/http.dart' as http;
+import 'package:path_provider/path_provider.dart' as path_provider;
 import '../core/theme.dart';
 import '../models/product.dart';
 import '../models/product_variant.dart';
@@ -8,6 +12,7 @@ import '../models/review.dart';
 import '../providers/zarwinto_store.dart';
 import '../services/location_resolver.dart';
 import '../widgets/common.dart';
+import '../widgets/product_card.dart';
 import 'checkout_page.dart';
 
 class ProductDetailPage extends StatefulWidget {
@@ -80,11 +85,39 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     return dist;
   }
 
-  void _shareProduct() {
+  bool _sharing = false;
+
+  void _shareProduct() async {
+    if (_sharing) return;
     final product = widget.product;
     final shareText =
-        'Check out ${product.title} by ${product.brandName} at ${inrFormat.format(_sellingPrice)} (${_discountPercent.toStringAsFixed(0)}% OFF) on Zarwinto!';
-    Share.share(shareText);
+        'Check out ${product.title} by ${product.brandName} at ${inrFormat.format(_sellingPrice)} (${_discountPercent.toStringAsFixed(0)}% OFF) on Zarwinto!\n\nGrab it now on the Zarwinto app.';
+    final subject = '${product.title} by ${product.brandName}';
+
+    setState(() => _sharing = true);
+    try {
+      final images = product.images;
+      if (images.isNotEmpty) {
+        final url = images[selectedImageIndex % images.length];
+        final response = await http.get(Uri.parse(url));
+        if (response.statusCode == 200 && response.bodyBytes.isNotEmpty) {
+          final dir = await path_provider.getTemporaryDirectory();
+          final file = File('${dir.path}/zarwinto_${product.id}.jpg');
+          await file.writeAsBytes(response.bodyBytes);
+          await Share.shareXFiles(
+            [XFile(file.path, mimeType: 'image/jpeg')],
+            text: shareText,
+            subject: subject,
+          );
+          return;
+        }
+      }
+    } catch (e) {
+      debugPrint('[ProductDetail] share with image failed: $e');
+    } finally {
+      if (mounted) setState(() => _sharing = false);
+    }
+    await Share.share(shareText, subject: subject);
   }
 
   void _onAddToBag() {
@@ -131,8 +164,87 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   void _showWriteReviewSheet() {
+    final store = ZarwintoScope.of(context, listen: false);
+
+    // Reviews require a signed-in account. If the user isn't logged in,
+    // show a prompt that takes them to the Account tab to sign in.
+    if (store.profile == null) {
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => Container(
+          decoration: const BoxDecoration(
+            color: Colors.white,
+            borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+          ),
+          padding: EdgeInsets.only(
+            left: 20,
+            right: 20,
+            top: 20,
+            bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+          ),
+          child: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              Container(
+                width: 40,
+                height: 4,
+                decoration: BoxDecoration(
+                  color: ZarwintoColors.border,
+                  borderRadius: BorderRadius.circular(2),
+                ),
+              ),
+              const SizedBox(height: 20),
+              Container(
+                padding: const EdgeInsets.all(16),
+                decoration: BoxDecoration(
+                  color: ZarwintoColors.primary.withValues(alpha: 0.08),
+                  borderRadius: BorderRadius.circular(16),
+                ),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedUser02,
+                  size: 32,
+                  color: ZarwintoColors.primary,
+                ),
+              ),
+              const SizedBox(height: 16),
+              const Text('Sign in to review',
+                  style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              const SizedBox(height: 8),
+              const Text(
+                'You need an account to share your rating and review.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: ZarwintoColors.muted, fontSize: 14),
+              ),
+              const SizedBox(height: 20),
+              SizedBox(
+                width: double.infinity,
+                height: 50,
+                child: FilledButton(
+                  onPressed: () {
+                    Navigator.pop(ctx);
+                    store.setActiveTab(3);
+                  },
+                  style: FilledButton.styleFrom(
+                    backgroundColor: ZarwintoColors.primary,
+                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                  ),
+                  child: const Text('Sign In / Sign Up',
+                      style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                ),
+              ),
+            ],
+          ),
+        ),
+      );
+      return;
+    }
+
     final ratingCtrl = ValueNotifier<int>(5);
     final reviewCtrl = TextEditingController();
+    final isSubmitting = ValueNotifier<bool>(false);
+
     showModalBottomSheet(
       context: context,
       isScrollControlled: true,
@@ -166,54 +278,124 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               const SizedBox(height: 16),
               const Text('Write a Review',
                   style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
-              const SizedBox(height: 12),
-              ValueListenableBuilder(
-                valueListenable: ratingCtrl,
-                builder: (ctx, rating, child) => Row(
-                  mainAxisAlignment: MainAxisAlignment.center,
-                  children: List.generate(5, (index) {
-                    return IconButton(
-                      onPressed: () => ratingCtrl.value = index + 1,
-                      icon: Icon(
-                        index < rating ? Icons.star_rounded : Icons.star_border_rounded,
-                        color: ZarwintoColors.accent,
-                        size: 36,
-                      ),
-                    );
-                  }),
+              const SizedBox(height: 6),
+              Text('Share your experience with ${widget.product.title}',
+                  style: const TextStyle(color: ZarwintoColors.muted, fontSize: 13)),
+              const SizedBox(height: 14),
+              Center(
+                child: ValueListenableBuilder(
+                  valueListenable: ratingCtrl,
+                  builder: (ctx, rating, child) => Row(
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: List.generate(5, (index) {
+                      final active = index < rating;
+                      return GestureDetector(
+                        onTap: () => ratingCtrl.value = index + 1,
+                        child: Padding(
+                          padding: const EdgeInsets.symmetric(horizontal: 4),
+                          child: Icon(
+                            active ? Icons.star_rounded : Icons.star_outline_rounded,
+                            color: active ? ZarwintoColors.accent : ZarwintoColors.muted,
+                            size: 38,
+                          ),
+                        ),
+                      );
+                    }),
+                  ),
                 ),
               ),
-              const SizedBox(height: 12),
+              const SizedBox(height: 6),
+              ValueListenableBuilder(
+                valueListenable: ratingCtrl,
+                builder: (ctx, rating, _) => Center(
+                  child: Text(
+                    ['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][rating],
+                    style: const TextStyle(
+                      color: ZarwintoColors.foreground,
+                      fontWeight: FontWeight.w600,
+                      fontSize: 13,
+                    ),
+                  ),
+                ),
+              ),
+              const SizedBox(height: 14),
               TextField(
                 controller: reviewCtrl,
                 maxLines: 4,
-                decoration: const InputDecoration(
-                  hintText: 'Share your experience with this product...',
-                  border: OutlineInputBorder(),
+                minLines: 3,
+                textCapitalization: TextCapitalization.sentences,
+                decoration: InputDecoration(
+                  hintText: 'Tell others what you think about this product...',
+                  filled: true,
+                  fillColor: ZarwintoColors.background,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(12),
+                    borderSide: BorderSide.none,
+                  ),
+                  contentPadding: const EdgeInsets.all(14),
                 ),
               ),
               const SizedBox(height: 16),
-              SizedBox(
-                width: double.infinity,
-                height: 48,
-                child: FilledButton(
-                  onPressed: () async {
-                    if (reviewCtrl.text.trim().isEmpty) return;
-                    final store = ZarwintoScope.of(context);
-                    await store.addReview(
-                      widget.product.id,
-                      ratingCtrl.value,
-                      reviewCtrl.text.trim(),
-                    );
-                    if (mounted) {
-                      Navigator.pop(ctx);
-                      ScaffoldMessenger.of(context).showSnackBar(
-                        const SnackBar(content: Text('Review submitted successfully!')),
-                      );
-                      store.loadProductReviews(widget.product.id);
-                    }
-                  },
-                  child: const Text('Submit Review'),
+              ValueListenableBuilder(
+                valueListenable: isSubmitting,
+                builder: (ctx, submitting, _) => SizedBox(
+                  width: double.infinity,
+                  height: 50,
+                  child: FilledButton(
+                    onPressed: submitting
+                        ? null
+                        : () async {
+                            final text = reviewCtrl.text.trim();
+                            if (text.isEmpty) {
+                              ScaffoldMessenger.of(context).showSnackBar(
+                                const SnackBar(content: Text('Please write your review first')),
+                              );
+                              return;
+                            }
+                            isSubmitting.value = true;
+                            try {
+                              await store.addReview(
+                                widget.product.id,
+                                ratingCtrl.value,
+                                text,
+                              );
+                              if (mounted) {
+                                await store.loadProductReviews(widget.product.id);
+                                setState(() {});
+                                Navigator.pop(ctx);
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  const SnackBar(
+                                    content: Text('Thanks! Your review was posted.'),
+                                    backgroundColor: ZarwintoColors.success,
+                                  ),
+                                );
+                              }
+                            } catch (e) {
+                              if (mounted) {
+                                ScaffoldMessenger.of(context).showSnackBar(
+                                  SnackBar(content: Text('Could not submit review: $e')),
+                                );
+                              }
+                            } finally {
+                              isSubmitting.value = false;
+                            }
+                          },
+                    style: FilledButton.styleFrom(
+                      backgroundColor: ZarwintoColors.primary,
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: submitting
+                        ? const SizedBox(
+                            width: 20,
+                            height: 20,
+                            child: CircularProgressIndicator(
+                              strokeWidth: 2,
+                              color: Colors.white,
+                            ),
+                          )
+                        : const Text('Submit Review',
+                            style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                  ),
                 ),
               ),
             ],
@@ -805,14 +987,29 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   Widget _buildColorSelector() {
     // Prefer the product-level colorways uploaded from the admin panel.
     // Fall back to variant colors if a product has none defined.
-    final availableColors = widget.product.colors.isNotEmpty
-        ? widget.product.colors.toSet().toList()
-        : widget.product.variants
-            .map((v) => v.color)
-            .where((c) => c.isNotEmpty)
-            .toSet()
-            .toList();
-    if (availableColors.isEmpty) return const SizedBox.shrink();
+    final rawColors = widget.product.colors.isNotEmpty
+        ? widget.product.colors
+        : widget.product.variants.map((v) => v.color).where((c) => c.isNotEmpty).toList();
+    // Treat empty values and the literal "Default" as having no real colourway.
+    final availableColors = rawColors
+        .where((c) => c.trim().isNotEmpty && c.trim().toLowerCase() != 'default')
+        .toSet()
+        .toList();
+
+    // No real colour options → just display "Default".
+    if (availableColors.isEmpty) {
+      return Padding(
+        padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        child: Row(
+          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          children: const [
+            Text('Color', style: TextStyle(fontSize: 14, fontWeight: FontWeight.w800)),
+            Text('Default',
+                style: TextStyle(fontSize: 13, color: ZarwintoColors.muted, fontWeight: FontWeight.w600)),
+          ],
+        ),
+      );
+    }
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),
       child: Column(
@@ -829,49 +1026,66 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
           ),
           const SizedBox(height: 12),
           Wrap(
-            spacing: 10,
-            runSpacing: 10,
+            spacing: 8,
+            runSpacing: 8,
             children: availableColors.map((color) {
               final isSelected = selectedColor == color;
+              final lower = color.trim().toLowerCase();
+              final hasVariant = widget.product.variants
+                  .any((v) => v.color.trim().toLowerCase() == lower);
+              // Only treat as out of stock when a matching variant exists
+              // and all of its stock is zero. Colors without a matching
+              // variant are considered available (admin colorways).
               final stock = widget.product.variants
-                  .where((v) => v.color == color)
+                  .where((v) => v.color.trim().toLowerCase() == lower)
                   .fold(0, (sum, v) => sum + v.stockQuantity);
-              final isOutOfStock = stock <= 0;
+              final isOutOfStock = hasVariant && stock <= 0;
               return GestureDetector(
                 onTap: isOutOfStock ? null : () => setState(() => selectedColor = color),
                 child: AnimatedContainer(
                   duration: const Duration(milliseconds: 150),
-                  padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+                  padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
                   decoration: BoxDecoration(
                     color: isSelected
-                        ? ZarwintoColors.primary.withValues(alpha: 0.08)
+                        ? ZarwintoColors.primary
                         : Colors.white,
-                    borderRadius: BorderRadius.circular(20),
+                    borderRadius: BorderRadius.circular(16),
                     border: Border.all(
                       color: isSelected ? ZarwintoColors.primary : ZarwintoColors.border,
-                      width: isSelected ? 1.5 : 1,
+                      width: isSelected ? 2 : 1,
                     ),
+                    boxShadow: isSelected
+                        ? [
+                            BoxShadow(
+                              color: ZarwintoColors.primary.withValues(alpha: 0.25),
+                              blurRadius: 8,
+                              offset: const Offset(0, 2),
+                            ),
+                          ]
+                        : null,
                   ),
-                  child: Opacity(
-                    opacity: isOutOfStock ? 0.45 : 1,
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
-                      children: [
-                        _colorDot(color, 16),
-                        const SizedBox(width: 8),
-                        Text(
-                          color,
-                          style: TextStyle(
-                            color: isSelected
-                                ? ZarwintoColors.primary
-                                : ZarwintoColors.foreground,
-                            fontWeight: isSelected ? FontWeight.w700 : FontWeight.w500,
-                            fontSize: 13,
-                            decoration: isOutOfStock ? TextDecoration.lineThrough : null,
-                          ),
+                  child: Row(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      _colorDot(color, 18),
+                      const SizedBox(width: 8),
+                      Text(
+                        color,
+                        style: TextStyle(
+                          color: isSelected
+                              ? Colors.white
+                              : ZarwintoColors.foreground,
+                          fontWeight: FontWeight.w600,
+                          fontSize: 13,
+                          decoration: isOutOfStock ? TextDecoration.lineThrough : null,
                         ),
+                      ),
+                      if (isSelected) ...[
+                        const SizedBox(width: 4),
+                        const Icon(Icons.check_circle_rounded,
+                            color: Colors.white, size: 14),
                       ],
-                    ),
+                    ],
                   ),
                 ),
               );
@@ -1458,112 +1672,45 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  Widget _buildRecentlyViewed() {
+  Widget _buildYouMayAlsoLike() {
     final store = ZarwintoScope.of(context);
-    final recent = store.recentlyViewedProducts
-        .where((p) => p.id != widget.product.id)
-        .take(8)
+    final current = widget.product;
+    final related = store.products
+        .where((p) => p.id != current.id)
+        .where((p) =>
+            p.categorySlug == current.categorySlug || p.brandId == current.brandId)
         .toList();
-    if (recent.isEmpty) return const SizedBox.shrink();
+    final fallback = (related.isNotEmpty
+            ? related
+            : store.products.where((p) => p.id != current.id).toList())
+        .take(5)
+        .toList();
+    if (fallback.isEmpty) return const SizedBox.shrink();
+
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        const Padding(
-          padding: EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-          child: Text('Recently Viewed', style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 6),
+          child: const Text('You may also like',
+              style: TextStyle(fontSize: 16, fontWeight: FontWeight.w800)),
         ),
         SizedBox(
-          height: 220,
+          height: 290,
           child: ListView.builder(
             scrollDirection: Axis.horizontal,
             padding: const EdgeInsets.symmetric(horizontal: 12),
-            itemCount: recent.length,
+            itemCount: fallback.length,
             itemBuilder: (ctx, index) {
-              final p = recent[index];
-              return GestureDetector(
-                onTap: () {
-                  Navigator.pushReplacement(
-                    context,
-                    MaterialPageRoute(builder: (_) => ProductDetailPage(product: p)),
-                  );
-                },
-                child: Container(
-                  width: 160,
-                  margin: const EdgeInsets.symmetric(horizontal: 4),
-                  decoration: BoxDecoration(
-                    color: Colors.white,
-                    borderRadius: BorderRadius.circular(16),
-                    border: Border.all(color: ZarwintoColors.border),
-                  ),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Expanded(
-                        child: ClipRRect(
-                          borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                          child: Image.network(
-                            p.images.isNotEmpty ? p.images.first : '',
-                            width: double.infinity,
-                            fit: BoxFit.cover,
-                            errorBuilder: (ctx, err, stk) => Container(
-                              color: ZarwintoColors.background,
-                              child: const Icon(Icons.image, size: 40, color: ZarwintoColors.muted),
-                            ),
-                          ),
-                        ),
-                      ),
-                      Padding(
-                        padding: const EdgeInsets.all(10),
-                        child: Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            Text(p.brandName,
-                                style: const TextStyle(fontSize: 10, fontWeight: FontWeight.w700, color: ZarwintoColors.primary)),
-                            const SizedBox(height: 2),
-                            Text(p.title, maxLines: 1, overflow: TextOverflow.ellipsis,
-                                style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w600)),
-                            const SizedBox(height: 4),
-                            Text(inrFormat.format(p.currentPrice),
-                                style: const TextStyle(fontSize: 13, fontWeight: FontWeight.w800)),
-                          ],
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
+              return Container(
+                width: 162,
+                margin: const EdgeInsets.symmetric(horizontal: 4),
+                child: ProductCard(fallback[index]),
               );
             },
           ),
         ),
       ],
-    );
-  }
-
-  Widget _buildReturnPolicy() {
-    return Container(
-      margin: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
-      padding: const EdgeInsets.all(14),
-      decoration: BoxDecoration(
-        color: ZarwintoColors.success.withValues(alpha: 0.06),
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(color: ZarwintoColors.success.withValues(alpha: 0.2)),
-      ),
-      child: Row(
-        children: [
-          const Icon(Icons.verified_outlined, color: ZarwintoColors.success, size: 20),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Text(
-              'Easy returns: 10 days return & exchange applicable on this product.',
-              style: TextStyle(
-                fontSize: 13,
-                color: ZarwintoColors.success.withValues(alpha: 0.9),
-                fontWeight: FontWeight.w600,
-              ),
-            ),
-          ),
-        ],
-      ),
     );
   }
 
@@ -1619,6 +1766,25 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               onPressed: () => store.toggleWishlist(product.id),
             ),
           ),
+          Container(
+            margin: const EdgeInsets.only(right: 12),
+            decoration: BoxDecoration(
+              color: Colors.white,
+              shape: BoxShape.circle,
+              border: Border.all(color: ZarwintoColors.border),
+            ),
+            child: IconButton(
+              padding: EdgeInsets.zero,
+              onPressed: _sharing ? null : _shareProduct,
+              icon: _sharing
+                  ? const SizedBox(
+                      width: 20,
+                      height: 20,
+                      child: CircularProgressIndicator(strokeWidth: 2),
+                    )
+                  : const Icon(Icons.share_outlined, color: Colors.black, size: 20),
+            ),
+          ),
         ],
       ),
       body: Column(
@@ -1666,10 +1832,9 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       const SizedBox(height: 8),
                       _buildSpecifications(),
                       _buildInfoTabs(),
+                      _buildYouMayAlsoLike(),
                       _buildRatingsReviewsSection(),
                       _buildReviewsList(),
-                      _buildReturnPolicy(),
-                      _buildRecentlyViewed(),
                       const SizedBox(height: 16),
                     ],
                   ),
@@ -1686,26 +1851,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 BoxShadow(color: Colors.black.withValues(alpha: 0.05), blurRadius: 10, offset: const Offset(0, -4)),
               ],
             ),
-            child: Row(
-              children: [
-                Container(
-                  height: 52,
-                  width: 52,
-                  decoration: BoxDecoration(
-                    color: ZarwintoColors.background,
-                    borderRadius: BorderRadius.circular(14),
-                    border: Border.all(color: ZarwintoColors.border),
-                  ),
-                  child: IconButton(
-                    onPressed: _shareProduct,
-                    icon: const Icon(Icons.share_outlined, color: ZarwintoColors.foreground, size: 20),
-                  ),
-                ),
-                const SizedBox(width: 12),
-                Expanded(
-                  child: SizedBox(
-                    height: 52,
-                    child: OutlinedButton.icon(
+              child: Row(
+                children: [
+                  Expanded(
+                    child: SizedBox(
+                      height: 52,
+                      child: OutlinedButton.icon(
                       style: OutlinedButton.styleFrom(
                         side: const BorderSide(color: ZarwintoColors.primary, width: 1.5),
                         shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
