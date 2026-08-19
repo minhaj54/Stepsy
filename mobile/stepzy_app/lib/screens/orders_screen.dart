@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import '../providers/zarwinto_store.dart';
 import '../core/theme.dart';
@@ -76,7 +77,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                       child: Column(
                         mainAxisAlignment: MainAxisAlignment.center,
                         children: [
-                          const Icon(Icons.error_outline, size: 48, color: ZarwintoColors.error),
+                          HugeIcon(icon: HugeIcons.strokeRoundedAlertCircle, size: 48, color: ZarwintoColors.error),
                           const SizedBox(height: 16),
                           Text(
                             'Failed to load orders',
@@ -91,7 +92,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                           const SizedBox(height: 16),
                           ElevatedButton.icon(
                             onPressed: _loadOrders,
-                            icon: const Icon(Icons.refresh),
+                            icon: HugeIcon(icon: HugeIcons.strokeRoundedRefresh, color: Colors.white),
                             label: const Text('Retry'),
                           ),
                         ],
@@ -103,7 +104,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         child: Column(
                           mainAxisAlignment: MainAxisAlignment.center,
                           children: [
-                            const Icon(Icons.shopping_bag_outlined, size: 64, color: ZarwintoColors.muted),
+                            HugeIcon(icon: HugeIcons.strokeRoundedShoppingBag01, size: 64, color: ZarwintoColors.muted),
                             const SizedBox(height: 16),
                             Text(
                               'No orders yet',
@@ -216,7 +217,7 @@ class OrderCard extends StatelessWidget {
                               width: 48,
                               height: 48,
                               color: ZarwintoColors.background,
-                              child: const Icon(Icons.image, size: 24, color: ZarwintoColors.muted),
+                              child: HugeIcon(icon: HugeIcons.strokeRoundedImage01, size: 24, color: ZarwintoColors.muted),
                             );
                           },
                         ),
@@ -257,7 +258,7 @@ class OrderCard extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Icon(Icons.location_on_outlined, size: 16, color: ZarwintoColors.muted),
+                    HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 16, color: ZarwintoColors.muted),
                     const SizedBox(width: 6),
                     Expanded(
                       child: Text(

@@ -1,27 +1,29 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 import '../providers/zarwinto_store.dart';
+import '../widgets/zarwinto_drawer.dart';
 import 'home_tab.dart';
 import 'shop_tab.dart';
 import 'cart_tab.dart';
 import 'account_tab.dart';
 import 'checkout_page.dart';
 
-class StepzyShell extends StatefulWidget {
-  const StepzyShell({super.key});
+class ZarwintoShell extends StatefulWidget {
+  const ZarwintoShell({super.key});
 
   @override
-  State<StepzyShell> createState() => _StepzyShellState();
+  State<ZarwintoShell> createState() => _ZarwintoShellState();
 }
 
-class _StepzyShellState extends State<StepzyShell> {
+class _ZarwintoShellState extends State<ZarwintoShell> {
   @override
   Widget build(BuildContext context) {
     final store = ZarwintoScope.of(context);
     final index = store.activeTab;
 
     final tabs = [
-      const HomeTab(),
+      HomeTab(),
       const ShopTab(),
       const CartTab(),
       const AccountTab(),
@@ -30,6 +32,7 @@ class _StepzyShellState extends State<StepzyShell> {
     return Scaffold(
       backgroundColor: ZarwintoColors.background,
       extendBody: true,
+      drawer: const ZarwintoDrawer(),
       body: IndexedStack(index: index, children: tabs),
       bottomNavigationBar: Container(
         margin: const EdgeInsets.fromLTRB(20, 0, 20, 24),
@@ -50,10 +53,10 @@ class _StepzyShellState extends State<StepzyShell> {
         child: Row(
           mainAxisAlignment: MainAxisAlignment.spaceEvenly,
           children: [
-            _buildNavItem(store, 0, Icons.home_filled, 'Home'),
-            _buildNavItem(store, 1, Icons.grid_view_rounded, 'Shop'),
-            _buildNavItem(store, 2, Icons.shopping_bag_outlined, 'Bag', badge: store.cartCount),
-            _buildNavItem(store, 3, Icons.person_outline_rounded, 'Account'),
+            _buildNavItem(store, 0, HugeIcons.strokeRoundedHome01, 'Home'),
+            _buildNavItem(store, 1, HugeIcons.strokeRoundedStore01, 'Shop'),
+            _buildNavItem(store, 2, HugeIcons.strokeRoundedShoppingCart01, 'Bag', badge: store.cartCount),
+            _buildNavItem(store, 3, HugeIcons.strokeRoundedUser02, 'Account'),
           ],
         ),
       ),
@@ -65,7 +68,7 @@ class _StepzyShellState extends State<StepzyShell> {
                 );
               },
               backgroundColor: ZarwintoColors.primary,
-              icon: const Icon(Icons.lock_outline),
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedLock, color: Colors.black),
               label: const Text('Checkout'),
             )
           : null,
@@ -100,8 +103,8 @@ class _StepzyShellState extends State<StepzyShell> {
               count: badge,
               isLabelVisible: badge > 0 && i == 2,
               backgroundColor: ZarwintoColors.accent,
-              child: Icon(
-                icon,
+              child: HugeIcon(
+                icon: icon,
                 color: active ? Colors.white : const Color(0xFF7D7D7D),
                 size: 20,
               ),

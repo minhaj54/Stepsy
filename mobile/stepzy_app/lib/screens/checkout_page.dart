@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:shimmer/shimmer.dart';
 import '../core/theme.dart';
 import '../providers/zarwinto_store.dart';
@@ -392,7 +393,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           if (store.cart.isNotEmpty)
             TextButton.icon(
               onPressed: () => Navigator.pop(context),
-              icon: const Icon(Icons.shopping_bag_outlined, size: 18),
+              icon: HugeIcon(icon: HugeIcons.strokeRoundedShoppingBag01, size: 18, color: Colors.black),
               label: Text('${store.cart.length} items'),
             ),
         ],
@@ -402,8 +403,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
               child: Column(
                 mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  const Icon(
-                    Icons.shopping_bag_outlined,
+                  HugeIcon(icon: 
+                    HugeIcons.strokeRoundedShoppingBag01,
                     size: 64,
                     color: ZarwintoColors.muted,
                   ),
@@ -448,7 +449,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       const SizedBox(height: ZarwintoSpacing.sm),
                       TextButton.icon(
                         onPressed: () => setState(() => editing = true),
-                        icon: const Icon(Icons.edit_outlined, size: 18),
+                        icon: HugeIcon(icon: HugeIcons.strokeRoundedEdit01, size: 18, color: Colors.black),
                         label: const Text('Change Address'),
                       ),
                     ] else ...[
@@ -519,7 +520,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                               pincode.text = defaultAddr.pincode;
                             });
                           },
-                          icon: const Icon(Icons.arrow_back_rounded, size: 18),
+                          icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowLeft01, size: 18, color: Colors.black),
                           label: const Text('Use saved address'),
                         ),
                     ],
@@ -537,28 +538,28 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       children: [
                         _PaymentOption(
                           label: 'UPI (GPay, PhonePe, Paytm)',
-                          icon: Icons.smartphone_rounded,
+                          icon: HugeIcons.strokeRoundedSmartPhone01,
                           selected: paymentMethod == 'cashfree_upi',
                           onTap: () => setState(() => paymentMethod = 'cashfree_upi'),
                           colors: colors,
                         ),
                         _PaymentOption(
                           label: 'Credit / Debit Card',
-                          icon: Icons.credit_card_rounded,
+                          icon: HugeIcons.strokeRoundedCreditCard,
                           selected: paymentMethod == 'card',
                           onTap: () => setState(() => paymentMethod = 'card'),
                           colors: colors,
                         ),
                         _PaymentOption(
                           label: 'Net Banking',
-                          icon: Icons.account_balance_rounded,
+                          icon: HugeIcons.strokeRoundedBuilding01,
                           selected: paymentMethod == 'netbanking',
                           onTap: () => setState(() => paymentMethod = 'netbanking'),
                           colors: colors,
                         ),
                         _PaymentOption(
                           label: 'Cash on Delivery (COD)',
-                          icon: Icons.payments_outlined,
+                          icon: HugeIcons.strokeRoundedPayment01,
                           selected: paymentMethod == 'cod',
                           onTap: () => setState(() => paymentMethod = 'cod'),
                           colors: colors,
@@ -769,7 +770,7 @@ class _AddressCard extends StatelessWidget {
               color: colors.primary.withValues(alpha: 0.08),
               borderRadius: ZarwintoRadius.all12,
             ),
-            child: Icon(Icons.location_on_outlined, size: 20, color: colors.primary),
+            child: HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 20, color: colors.primary),
           ),
           const SizedBox(width: ZarwintoSpacing.md),
           Expanded(
@@ -819,7 +820,7 @@ class _AddressCard extends StatelessWidget {
           ),
           IconButton(
             onPressed: onEdit,
-            icon: const Icon(Icons.edit_outlined, size: 20),
+            icon: HugeIcon(icon: HugeIcons.strokeRoundedEdit01, size: 20, color: ZarwintoColors.primary),
             color: colors.primary,
           ),
         ],
@@ -859,7 +860,7 @@ class _PaymentOption extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(icon, size: 20, color: selected ? colors.primary : colors.secondaryText),
+            HugeIcon(icon: icon, size: 20, color: selected ? colors.primary : colors.secondaryText),
             const SizedBox(width: ZarwintoSpacing.sm),
             Expanded(
               child: Text(
@@ -871,7 +872,7 @@ class _PaymentOption extends StatelessWidget {
               ),
             ),
             if (selected)
-              Icon(Icons.check_circle_rounded, color: colors.primary, size: 20),
+              HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle02, color: colors.primary, size: 20),
           ],
         ),
       ),

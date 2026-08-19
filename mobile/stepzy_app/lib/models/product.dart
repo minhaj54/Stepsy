@@ -35,6 +35,8 @@ class Product {
     this.lengthCm,
     this.breadthCm,
     this.heightCm,
+    this.colors = const [],
+    this.storeId,
   });
 
   factory Product.fromSupabase(Map<String, dynamic> json) {
@@ -91,7 +93,7 @@ class Product {
     return Product(
       id: productId,
       brandId: json['brand_id'] as String? ?? 'b1',
-      brandName: json['brands']?['name'] as String? ?? json['brand_name'] as String? ?? 'Nike',
+      brandName: json['brands']?['name'] as String? ?? json['brand_name'] as String? ?? 'Zarwinto',
       categoryId: json['category_id'] as String? ?? 'c1',
       categorySlug: json['categories']?['slug'] as String? ?? json['category_slug'] as String? ?? 'sneakers',
       title: json['title'] as String? ?? 'Sneaker Model',
@@ -115,6 +117,11 @@ class Product {
       lengthCm: json['length_cm'] as int?,
       breadthCm: json['breadth_cm'] as int?,
       heightCm: json['height_cm'] as int?,
+      colors: (json['colors'] as List<dynamic>?)
+              ?.map((e) => e.toString())
+              .toList() ??
+          const [],
+      storeId: json['store_id'] as String?,
     );
   }
 
@@ -145,6 +152,8 @@ class Product {
     'length_cm': lengthCm,
     'breadth_cm': breadthCm,
     'height_cm': heightCm,
+    'colors': colors,
+    'store_id': storeId,
   };
 
   final String id;
@@ -166,11 +175,13 @@ class Product {
   final bool featured;
   final bool newArrival;
   final bool bestSeller;
+  final List<String> colors;
   final Map<String, String> specifications;
   final double? weightKg;
   final int? lengthCm;
   final int? breadthCm;
   final int? heightCm;
+  final String? storeId;
 
   double get currentPrice => salePrice ?? price;
 }

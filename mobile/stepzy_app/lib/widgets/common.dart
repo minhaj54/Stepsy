@@ -1,4 +1,6 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
+import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
 import '../core/theme.dart';
 
@@ -23,7 +25,7 @@ class ZarwintoHeader extends StatelessWidget {
               color: ZarwintoColors.primary.withValues(alpha: .25),
             ),
           ),
-          child: const Icon(Icons.bolt_rounded, color: ZarwintoColors.accent),
+          child: HugeIcon(icon: HugeIcons.strokeRoundedFlash, color: ZarwintoColors.accent),
         ),
         const SizedBox(width: 12),
         Column(
@@ -95,10 +97,17 @@ class ZarwintoRemoteImage extends StatelessWidget {
       fit: BoxFit.cover,
       loadingBuilder: (context, child, loading) {
         if (loading == null) return child;
-        return const ColoredBox(
-          color: Colors.black12,
-          child: Center(child: CircularProgressIndicator(strokeWidth: 2)),
-        );
+        return const _ImageShimmer();
+      },
+      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
+        if (wasSynchronouslyLoaded || frame != null) {
+          return AnimatedOpacity(
+            opacity: 1,
+            duration: const Duration(milliseconds: 250),
+            child: child,
+          );
+        }
+        return const _ImageShimmer();
       },
       errorBuilder: (context, error, stackTrace) {
         return Image.network(
@@ -106,6 +115,22 @@ class ZarwintoRemoteImage extends StatelessWidget {
           fit: BoxFit.cover,
         );
       },
+    );
+  }
+}
+
+class _ImageShimmer extends StatelessWidget {
+  const _ImageShimmer();
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: ZarwintoColors.background,
+      highlightColor: ZarwintoColors.surface,
+      period: const Duration(milliseconds: 1200),
+      child: ColoredBox(
+        color: ZarwintoColors.background,
+      ),
     );
   }
 }

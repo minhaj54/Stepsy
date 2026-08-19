@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:shimmer/shimmer.dart';
 import '../providers/zarwinto_store.dart';
 import '../core/theme.dart';
@@ -77,8 +78,8 @@ class _WishlistScreenState extends State<WishlistScreen> {
                           color: ZarwintoColors.primary.withValues(alpha: 0.08),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.favorite_border_rounded,
+                        child: HugeIcon(icon: 
+                          HugeIcons.strokeRoundedHeartRemove,
                           size: 40,
                           color: ZarwintoColors.muted,
                         ),

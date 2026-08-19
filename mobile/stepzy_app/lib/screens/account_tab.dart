@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../providers/zarwinto_store.dart';
 import '../widgets/common.dart';
 import '../core/theme.dart';
@@ -197,7 +198,7 @@ class _AccountTabState extends State<AccountTab> {
                   side: const BorderSide(color: ZarwintoColors.border),
                   shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
                 ),
-                icon: const Icon(Icons.logout_rounded, size: 18, color: ZarwintoColors.muted),
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedLogout01, size: 18, color: ZarwintoColors.muted),
                 label: const Text('Sign Out', style: TextStyle(color: ZarwintoColors.foreground)),
               ),
             ),
@@ -210,7 +211,7 @@ class _AccountTabState extends State<AccountTab> {
   Widget _buildMenuSection(ZarwintoStore store) {
     final menuItems = [
       _MenuItem(
-        icon: Icons.shopping_bag_outlined,
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedShoppingBag01, color: ZarwintoColors.primary, size: 20),
         title: 'My Orders',
         subtitle: 'View and track all past orders',
         onTap: () {
@@ -220,7 +221,7 @@ class _AccountTabState extends State<AccountTab> {
         },
       ),
       _MenuItem(
-        icon: Icons.location_on_outlined,
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedLocation01, color: ZarwintoColors.primary, size: 20),
         title: 'Delivery Addresses',
         subtitle: 'Manage saved shipping addresses',
         onTap: () {
@@ -230,7 +231,7 @@ class _AccountTabState extends State<AccountTab> {
         },
       ),
       _MenuItem(
-        icon: Icons.favorite_outline_rounded,
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedHeartRemove, color: ZarwintoColors.primary, size: 20),
         title: 'Wishlist',
         subtitle: '${store.wishlist.length} saved pairs',
         onTap: () {
@@ -240,7 +241,7 @@ class _AccountTabState extends State<AccountTab> {
         },
       ),
       _MenuItem(
-        icon: Icons.headset_mic_outlined,
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedHeadphones, color: ZarwintoColors.primary, size: 20),
         title: 'Help & FAQ Center',
         subtitle: 'Delivery, returns, and support FAQs',
         onTap: () {
@@ -250,7 +251,7 @@ class _AccountTabState extends State<AccountTab> {
         },
       ),
       _MenuItem(
-        icon: Icons.shield_outlined,
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedShield01, color: ZarwintoColors.primary, size: 20),
         title: 'Privacy Policy',
         subtitle: 'Data security and terms',
         onTap: () {
@@ -260,7 +261,7 @@ class _AccountTabState extends State<AccountTab> {
         },
       ),
       _MenuItem(
-        icon: Icons.description_outlined,
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedFile01, color: ZarwintoColors.primary, size: 20),
         title: 'Terms of Service',
         subtitle: 'Marketplace conditions',
         onTap: () {
@@ -270,7 +271,7 @@ class _AccountTabState extends State<AccountTab> {
         },
       ),
       _MenuItem(
-        icon: Icons.info_outline_rounded,
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedInformationCircle, color: ZarwintoColors.primary, size: 20),
         title: 'About Zarwinto',
         subtitle: 'Version 1.0.0',
         onTap: () {
@@ -291,11 +292,11 @@ class _AccountTabState extends State<AccountTab> {
                 color: ZarwintoColors.primary.withValues(alpha: 0.08),
                 borderRadius: BorderRadius.circular(10),
               ),
-              child: Icon(item.icon, color: ZarwintoColors.primary, size: 20),
+              child: item.icon,
             ),
             title: Text(item.title, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
             subtitle: Text(item.subtitle, style: mutedStyle),
-            trailing: const Icon(Icons.chevron_right_rounded, color: ZarwintoColors.muted),
+            trailing: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: ZarwintoColors.muted),
             onTap: item.onTap,
           );
         }).toList(),
@@ -368,7 +369,7 @@ class _AccountTabState extends State<AccountTab> {
                   controller: nameController,
                   decoration: const InputDecoration(
                     labelText: 'Full Name',
-                    prefixIcon: Icon(Icons.person_outline, size: 20),
+                    prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedUser02, size: 20, color: ZarwintoColors.muted),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -379,7 +380,7 @@ class _AccountTabState extends State<AccountTab> {
                   keyboardType: TextInputType.phone,
                   decoration: const InputDecoration(
                     labelText: 'Phone Number (10 digits)',
-                    prefixIcon: Icon(Icons.phone_outlined, size: 20),
+                    prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedCall, size: 20, color: ZarwintoColors.muted),
                     hintText: '9876543210',
                   ),
                 ),
@@ -401,7 +402,7 @@ class _AccountTabState extends State<AccountTab> {
                   keyboardType: TextInputType.number,
                   decoration: const InputDecoration(
                     labelText: 'Enter 6-digit OTP',
-                    prefixIcon: Icon(Icons.lock_outline, size: 20),
+                    prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedLock, size: 20, color: ZarwintoColors.muted),
                   ),
                 ),
                 const SizedBox(height: 16),
@@ -432,7 +433,7 @@ class _AccountTabState extends State<AccountTab> {
                   controller: nameController,
                   decoration: const InputDecoration(
                     labelText: 'Full Name',
-                    prefixIcon: Icon(Icons.person_outline, size: 20),
+                    prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedUser02, size: 20, color: ZarwintoColors.muted),
                   ),
                 ),
                 const SizedBox(height: 12),
@@ -442,7 +443,7 @@ class _AccountTabState extends State<AccountTab> {
                 keyboardType: TextInputType.emailAddress,
                 decoration: const InputDecoration(
                   labelText: 'Email Address',
-                  prefixIcon: Icon(Icons.email_outlined, size: 20),
+                  prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedMail01, size: 20, color: ZarwintoColors.muted),
                 ),
               ),
               const SizedBox(height: 12),
@@ -451,7 +452,7 @@ class _AccountTabState extends State<AccountTab> {
                 obscureText: true,
                 decoration: const InputDecoration(
                   labelText: 'Password',
-                  prefixIcon: Icon(Icons.lock_outline, size: 20),
+                  prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedLock, size: 20, color: ZarwintoColors.muted),
                 ),
               ),
               const SizedBox(height: 16),
@@ -477,7 +478,7 @@ class _MenuItem {
     required this.onTap,
   });
 
-  final IconData icon;
+  final Widget icon;
   final String title;
   final String subtitle;
   final VoidCallback onTap;

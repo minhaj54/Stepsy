@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 
 class OrderStatusTracker extends StatelessWidget {
@@ -13,22 +14,22 @@ class OrderStatusTracker extends StatelessWidget {
     _StepData(
       status: 'pending',
       label: 'Order Placed',
-      icon: Icons.receipt_long_rounded,
+      icon: HugeIcons.strokeRoundedReceiptDollar,
     ),
     _StepData(
       status: 'processing',
       label: 'Processing',
-      icon: Icons.inventory_2_outlined,
+      icon: HugeIcons.strokeRoundedPackage,
     ),
     _StepData(
       status: 'shipped',
       label: 'Shipped',
-      icon: Icons.local_shipping_outlined,
+      icon: HugeIcons.strokeRoundedTruck,
     ),
     _StepData(
       status: 'delivered',
       label: 'Delivered',
-      icon: Icons.check_circle_outline_rounded,
+      icon: HugeIcons.strokeRoundedCheckmarkCircle01,
     ),
   ];
 
@@ -56,7 +57,7 @@ class OrderStatusTracker extends StatelessWidget {
         ),
         child: Row(
           children: [
-            Icon(Icons.cancel_outlined, color: colors.error, size: 22),
+            HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: colors.error, size: 22),
             const SizedBox(width: ZarwintoSpacing.md),
             Text(
               'This order has been cancelled',
@@ -159,11 +160,7 @@ class _StepCircle extends StatelessWidget {
           width: isCurrent ? 3 : 2,
         ),
       ),
-      child: Icon(
-        step.icon,
-        size: isCurrent ? 18 : 16,
-        color: isActive ? colors.primary : colors.secondaryText,
-      ),
+      child: HugeIcon(icon: step.icon, size: isCurrent ? 18 : 16, color: isActive ? colors.primary : colors.secondaryText),
     );
   }
 }

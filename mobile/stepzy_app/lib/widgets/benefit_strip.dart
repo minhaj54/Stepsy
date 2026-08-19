@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 
 class BenefitStrip extends StatelessWidget {
@@ -7,10 +8,10 @@ class BenefitStrip extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final benefits = [
-      (Icons.local_shipping_outlined, 'Express'),
-      (Icons.verified_user_outlined, 'Secure'),
-      (Icons.sync_outlined, 'Returns'),
-      (Icons.bolt_outlined, 'Authentic'),
+      (HugeIcons.strokeRoundedTruck, 'Express'),
+      (HugeIcons.strokeRoundedSecurityCheck, 'Secure'),
+      (HugeIcons.strokeRoundedRefresh, 'Returns'),
+      (HugeIcons.strokeRoundedFlash, 'Authentic'),
     ];
 
     return Row(
@@ -19,7 +20,7 @@ class BenefitStrip extends StatelessWidget {
             (benefit) => Expanded(
               child: Column(
                 children: [
-                  Icon(benefit.$1, color: ZarwintoColors.primary),
+                  HugeIcon(icon: benefit.$1, color: ZarwintoColors.primary),
                   const SizedBox(height: 6),
                   Text(
                     benefit.$2,

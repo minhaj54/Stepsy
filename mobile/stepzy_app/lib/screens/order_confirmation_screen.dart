@@ -1,5 +1,6 @@
 import 'dart:async';
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 import '../models/order.dart';
 import '../widgets/z_button.dart';
@@ -106,8 +107,8 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
                             width: 2,
                           ),
                         ),
-                        child: const Icon(
-                          Icons.check_circle_rounded,
+                        child: HugeIcon(icon: 
+                          HugeIcons.strokeRoundedCheckmarkCircle02,
                           size: 52,
                           color: ZarwintoColors.success,
                         ),

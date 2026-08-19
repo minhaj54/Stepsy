@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../providers/zarwinto_store.dart';
+import '../widgets/zarwinto_drawer.dart';
 import 'home_tab.dart';
 import 'shop_tab.dart';
 import 'cart_tab.dart';
@@ -15,11 +17,11 @@ class MainShell extends StatefulWidget {
 class _MainShellState extends State<MainShell> {
   int index = 0;
   
-  final List<Widget> _tabs = const [
+  final List<Widget> _tabs = [
     HomeTab(),
-    ShopTab(),
-    CartTab(),
-    AccountTab(),
+    const ShopTab(),
+    const CartTab(),
+    const AccountTab(),
   ];
 
   void _onTabTapped(int value) {
@@ -31,6 +33,7 @@ class _MainShellState extends State<MainShell> {
     final store = ZarwintoScope.of(context);
     
     return Scaffold(
+      drawer: const ZarwintoDrawer(),
       body: IndexedStack(index: index, children: _tabs),
       bottomNavigationBar: BottomNavigationBar(
         currentIndex: index,
@@ -38,31 +41,31 @@ class _MainShellState extends State<MainShell> {
         type: BottomNavigationBarType.fixed,
         items: [
           const BottomNavigationBarItem(
-            icon: Icon(Icons.home_outlined),
-            activeIcon: Icon(Icons.home_rounded),
+            icon: HugeIcon(icon: HugeIcons.strokeRoundedHome02, color: Colors.white),
+            activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedHome03, color: Colors.white),
             label: 'Home',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.grid_view_outlined),
-            activeIcon: Icon(Icons.grid_view_rounded),
+            icon: HugeIcon(icon: HugeIcons.strokeRoundedStore01, color: Colors.white),
+            activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedStore01, color: Colors.white),
             label: 'Shop',
           ),
           BottomNavigationBarItem(
             icon: Badge.count(
               count: store.cartCount,
               isLabelVisible: store.cartCount > 0,
-              child: const Icon(Icons.shopping_bag_outlined),
+              child: HugeIcon(icon: HugeIcons.strokeRoundedShoppingCart01, color: Colors.white),
             ),
             activeIcon: Badge.count(
               count: store.cartCount,
               isLabelVisible: store.cartCount > 0,
-              child: const Icon(Icons.shopping_bag_rounded),
+              child: HugeIcon(icon: HugeIcons.strokeRoundedShoppingCart02, color: Colors.black),
             ),
             label: 'Bag',
           ),
           const BottomNavigationBarItem(
-            icon: Icon(Icons.person_outlined),
-            activeIcon: Icon(Icons.person_rounded),
+            icon: HugeIcon(icon: HugeIcons.strokeRoundedUser02, color: Colors.white),
+            activeIcon: HugeIcon(icon: HugeIcons.strokeRoundedUser, color: Colors.white),
             label: 'Account',
           ),
         ],

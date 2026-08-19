@@ -3,17 +3,17 @@ import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 
 class ZarwintoLogo extends StatelessWidget {
-  const ZarwintoLogo({super.key, this.color, this.size = 24});
+  const ZarwintoLogo({super.key, this.size = 24});
 
-  final Color? color;
   final double size;
 
   @override
   Widget build(BuildContext context) {
-    final colors = ZarwintoColors.of(context);
-    return CustomPaint(
-      size: Size.square(size),
-      painter: _ZarwintoLogoPainter(color ?? colors.primary),
+    return Image.asset(
+      'assets/App icon/GooglePlayStore.png',
+      width: size,
+      height: size,
+      fit: BoxFit.contain,
     );
   }
 }
@@ -65,23 +65,4 @@ class ZarwintoMark extends StatelessWidget {
   }
 }
 
-class _ZarwintoLogoPainter extends CustomPainter {
-  _ZarwintoLogoPainter(this.color);
 
-  final Color color;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final paint = Paint()
-      ..color = color
-      ..isAntiAlias = true;
-    final path = Path()
-      ..moveTo(size.width * 0.2, size.height * 0.1)
-      ..lineTo(size.width * 0.5, size.height * 0.85)
-      ..lineTo(size.width * 0.8, size.height * 0.15);
-    canvas.drawPath(path, paint);
-  }
-
-  @override
-  bool shouldRepaint(covariant _ZarwintoLogoPainter old) => color != old.color;
-}

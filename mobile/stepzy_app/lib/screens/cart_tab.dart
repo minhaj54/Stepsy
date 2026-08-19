@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../providers/zarwinto_store.dart';
 import '../widgets/common.dart';
 import '../widgets/cart_row.dart';
@@ -77,8 +78,8 @@ class _CartTabState extends State<CartTab> {
                           color: ZarwintoColors.primary.withValues(alpha: 0.08),
                           shape: BoxShape.circle,
                         ),
-                        child: const Icon(
-                          Icons.shopping_bag_outlined,
+                        child: HugeIcon(icon: 
+                          HugeIcons.strokeRoundedShoppingBag01,
                           size: 36,
                           color: ZarwintoColors.muted,
                         ),
@@ -120,8 +121,7 @@ class _CartTabState extends State<CartTab> {
                   children: [
                     Row(
                       children: [
-                        Icon(
-                          remainingForFreeShipping <= 0 ? Icons.check_circle : Icons.local_shipping_outlined,
+                        HugeIcon(icon: remainingForFreeShipping <= 0 ? HugeIcons.strokeRoundedCheckmarkCircle02 : HugeIcons.strokeRoundedTruck,
                           size: 18,
                           color: remainingForFreeShipping <= 0 ? ZarwintoColors.success : ZarwintoColors.primary,
                         ),
@@ -170,7 +170,7 @@ class _CartTabState extends State<CartTab> {
                     children: [
                       const Row(
                         children: [
-                          Icon(Icons.local_offer_outlined, color: ZarwintoColors.primary, size: 20),
+                          HugeIcon(icon: HugeIcons.strokeRoundedTag01, color: ZarwintoColors.primary, size: 20),
                           SizedBox(width: 8),
                           Text(
                             'Apply Coupon Code',
@@ -221,7 +221,7 @@ class _CartTabState extends State<CartTab> {
                           ),
                           child: Row(
                             children: [
-                              const Icon(Icons.check_circle, color: ZarwintoColors.success, size: 18),
+                              HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle02, color: ZarwintoColors.success, size: 18),
                               const SizedBox(width: 8),
                               Expanded(
                                 child: Text(
@@ -289,7 +289,7 @@ class _CartTabState extends State<CartTab> {
                             MaterialPageRoute(builder: (_) => const CheckoutPage()),
                           );
                         },
-                        icon: const Icon(Icons.lock_outline_rounded, size: 18),
+                        icon: HugeIcon(icon: HugeIcons.strokeRoundedLock, size: 18, color: Colors.black),
                         label: const Text('Proceed to Checkout'),
                       ),
                     ],

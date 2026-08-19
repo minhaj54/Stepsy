@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 import 'shell.dart';
 
@@ -26,7 +27,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
               child: Stack(
                 alignment: Alignment.center,
                 children: [
-                  // Diagonal "NIKE AIR" Watermark background
+                  // Diagonal "ZARWINTO" Watermark background
                   Positioned(
                     top: 10,
                     left: 20,
@@ -37,7 +38,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'NIKE',
+                            'ZARWINTO',
                             style: TextStyle(
                               fontSize: 100,
                               fontWeight: FontWeight.w900,
@@ -53,7 +54,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           Padding(
                             padding: const EdgeInsets.only(left: 70),
                             child: Text(
-                              'AIR',
+                              'SHOES',
                               style: TextStyle(
                                 fontSize: 100,
                                 fontWeight: FontWeight.w900,
@@ -102,8 +103,8 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                             'https://images.unsplash.com/photo-1595950653106-6c9ebd614d3a?auto=format&fit=crop&q=80&w=800',
                             height: 310,
                             fit: BoxFit.contain,
-                            errorBuilder: (context, error, stackTrace) => const Icon(
-                              Icons.sports_basketball,
+                            errorBuilder: (context, error, stackTrace) => HugeIcon(icon: 
+                              HugeIcons.strokeRoundedBasketball01,
                               size: 180,
                               color: Colors.black12,
                             ),
@@ -125,7 +126,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                   mainAxisAlignment: MainAxisAlignment.end,
                   children: [
                     const Text(
-                      'Time Journey\nWith Nike Shoes',
+                      'Step into Style\nWith Zarwinto',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         fontSize: 32,
@@ -137,7 +138,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                     ),
                     const SizedBox(height: 16),
                     const Text(
-                      'Every smart Nike Air best shoes will highlight beauty anywhere',
+                      'Premium footwear delivered to your doorstep.\nDiscover the latest trends in shoes and sneakers.',
                       textAlign: TextAlign.center,
                       style: TextStyle(
                         color: Color(0xFF7A7A7A),
@@ -176,7 +177,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                         ),
                         onPressed: () {
                           Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (_) => const StepzyShell()),
+                            MaterialPageRoute(builder: (_) => const ZarwintoShell()),
                           );
                         },
                         child: const Text(

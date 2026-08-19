@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 import '../models/product.dart';
 import '../providers/zarwinto_store.dart';
@@ -15,10 +15,9 @@ class ProductCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final store = ZarwintoScope.of(context);
     final saved = store.wishlist.contains(product.id);
-    final money = NumberFormat.simpleCurrency();
     final hasDiscount = product.salePrice != null && product.salePrice! < product.price;
-    final discountPercent = hasDiscount 
-        ? ((product.price - product.salePrice!) / product.price * 100).round() 
+    final discountPercent = hasDiscount
+        ? ((product.price - product.salePrice!) / product.price * 100).round()
         : 0;
 
     return InkWell(
@@ -27,120 +26,176 @@ class ProductCard extends StatelessWidget {
       ),
       borderRadius: BorderRadius.circular(16),
       child: Card(
-        child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            // Image with badges
-            Expanded(
-              child: Stack(
-                children: [
-                  Positioned.fill(
-                    child: ClipRRect(
-                      borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                      child: ColoredBox(
-                        color: ZarwintoColors.background,
-                        child: ZarwintoRemoteImage(
-                          url: product.images.isNotEmpty ? product.images.first : '',
-                          seed: 'prod_${product.id}',
-                        ),
+        margin: EdgeInsets.zero,
+        clipBehavior: Clip.antiAlias,
+        child: SizedBox(
+          width: double.infinity,
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              // Image
+              SizedBox(
+                height: 130,
+                child: Stack(
+                  fit: StackFit.expand,
+                  children: [
+                    ColoredBox(
+                      color: ZarwintoColors.background,
+                      child: ZarwintoRemoteImage(
+                        url: product.images.isNotEmpty ? product.images.first : '',
+                        seed: 'prod_${product.id}',
                       ),
                     ),
-                  ),
-                  // Sale badge
-                  if (hasDiscount)
+                    if (hasDiscount)
+                      Positioned(
+                        top: 6,
+                        left: 6,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                          decoration: BoxDecoration(
+                            color: ZarwintoColors.error,
+                            borderRadius: BorderRadius.circular(6),
+                          ),
+                          child: Text(
+                            '-$discountPercent%',
+                            style: const TextStyle(
+                              color: Colors.white,
+                              fontSize: 10,
+                              fontWeight: FontWeight.w800,
+                            ),
+                          ),
+                        ),
+                      ),
                     Positioned(
-                      top: 8,
-                      left: 8,
-                      child: Container(
-                        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 4),
-                        decoration: BoxDecoration(
-                          color: ZarwintoColors.error,
-                          borderRadius: BorderRadius.circular(8),
-                        ),
-                        child: Text(
-                          '-$discountPercent%',
-                          style: const TextStyle(
-                            color: Colors.white,
-                            fontSize: 11,
-                            fontWeight: FontWeight.w800,
+                      top: 6,
+                      right: 6,
+                      child: GestureDetector(
+                        onTap: () => store.toggleWishlist(product.id),
+                        child: AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: saved ? ZarwintoColors.accent : Colors.white,
+                            shape: BoxShape.circle,
+                            border: Border.all(
+                              color: saved ? ZarwintoColors.accent : Colors.grey.shade300,
+                              width: 1.2,
+                            ),
+                          ),
+                          child: HugeIcon(
+                            icon: saved
+                                ? HugeIcons.strokeRoundedHeartAdd
+                                : HugeIcons.strokeRoundedHeartRemove,
+                            size: 13,
+                            color: saved ? Colors.white : Colors.grey.shade600,
                           ),
                         ),
                       ),
                     ),
-                  // Wishlist button
-                  Positioned(
-                    top: 8,
-                    right: 8,
-                    child: IconButton.filledTonal(
-                      onPressed: () => store.toggleWishlist(product.id),
-                      icon: Icon(
-                        saved ? Icons.favorite : Icons.favorite_border,
-                        size: 18,
-                      ),
-                      color: saved
-                          ? ZarwintoColors.accent
-                          : ZarwintoColors.foreground,
-                      iconSize: 18,
-                    ),
-                  ),
-                ],
+                  ],
+                ),
               ),
-            ),
-            // Product info
-            Padding(
-              padding: const EdgeInsets.all(12),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    product.brandName,
-                    style: mutedStyle.copyWith(fontSize: 11, fontWeight: FontWeight.w500),
-                    maxLines: 1,
-                    overflow: TextOverflow.ellipsis,
-                  ),
-                  const SizedBox(height: 4),
-                  Text(
-                    product.title,
-                    maxLines: 2,
-                    overflow: TextOverflow.ellipsis,
-                    style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                  ),
-                  const SizedBox(height: 8),
-                  Row(
-                    children: [
-                      Icon(Icons.star, size: 14, color: ZarwintoColors.accent),
-                      const SizedBox(width: 4),
-                      Text(
-                        '${product.rating}',
-                        style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 12),
+              // Product info
+              Padding(
+                padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      product.title,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontWeight: FontWeight.w700,
+                        fontSize: 12,
+                        height: 1.25,
                       ),
-                      const Spacer(),
-                      if (hasDiscount) ...[
-                        Text(
-                          money.format(product.price),
-                          style: const TextStyle(
-                            fontSize: 12,
-                            fontWeight: FontWeight.w500,
-                            decoration: TextDecoration.lineThrough,
-                            color: ZarwintoColors.muted,
+                    ),
+                    const SizedBox(height: 4),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Text(
+                            product.brandName,
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
+                            style: TextStyle(
+                              fontSize: 11,
+                              color: ZarwintoColors.muted,
+                              fontWeight: FontWeight.w500,
+                            ),
                           ),
                         ),
-                        const SizedBox(width: 6),
+                        if (product.rating > 0) ...[
+                          const SizedBox(width: 4),
+                          HugeIcon(
+                            icon: HugeIcons.strokeRoundedStar,
+                            size: 12,
+                            color: Colors.amber.shade600,
+                          ),
+                          const SizedBox(width: 1),
+                          Text(
+                            product.rating.toStringAsFixed(1),
+                            style: TextStyle(
+                              fontSize: 11,
+                              fontWeight: FontWeight.w700,
+                              color: ZarwintoColors.foregroundSecondary,
+                            ),
+                          ),
+                        ],
                       ],
-                      Text(
-                        money.format(product.currentPrice),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w800,
-                          fontSize: 14,
-                          color: ZarwintoColors.primary,
+                    ),
+                    const SizedBox(height: 8),
+                    Row(
+                      children: [
+                        Expanded(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                hasDiscount
+                                    ? inrFormat.format(product.salePrice)
+                                    : inrFormat.format(product.currentPrice),
+                                style: TextStyle(
+                                  fontWeight: FontWeight.w800,
+                                  fontSize: 13,
+                                  color: ZarwintoColors.primary,
+                                ),
+                              ),
+                              if (hasDiscount)
+                                Text(
+                                  inrFormat.format(product.price),
+                                  style: TextStyle(
+                                    fontSize: 11,
+                                    fontWeight: FontWeight.w500,
+                                    decoration: TextDecoration.lineThrough,
+                                    color: ZarwintoColors.muted,
+                                  ),
+                                ),
+                            ],
+                          ),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
+                        Container(
+                          width: 26,
+                          height: 26,
+                          decoration: BoxDecoration(
+                            color: ZarwintoColors.primary,
+                            borderRadius: BorderRadius.circular(8),
+                          ),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedArrowRight01,
+                            size: 13,
+                            color: Colors.white,
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );

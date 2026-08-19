@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 
@@ -100,7 +101,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                     controller: _query,
                     decoration: InputDecoration(
                       hintText: 'Search questions...',
-                      prefixIcon: const Icon(Icons.search_rounded, size: 20, color: ZarwintoColors.muted),
+                      prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedSearch01, size: 20, color: ZarwintoColors.muted),
                       filled: true,
                       fillColor: ZarwintoColors.card,
                       border: OutlineInputBorder(
@@ -188,7 +189,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _launchEmail(),
-                          icon: const Icon(Icons.email_outlined, size: 18),
+                          icon: HugeIcon(icon: HugeIcons.strokeRoundedMail01, size: 18, color: Colors.white),
                           label: const Text('Email Support'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ZarwintoColors.primary,
@@ -200,7 +201,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _launchWhatsApp(),
-                          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                          icon: HugeIcon(icon: HugeIcons.strokeRoundedBubbleChat, size: 18, color: Colors.white),
                           label: const Text('WhatsApp'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ZarwintoColors.whatsappGreen,
@@ -262,8 +263,7 @@ class _FaqCardState extends State<_FaqCard> {
                       style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 14),
                     ),
                   ),
-                  Icon(
-                    _expanded ? Icons.keyboard_arrow_up_rounded : Icons.keyboard_arrow_down_rounded,
+                  HugeIcon(icon: _expanded ? HugeIcons.strokeRoundedArrowUp01 : HugeIcons.strokeRoundedArrowDown01,
                     color: ZarwintoColors.muted,
                   ),
                 ],

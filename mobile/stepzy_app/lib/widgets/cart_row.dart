@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 import '../models/cart_item.dart';
 import '../providers/zarwinto_store.dart';
@@ -13,7 +13,6 @@ class CartRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final store = ZarwintoScope.of(context);
-    final money = NumberFormat.simpleCurrency();
 
     return Card(
       child: Padding(
@@ -47,7 +46,7 @@ class CartRow extends StatelessWidget {
                   ),
                   const SizedBox(height: 8),
                   Text(
-                    money.format(item.lineTotal),
+                    inrFormat.format(item.lineTotal),
                     style: const TextStyle(fontWeight: FontWeight.w900),
                   ),
                 ],
@@ -60,7 +59,7 @@ class CartRow extends StatelessWidget {
                     item.variant.id,
                     item.quantity + 1,
                   ),
-                  icon: const Icon(Icons.add_circle_outline),
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedAddCircle, color: ZarwintoColors.primary),
                 ),
                 Text(
                   '${item.quantity}',
@@ -71,7 +70,7 @@ class CartRow extends StatelessWidget {
                     item.variant.id,
                     item.quantity - 1,
                   ),
-                  icon: const Icon(Icons.remove_circle_outline),
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedRemoveCircle, color: ZarwintoColors.primary),
                 ),
               ],
             ),

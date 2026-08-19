@@ -31,46 +31,124 @@ class ZarwintoRepository {
 
   Future<CatalogData> loadCatalog() async {
     if (client == null) {
+      debugPrint('[Zarwinto] loadCatalog() — client is null, returning mock data');
       return CatalogData(mockProducts, mockCategories, mockBrands);
     }
 
     try {
-      final responses = await Future.wait([
-        client!.from('brands').select().order('name'),
-        client!.from('categories').select().order('name'),
-        client!
-            .from('products')
-            .select('''
-          *,
-          brands(name, slug),
-          categories(slug),
-          product_images(image_url, sort_order),
-          product_variants(id, product_id, size, color, stock_quantity)
-        ''')
-            .order('created_at', ascending: false),
-      ]);
+      debugPrint('[Zarwinto] loadCatalog() — fetching brands...');
+      final brandRows = await client!.from('brands').select().order('name');
+      debugPrint('[Zarwinto] loadCatalog() — fetched ${brandRows.length} brands');
 
-      final brandRows = responses[0] as List<dynamic>;
-      final categoryRows = responses[1] as List<dynamic>;
-      final productRows = responses[2] as List<dynamic>;
+      debugPrint('[Zarwinto] loadCatalog() — fetching categories...');
+      final categoryRows = await client!.from('categories').select().order('name');
+      debugPrint('[Zarwinto] loadCatalog() — fetched ${categoryRows.length} categories');
+
+      debugPrint('[Zarwinto] loadCatalog() — fetching all products...');
+      final productQuery = client!
+          .from('products')
+          .select('''
+        *,
+        brands(name, slug),
+        categories(slug),
+        product_images(image_url, sort_order),
+        product_variants(id, product_id, size, color, stock_quantity)
+      ''')
+          .eq('status', 'active')
+          .order('created_at', ascending: false);
+      
+      final productRows = await productQuery;
+      debugPrint('[Zarwinto] loadCatalog() — fetched ${productRows.length} products');
 
       final fetchedProducts = productRows
-          .map((row) => Product.fromSupabase(row as Map<String, dynamic>))
+          .map((row) => Product.fromSupabase(row))
           .toList();
       final fetchedCategories = categoryRows
-          .map((row) => Category.fromJson(row as Map<String, dynamic>))
+          .map((row) => Category.fromJson(row))
           .toList();
       final fetchedBrands = brandRows
-          .map((row) => Brand.fromJson(row as Map<String, dynamic>))
+          .map((row) => Brand.fromJson(row))
           .toList();
+
+      debugPrint('[Zarwinto] loadCatalog() — parsed ${fetchedProducts.length} products, ${fetchedCategories.length} categories, ${fetchedBrands.length} brands');
 
       return CatalogData(
         fetchedProducts.isNotEmpty ? fetchedProducts : mockProducts,
         fetchedCategories.isNotEmpty ? fetchedCategories : mockCategories,
         fetchedBrands.isNotEmpty ? fetchedBrands : mockBrands,
       );
-    } catch (err) {
+    } on PostgrestException catch (err) {
+      debugPrint('[Zarwinto] loadCatalog() PostgrestException: ${err.message}');
+      debugPrint('[Zarwinto] loadCatalog() PostgrestException details: ${err.code} - ${err.hint}');
       return CatalogData(mockProducts, mockCategories, mockBrands);
+    } catch (err) {
+      debugPrint('[Zarwinto] loadCatalog() error: $err');
+      return CatalogData(mockProducts, mockCategories, mockBrands);
+    }
+  }
+
+  Future<List<Product>> fetchMoreProducts(int offset, int limit) async {
+    if (client == null) return [];
+
+    try {
+      debugPrint('[Zarwinto] fetchMoreProducts() — offset=$offset limit=$limit');
+      final productRows = await client!
+          .from('products')
+          .select('''
+        *,
+        brands(name, slug),
+        categories(slug),
+        product_images(image_url, sort_order),
+        product_variants(id, product_id, size, color, stock_quantity)
+      ''')
+          .eq('status', 'active')
+          .order('created_at', ascending: false)
+          .range(offset, (offset + limit - 1).clamp(offset, 9999));
+
+      final fetched = productRows
+          .map((row) => Product.fromSupabase(row))
+          .toList();
+      
+      debugPrint('[Zarwinto] fetchMoreProducts() — fetched ${fetched.length} more products');
+      return fetched;
+    } on PostgrestException catch (err) {
+      debugPrint('[Zarwinto] fetchMoreProducts() PostgrestException: ${err.message}');
+      return [];
+    } catch (err) {
+      debugPrint('[Zarwinto] fetchMoreProducts() error: $err');
+      return [];
+    }
+  }
+
+  Future<List<Product>> loadAllProducts() async {
+    if (client == null) return [];
+
+    try {
+      debugPrint('[Zarwinto] loadAllProducts() — fetching ALL products');
+      final productRows = await client!
+          .from('products')
+          .select('''
+        *,
+        brands(name, slug),
+        categories(slug),
+        product_images(image_url, sort_order),
+        product_variants(id, product_id, size, color, stock_quantity)
+      ''')
+          .eq('status', 'active')
+          .order('created_at', ascending: false);
+
+      final fetched = productRows
+          .map((row) => Product.fromSupabase(row))
+          .toList();
+      
+      debugPrint('[Zarwinto] loadAllProducts() — fetched ${fetched.length} products total');
+      return fetched;
+    } on PostgrestException catch (err) {
+      debugPrint('[Zarwinto] loadAllProducts() PostgrestException: ${err.message}');
+      return [];
+    } catch (err) {
+      debugPrint('[Zarwinto] loadAllProducts() error: $err');
+      return [];
     }
   }
 
@@ -356,7 +434,7 @@ class ZarwintoRepository {
           *,
           order_items(
             *,
-            products(title, images),
+            products(title, price, sale_price),
             product_variants(size, color)
           )
         ''')
@@ -394,7 +472,7 @@ class ZarwintoRepository {
           *,
           order_items(
             *,
-            products(title, images),
+            products(title, price, sale_price),
             product_variants(size, color)
           )
         ''')
@@ -500,10 +578,9 @@ class ZarwintoRepository {
     if (client == null) return [];
 
     final rows = await client!
-        .from('banners')
+        .from('home_banners')
         .select()
-        .eq('is_active', true)
-        .order('sort_order');
+        .order('sort_order', ascending: true);
 
     return rows.map<BannerModel>((row) => BannerModel.fromJson(row)).toList();
   }
@@ -519,7 +596,6 @@ class ZarwintoRepository {
           users(full_name)
         ''')
         .eq('product_id', productId)
-        .eq('approved', true)
         .order('created_at', ascending: false);
 
     return rows.map<Review>((row) => Review.fromJson(row)).toList();
@@ -535,6 +611,7 @@ class ZarwintoRepository {
       'rating': review.rating,
       'review_text': review.reviewText,
       'images': review.images,
+      'approved': true,
     });
   }
 

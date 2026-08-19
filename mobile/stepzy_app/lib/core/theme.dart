@@ -1,6 +1,6 @@
 import 'package:flutter/material.dart';
 
-/// Brand palette aligned with Zarwinto / Stepzy design system.
+/// Brand palette aligned with Zarwinto / Zarwinto design system.
 class ZarwintoColors {
   static const background = Color(0xFFF4F4F5);
   static const canvas = Color(0xFFEFF3EA);

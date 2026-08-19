@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 
@@ -28,7 +29,7 @@ class AboutScreen extends StatelessWidget {
                   borderRadius: ZarwintoRadius.all20,
                   border: Border.all(color: ZarwintoColors.primary.withValues(alpha: 0.25)),
                 ),
-                child: const Icon(Icons.flash_on_rounded, size: 48, color: ZarwintoColors.accent),
+                child: HugeIcon(icon: HugeIcons.strokeRoundedFlash, size: 48, color: ZarwintoColors.accent),
               ),
             ),
             const SizedBox(height: ZarwintoSpacing.lg),
@@ -88,14 +89,14 @@ class AboutScreen extends StatelessWidget {
                   ),
                   const SizedBox(height: ZarwintoSpacing.md),
                   const _ContactRow(
-                    icon: Icons.location_on_outlined,
+                    icon: HugeIcon(icon: HugeIcons.strokeRoundedLocation01, color: ZarwintoColors.primary, size: 18),
                     text: 'Block - 2 Sharda Launchpad - Sharda University, Greater Noida - UP, India',
                   ),
                   const SizedBox(height: 10),
                   InkWell(
                     onTap: () => _launchEmail(),
                     child: const _ContactRow(
-                      icon: Icons.email_outlined,
+                      icon: HugeIcon(icon: HugeIcons.strokeRoundedMail01, color: ZarwintoColors.primary, size: 18),
                       text: 'zarwinto12@gmail.com',
                       isLink: true,
                     ),
@@ -104,7 +105,7 @@ class AboutScreen extends StatelessWidget {
                   InkWell(
                     onTap: () => _launchWhatsApp(),
                     child: const _ContactRow(
-                      icon: Icons.chat_bubble_outline_rounded,
+                      icon: HugeIcon(icon: HugeIcons.strokeRoundedBubbleChat, color: ZarwintoColors.primary, size: 18),
                       text: '+91 79823 69183 (WhatsApp)',
                       isLink: true,
                     ),
@@ -139,7 +140,7 @@ class AboutScreen extends StatelessWidget {
 class _ContactRow extends StatelessWidget {
   const _ContactRow({required this.icon, required this.text, this.isLink = false});
 
-  final IconData icon;
+  final Widget icon;
   final String text;
   final bool isLink;
 
@@ -154,7 +155,7 @@ class _ContactRow extends StatelessWidget {
             color: ZarwintoColors.primary.withValues(alpha: 0.08),
             borderRadius: ZarwintoRadius.all8,
           ),
-          child: Icon(icon, size: 18, color: ZarwintoColors.primary),
+          child: icon,
         ),
         const SizedBox(width: ZarwintoSpacing.md),
         Expanded(

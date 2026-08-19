@@ -6,6 +6,7 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 import 'core/theme.dart';
 import 'providers/zarwinto_store.dart';
 import 'screens/onboarding.dart';
+import 'services/connectivity_gate.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -14,7 +15,7 @@ Future<void> main() async {
   try {
     await dotenv.load(fileName: '.env');
   } catch (e) {
-    debugPrint('[Stepzy] .env not loaded: $e');
+    debugPrint('[Zarwinto] .env not loaded: $e');
   }
 
   // Load shared preferences (fast, local - safe to await)
@@ -49,31 +50,32 @@ class _ZarwintoAppState extends State<ZarwintoApp> {
     final url = dotenv.env['SUPABASE_URL'] ?? '';
     final key = dotenv.env['SUPABASE_ANON_KEY'] ?? '';
 
-    debugPrint('[Stepzy] SUPABASE_URL = $url');
-    debugPrint('[Stepzy] SUPABASE_ANON_KEY = ${key.isNotEmpty ? "✓ present" : "✗ missing"}');
+    debugPrint('[Zarwinto] SUPABASE_URL = $url');
+    debugPrint('[Zarwinto] SUPABASE_ANON_KEY = ${key.isNotEmpty ? "✓ present" : "✗ missing"}');
 
-    if (url.isNotEmpty && key.isNotEmpty) {
-      try {
-        await Supabase.initialize(
-          url: url,
-          publishableKey: key,
-        ).timeout(
-          const Duration(seconds: 10),
-          onTimeout: () {
-            debugPrint('[Stepzy] Supabase.initialize timed out — using mock data.');
-            return Supabase.instance; // return existing instance if any
-          },
-        );
-        debugPrint('[Stepzy] Supabase initialized ✓');
-      } catch (e) {
-        debugPrint('[Stepzy] Supabase init failed: $e — using mock data.');
-      }
-    } else {
-      debugPrint('[Stepzy] Supabase credentials missing — using mock data.');
+    if (url.isEmpty || key.isEmpty) {
+      debugPrint('[Zarwinto] Supabase credentials missing — using mock data.');
+      store.bootstrap();
+      return;
     }
 
-    // Bootstrap the store regardless of Supabase status
-    // It will use the live client if available, otherwise fall back to mock data
+    try {
+      debugPrint('[Zarwinto] Initializing Supabase...');
+      await Supabase.initialize(
+        url: url,
+        publishableKey: key,
+      ).timeout(
+        const Duration(seconds: 30),
+        onTimeout: () {
+          debugPrint('[Zarwinto] Supabase.initialize timed out after 30s — using mock data.');
+          return Supabase.instance;
+        },
+      );
+      debugPrint('[Zarwinto] Supabase initialized ✓');
+    } catch (e) {
+      debugPrint('[Zarwinto] Supabase init failed: $e — using mock data.');
+    }
+
     store.bootstrap();
   }
 
@@ -82,10 +84,10 @@ class _ZarwintoAppState extends State<ZarwintoApp> {
     return ZarwintoScope(
       store: store,
       child: MaterialApp(
-        title: 'Stepzy',
+        title: 'Zarwinto',
         debugShowCheckedModeBanner: false,
         theme: ZarwintoTheme.light,
-        home: const OnboardingScreen(),
+        home: const ConnectivityGate(child: OnboardingScreen()),
       ),
     );
   }

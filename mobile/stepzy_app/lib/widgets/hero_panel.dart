@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 
 class HeroPanel extends StatelessWidget {
@@ -38,8 +39,7 @@ class HeroPanel extends StatelessWidget {
             child: const Row(
               mainAxisSize: MainAxisSize.min,
               children: [
-                Icon(
-                  Icons.auto_awesome,
+                HugeIcon(icon: HugeIcons.strokeRoundedFlash,
                   size: 14,
                   color: ZarwintoColors.accent,
                 ),
@@ -75,7 +75,7 @@ class HeroPanel extends StatelessWidget {
               Expanded(
                 child: FilledButton.icon(
                   onPressed: () {},
-                  icon: const Icon(Icons.arrow_forward),
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedArrowRight01, color: Colors.white),
                   label: const Text('Shop Collection'),
                 ),
               ),

@@ -16,7 +16,6 @@ import '../models/banner.dart';
 import '../models/review.dart';
 import '../models/testimonial.dart';
 import '../repositories/zarwinto_repository.dart';
-import '../data/mock_data.dart';
 import '../core/constants.dart';
 
 class ZarwintoScope extends InheritedNotifier<ZarwintoStore> {
@@ -43,6 +42,7 @@ class ZarwintoStore extends ChangeNotifier {
   final ZarwintoRepository repository;
 
   bool loading = true;
+  bool loadingMore = false;
   String? error;
   List<Product> products = [];
   List<Category> categories = [];
@@ -58,7 +58,13 @@ class ZarwintoStore extends ChangeNotifier {
   Coupon? appliedCoupon;
   int activeTab = 0;
 
+  static const int _productPageSize = 8;
+  int _productOffset = 0;
+  bool _hasMoreProducts = true;
+
   bool get isSupabaseConfigured => repository.client != null;
+  bool get isLoadingMore => loadingMore;
+  bool get hasMoreProducts => _hasMoreProducts;
   int get cartCount => cart.fold(0, (sum, item) => sum + item.quantity);
   double get subtotal => cart.fold(0, (sum, item) => sum + item.lineTotal);
   double get discount => appliedCoupon?.calculateDiscount(subtotal) ?? 0;
@@ -69,37 +75,97 @@ class ZarwintoStore extends ChangeNotifier {
     _loadAppliedCoupon();
     // Re-read the Supabase client now that initialization has had time to complete
     repository.setClient(_configuredSupabaseClient());
-    debugPrint('[Stepzy] bootstrap() — client available: ${repository.client != null}');
+    debugPrint('[Zarwinto] bootstrap() — client available: ${repository.client != null}');
+    debugPrint('[Zarwinto] bootstrap() — supabaseUrl: $supabaseUrl');
+    debugPrint('[Zarwinto] bootstrap() — supabaseAnonKey present: ${supabaseAnonKey.isNotEmpty}');
     await refresh();
   }
 
   Future<void> refresh() async {
     loading = true;
     error = null;
+    _productOffset = 0;
+    _hasMoreProducts = true;
     notifyListeners();
 
-    debugPrint('[Stepzy] Supabase client available: ${repository.client != null}');
+    debugPrint('[Zarwinto] refresh() started — client available: ${repository.client != null}');
 
     try {
+      debugPrint('[Zarwinto] refresh() — loading catalog (first page)...');
       final data = await repository.loadCatalog();
       products = data.products;
       categories = data.categories;
       brands = data.brands;
-      debugPrint('[Stepzy] Loaded ${products.length} products from ${repository.client != null ? "Supabase" : "mock data"}');
+      _productOffset = products.length;
+      _hasMoreProducts = false;
+      debugPrint('[Zarwinto] refresh() — catalog loaded: ${products.length} products, ${categories.length} categories, ${brands.length} brands, hasMore=$_hasMoreProducts');
+
+      debugPrint('[Zarwinto] refresh() — loading banners...');
       banners = await repository.loadBanners();
+      debugPrint('[Zarwinto] refresh() — loaded ${banners.length} banners');
+
+      debugPrint('[Zarwinto] refresh() — loading coupons...');
       coupons = await repository.loadCoupons();
+      debugPrint('[Zarwinto] refresh() — loaded ${coupons.length} coupons');
+
+      debugPrint('[Zarwinto] refresh() — loading testimonials...');
       testimonials = await repository.loadTestimonials();
+      debugPrint('[Zarwinto] refresh() — loaded ${testimonials.length} testimonials');
+
+      debugPrint('[Zarwinto] refresh() — loading profile and wishlist...');
       await _loadProfileAndWishlist();
-      await _loadOrders();
-      await _loadAddresses();
+      debugPrint('[Zarwinto] refresh() — profile loaded: ${profile != null}, wishlist size: ${wishlist.length}');
+
+      debugPrint('[Zarwinto] refresh() — loading orders...');
+      try {
+        await _loadOrders();
+        debugPrint('[Zarwinto] refresh() — loaded ${orders.length} orders');
+      } catch (e) {
+        debugPrint('[Zarwinto] refresh() — orders load failed: $e');
+      }
+
+      debugPrint('[Zarwinto] refresh() — loading addresses...');
+      try {
+        await _loadAddresses();
+        debugPrint('[Zarwinto] refresh() — loaded ${addresses.length} addresses');
+      } catch (e) {
+        debugPrint('[Zarwinto] refresh() — addresses load failed: $e');
+      }
+
+      debugPrint('[Zarwinto] refresh() complete');
     } catch (err) {
-      debugPrint('[Stepzy] refresh() error: $err');
+      debugPrint('[Zarwinto] refresh() error: $err');
       error = err.toString();
-      products = mockProducts;
-      categories = mockCategories;
-      brands = mockBrands;
     } finally {
       loading = false;
+      notifyListeners();
+      debugPrint('[Zarwinto] refresh() finished — loading=false, products=${products.length}, categories=${categories.length}, brands=${brands.length}');
+    }
+  }
+
+  Future<void> loadMoreProducts() async {
+    if (loadingMore || !_hasMoreProducts || repository.client == null) return;
+
+    loadingMore = true;
+    notifyListeners();
+
+    try {
+      debugPrint('[Zarwinto] loadMoreProducts() — offset=$_productOffset');
+      final more = await repository.fetchMoreProducts(_productOffset, _productPageSize);
+      
+      if (more.isEmpty) {
+        _hasMoreProducts = false;
+      } else {
+        products = [...products, ...more];
+        _productOffset = products.length;
+        _hasMoreProducts = more.length >= _productPageSize;
+      }
+      
+      debugPrint('[Zarwinto] loadMoreProducts() — total products now: ${products.length}, hasMore=$_hasMoreProducts');
+    } catch (err) {
+      debugPrint('[Zarwinto] loadMoreProducts() error: $err');
+    } finally {
+      loadingMore = false;
       notifyListeners();
     }
   }
@@ -353,11 +419,18 @@ class ZarwintoStore extends ChangeNotifier {
 }
 
 SupabaseClient? _configuredSupabaseClient() {
-  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) return null;
+  debugPrint('[Zarwinto] _configuredSupabaseClient() called');
+  debugPrint('[Zarwinto] supabaseUrl=$supabaseUrl, supabaseAnonKey=${supabaseAnonKey.isNotEmpty ? "present" : "missing"}');
+  if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
+    debugPrint('[Zarwinto] _configuredSupabaseClient() returning null: credentials empty');
+    return null;
+  }
   try {
-    return Supabase.instance.client;
-  } catch (_) {
-    // Supabase.initialize() was not called or failed
+    final client = Supabase.instance.client;
+    debugPrint('[Zarwinto] _configuredSupabaseClient() returning Supabase.instance.client');
+    return client;
+  } catch (e) {
+    debugPrint('[Zarwinto] _configuredSupabaseClient() error: $e');
     return null;
   }
 }

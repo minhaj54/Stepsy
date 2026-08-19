@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 
 enum ZButtonStyle { primary, secondary, cta, text }
@@ -132,7 +133,7 @@ class ZButton extends StatelessWidget {
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
           if (iconData != null) ...[
-            Icon(iconData, size: 18, color: _textColor),
+            HugeIcon(icon: iconData, size: 18, color: _textColor),
             const SizedBox(width: 8),
           ],
           Text(label, style: _labelStyle),

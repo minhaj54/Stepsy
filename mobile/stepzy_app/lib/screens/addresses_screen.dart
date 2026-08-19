@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../providers/zarwinto_store.dart';
 import '../core/theme.dart';
 import '../models/address.dart';
@@ -65,7 +66,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
         actions: [
           IconButton(
             onPressed: _showAddAddressDialog,
-            icon: const Icon(Icons.add_location_alt_outlined),
+            icon: HugeIcon(icon: HugeIcons.strokeRoundedLocationAdd01, color: ZarwintoColors.primary),
             tooltip: 'Add Address',
           ),
         ],
@@ -86,7 +87,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
                             color: ZarwintoColors.primary.withValues(alpha: 0.08),
                             shape: BoxShape.circle,
                           ),
-                          child: const Icon(Icons.location_on_outlined, size: 40, color: ZarwintoColors.muted),
+                          child: HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 40, color: ZarwintoColors.muted),
                         ),
                         const SizedBox(height: 16),
                         Text(
@@ -102,7 +103,7 @@ class _AddressesScreenState extends State<AddressesScreen> {
                         const SizedBox(height: 24),
                         FilledButton.icon(
                           onPressed: _showAddAddressDialog,
-                          icon: const Icon(Icons.add_rounded, size: 18),
+                          icon: HugeIcon(icon: HugeIcons.strokeRoundedAdd01, size: 18, color: Colors.white),
                           label: const Text('Add New Address'),
                         ),
                       ],
@@ -203,12 +204,12 @@ class AddressCard extends StatelessWidget {
                   children: [
                     IconButton(
                       onPressed: onEdit,
-                      icon: const Icon(Icons.edit_outlined, size: 20),
+                      icon: HugeIcon(icon: HugeIcons.strokeRoundedEdit01, size: 20, color: ZarwintoColors.primary),
                       color: ZarwintoColors.primary,
                     ),
                     IconButton(
                       onPressed: onDelete,
-                      icon: const Icon(Icons.delete_outline_rounded, size: 20),
+                      icon: HugeIcon(icon: HugeIcons.strokeRoundedDelete01, size: 20, color: ZarwintoColors.primary),
                       color: ZarwintoColors.error,
                     ),
                   ],
@@ -223,7 +224,7 @@ class AddressCard extends StatelessWidget {
             const SizedBox(height: 6),
             Row(
               children: [
-                const Icon(Icons.phone_outlined, size: 14, color: ZarwintoColors.muted),
+                HugeIcon(icon: HugeIcons.strokeRoundedCall, size: 14, color: ZarwintoColors.muted),
                 const SizedBox(width: 4),
                 Text(
                   address.phone,
@@ -360,7 +361,7 @@ class _AddAddressBottomSheetState extends State<AddAddressBottomSheet> {
                   ),
                   IconButton(
                     onPressed: () => Navigator.pop(context),
-                    icon: const Icon(Icons.close_rounded),
+                    icon: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: ZarwintoColors.primary),
                   ),
                 ],
               ),

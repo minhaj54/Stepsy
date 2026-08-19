@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:hugeicons/hugeicons.dart';
 import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 
@@ -105,7 +106,7 @@ class TermsScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _launchEmail(),
-                          icon: const Icon(Icons.email_outlined, size: 18),
+                          icon: HugeIcon(icon: HugeIcons.strokeRoundedMail01, size: 18, color: Colors.white),
                           label: const Text('Email Support'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ZarwintoColors.primary,
@@ -117,7 +118,7 @@ class TermsScreen extends StatelessWidget {
                       Expanded(
                         child: ElevatedButton.icon(
                           onPressed: () => _launchWhatsApp(),
-                          icon: const Icon(Icons.chat_bubble_outline_rounded, size: 18),
+                          icon: HugeIcon(icon: HugeIcons.strokeRoundedBubbleChat, size: 18, color: Colors.white),
                           label: const Text('WhatsApp'),
                           style: ElevatedButton.styleFrom(
                             backgroundColor: ZarwintoColors.whatsappGreen,

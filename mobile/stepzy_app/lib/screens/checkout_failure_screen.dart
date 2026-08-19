@@ -93,7 +93,7 @@ class _CheckoutFailureScreenState extends State<CheckoutFailureScreen>
                           borderRadius: BorderRadius.circular(40),
                           border: Border.all(color: ZarwintoColors.error.withValues(alpha: 0.3)),
                         ),
-                        child: const HugeIcon(
+                        child: HugeIcon(
                           icon: HugeIcons.strokeRoundedCancel01,
                           size: 40,
                           color: ZarwintoColors.error,

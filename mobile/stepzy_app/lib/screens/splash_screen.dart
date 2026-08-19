@@ -50,10 +50,9 @@ class _SplashScreenState extends State<SplashScreen> {
                   ),
                 ],
               ),
-              child: const Icon(
-                Icons.shopping_bag_rounded,
-                size: 60,
-                color: ZarwintoColors.primary,
+              child: Image.asset(
+                'assets/App icon/GooglePlayStore.png',
+                fit: BoxFit.contain,
               ),
             )
                 .animate(onPlay: (controller) => controller.repeat())

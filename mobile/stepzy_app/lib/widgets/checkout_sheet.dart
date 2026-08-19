@@ -1,8 +1,8 @@
 import 'package:flutter/material.dart';
-import 'package:intl/intl.dart';
 import '../core/theme.dart';
 import '../models/shipping_address.dart';
 import '../providers/zarwinto_store.dart';
+import 'common.dart';
 
 class CheckoutSheet extends StatefulWidget {
   const CheckoutSheet({super.key});
@@ -23,7 +23,6 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
   @override
   Widget build(BuildContext context) {
     final store = ZarwintoScope.of(context);
-    final money = NumberFormat.simpleCurrency();
 
     return Padding(
       padding: EdgeInsets.only(
@@ -90,7 +89,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Subtotal', style: TextStyle(fontWeight: FontWeight.w500)),
-                      Text(money.format(store.subtotal)),
+                      Text(inrFormat.format(store.subtotal)),
                     ],
                   ),
                   if (store.discount > 0) ...[
@@ -100,7 +99,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                       children: [
                         const Text('Discount', style: TextStyle(fontWeight: FontWeight.w500, color: ZarwintoColors.success)),
                         Text(
-                          '-${money.format(store.discount)}',
+                          '-${inrFormat.format(store.discount)}',
                           style: const TextStyle(color: ZarwintoColors.success, fontWeight: FontWeight.w600),
                         ),
                       ],
@@ -120,7 +119,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                     children: [
                       const Text('Total', style: TextStyle(fontWeight: FontWeight.w800, fontSize: 16)),
                       Text(
-                        money.format(store.total),
+                        inrFormat.format(store.total),
                         style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: ZarwintoColors.primary),
                       ),
                     ],

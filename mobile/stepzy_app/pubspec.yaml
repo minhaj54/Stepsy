@@ -77,6 +77,8 @@ flutter:
 
   assets:
     - .env
+    - assets/App icon/GooglePlayStore.png
+    - assets/onboarding/logo.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see
   # https://flutter.dev/to/resolution-aware-images
