@@ -585,6 +585,38 @@ class ZarwintoRepository {
     return rows.map<BannerModel>((row) => BannerModel.fromJson(row)).toList();
   }
 
+  // Colors
+  Future<Map<String, String>> fetchColors() async {
+    if (client == null) return {};
+    try {
+      final rows = await client!
+          .from('colors')
+          .select()
+          .order('sort_order', ascending: true);
+      final map = <String, String>{};
+      for (final row in rows) {
+        final name = (row['name'] ??
+            row['color_name'] ??
+            row['color'] ??
+            row['label']) as String?;
+        final hex = (row['hex'] ??
+            row['hex_code'] ??
+            row['code'] ??
+            row['color_code'] ??
+            row['value']) as String?;
+        if (name != null && hex != null) map[name] = hex;
+      }
+      debugPrint('[Repository] fetchColors() — loaded ${map.length} colors');
+      return map;
+    } on PostgrestException catch (err) {
+      debugPrint('[Repository] fetchColors() PostgrestException: ${err.message}');
+      return {};
+    } catch (err) {
+      debugPrint('[Repository] fetchColors() error: $err');
+      return {};
+    }
+  }
+
   // Reviews
   Future<List<Review>> loadProductReviews(String productId) async {
     if (client == null) return [];

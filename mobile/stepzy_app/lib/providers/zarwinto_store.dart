@@ -57,6 +57,10 @@ class ZarwintoStore extends ChangeNotifier {
   List<Testimonial> testimonials = [];
   Coupon? appliedCoupon;
   int activeTab = 0;
+  Map<String, String> colors = {};
+  List<String> recentlyViewedIds = [];
+  List<Review> _currentProductReviews = [];
+  bool _loadingReviews = false;
 
   static const int _productPageSize = 8;
   int _productOffset = 0;
@@ -69,6 +73,34 @@ class ZarwintoStore extends ChangeNotifier {
   double get subtotal => cart.fold(0, (sum, item) => sum + item.lineTotal);
   double get discount => appliedCoupon?.calculateDiscount(subtotal) ?? 0;
   double get total => subtotal - discount;
+
+  List<Product> get recentlyViewedProducts =>
+      recentlyViewedIds
+          .map((id) => products.firstWhere((p) => p.id == id, orElse: () => products.first))
+          .toList();
+
+  List<Review> get currentProductReviews => _currentProductReviews;
+  bool get loadingReviews => _loadingReviews;
+
+  void addToRecentlyViewed(String productId) {
+    recentlyViewedIds.remove(productId);
+    recentlyViewedIds.insert(0, productId);
+    if (recentlyViewedIds.length > 10) {
+      recentlyViewedIds = recentlyViewedIds.sublist(0, 10);
+    }
+    notifyListeners();
+  }
+
+  void setCurrentProductReviews(List<Review> reviews) {
+    _currentProductReviews = reviews;
+    _loadingReviews = false;
+    notifyListeners();
+  }
+
+  void setLoadingReviews(bool loading) {
+    _loadingReviews = loading;
+    notifyListeners();
+  }
 
   Future<void> bootstrap() async {
     _loadCart();
@@ -103,6 +135,10 @@ class ZarwintoStore extends ChangeNotifier {
       debugPrint('[Zarwinto] refresh() — loading banners...');
       banners = await repository.loadBanners();
       debugPrint('[Zarwinto] refresh() — loaded ${banners.length} banners');
+
+      debugPrint('[Zarwinto] refresh() — loading colors...');
+      colors = await repository.fetchColors();
+      debugPrint('[Zarwinto] refresh() — loaded ${colors.length} colors');
 
       debugPrint('[Zarwinto] refresh() — loading coupons...');
       coupons = await repository.loadCoupons();
@@ -368,7 +404,10 @@ class ZarwintoStore extends ChangeNotifier {
   }
 
   Future<List<Review>> loadProductReviews(String productId) async {
-    return await repository.loadProductReviews(productId);
+    setLoadingReviews(true);
+    final reviews = await repository.loadProductReviews(productId);
+    setCurrentProductReviews(reviews);
+    return reviews;
   }
 
   Future<void> addReview(String productId, int rating, String reviewText, {List<String> images = const []}) async {
