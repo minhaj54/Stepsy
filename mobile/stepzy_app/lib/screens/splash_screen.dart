@@ -1,8 +1,7 @@
 import 'package:flutter/material.dart';
-import 'package:flutter_animate/flutter_animate.dart';
+import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
-import '../core/constants.dart';
-import 'main_shell.dart';
+import '../providers/zarwinto_store.dart';
 
 class SplashScreen extends StatefulWidget {
   const SplashScreen({super.key});
@@ -15,15 +14,19 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _navigateToHome();
+    _checkAuthAndNavigate();
   }
 
-  void _navigateToHome() async {
-    await Future.delayed(const Duration(seconds: 3));
-    if (mounted) {
-      Navigator.of(context).pushReplacement(
-        MaterialPageRoute(builder: (_) => const MainShell()),
-      );
+  Future<void> _checkAuthAndNavigate() async {
+    await Future.delayed(const Duration(milliseconds: 1500));
+    if (!mounted) return;
+
+    final store = ZarwintoScope.of(context, listen: false);
+    
+    if (store.profile != null) {
+      Navigator.of(context).pushReplacementNamed('/shell');
+    } else {
+      Navigator.of(context).pushReplacementNamed('/onboarding');
     }
   }
 
@@ -35,40 +38,32 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            // Logo
             Container(
-              width: 120,
-              height: 120,
+              width: 100,
+              height: 100,
               decoration: BoxDecoration(
                 color: Colors.white,
-                borderRadius: BorderRadius.circular(30),
+                borderRadius: BorderRadius.circular(24),
                 boxShadow: [
                   BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.2),
-                    blurRadius: 20,
+                    color: Colors.black.withValues(alpha: 0.15),
+                    blurRadius: 24,
                     offset: const Offset(0, 10),
                   ),
                 ],
               ),
-              child: Image.asset(
-                'assets/App icon/GooglePlayStore.png',
-                fit: BoxFit.contain,
-              ),
-            )
-                .animate(onPlay: (controller) => controller.repeat())
-                .scale(begin: const Offset(0.9, 0.9), end: const Offset(1.0, 1.0), duration: 1500.ms)
-                .then()
-                .scale(begin: const Offset(1.0, 1.0), end: const Offset(0.9, 0.9), duration: 1500.ms),
+              child: HugeIcon(icon: HugeIcons.strokeRoundedFlash, color: ZarwintoColors.accent, size: 50),
+            ),
             const SizedBox(height: 24),
-            Text(
-              appName,
-              style: const TextStyle(
+            const Text(
+              'ZARWINTO',
+              style: TextStyle(
                 fontSize: 36,
-                fontWeight: FontWeight.w800,
+                fontWeight: FontWeight.w900,
                 color: Colors.white,
                 letterSpacing: -0.5,
               ),
-            ).animate().fadeIn(duration: 800.ms, delay: 300.ms).slideY(begin: 0.3, end: 0),
+            ),
             const SizedBox(height: 8),
             Text(
               'Your Style, Delivered',
@@ -77,12 +72,12 @@ class _SplashScreenState extends State<SplashScreen> {
                 fontWeight: FontWeight.w500,
                 color: Colors.white.withValues(alpha: 0.9),
               ),
-            ).animate().fadeIn(duration: 800.ms, delay: 500.ms).slideY(begin: 0.3, end: 0),
+            ),
             const SizedBox(height: 60),
             const CircularProgressIndicator(
               valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
               strokeWidth: 3,
-            ).animate().fadeIn(duration: 600.ms, delay: 800.ms),
+            ),
           ],
         ),
       ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:share_plus/share_plus.dart';
 import 'package:hugeicons/hugeicons.dart';
-import 'dart:math' as math;
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart' as path_provider;
@@ -10,7 +9,6 @@ import '../models/product.dart';
 import '../models/product_variant.dart';
 import '../models/review.dart';
 import '../providers/zarwinto_store.dart';
-import '../services/location_resolver.dart';
 import '../widgets/common.dart';
 import '../widgets/product_card.dart';
 import 'checkout_page.dart';
@@ -32,9 +30,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool _specExpanded = false;
   bool _descExpanded = false;
   int _selectedInfoTab = 0;
-  final _pincodeController = TextEditingController();
-  String? _deliveryEstimate;
-  bool _checkingPincode = false;
   final TransformationController _zoomController = TransformationController();
 
   @override
@@ -53,7 +48,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   @override
   void dispose() {
-    _pincodeController.dispose();
     _zoomController.dispose();
     super.dispose();
   }
@@ -405,6 +399,69 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
+  void _openImageViewer() {
+    final images = widget.product.images;
+    if (images.isEmpty) return;
+    final controller = PageController(initialPage: selectedImageIndex);
+    Navigator.of(context).push(
+      PageRouteBuilder(
+        opaque: false,
+        barrierColor: Colors.black,
+        pageBuilder: (ctx, anim, secAnim) => Scaffold(
+          backgroundColor: Colors.transparent,
+          body: Stack(
+            children: [
+              PageView.builder(
+                controller: controller,
+                itemCount: images.length,
+                itemBuilder: (ctx, i) => InteractiveViewer(
+                  minScale: 1,
+                  maxScale: 4,
+                  child: Center(
+                    child: Image.network(
+                      images[i],
+                      fit: BoxFit.contain,
+                      loadingBuilder: (context, child, progress) {
+                        if (progress == null) return child;
+                        return const Center(
+                          child: SizedBox(
+                            width: 32,
+                            height: 32,
+                            child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
+                          ),
+                        );
+                      },
+                      errorBuilder: (context, error, stackTrace) => const Icon(
+                        Icons.image_not_supported_outlined,
+                        size: 80,
+                        color: Colors.white54,
+                      ),
+                    ),
+                  ),
+                ),
+              ),
+              Positioned(
+                top: 40,
+                left: 16,
+                child: IconButton(
+                  onPressed: () => Navigator.pop(ctx),
+                  icon: Container(
+                    padding: const EdgeInsets.all(8),
+                    decoration: BoxDecoration(
+                      color: Colors.black.withValues(alpha: 0.4),
+                      shape: BoxShape.circle,
+                    ),
+                    child: const Icon(Icons.close, color: Colors.white, size: 24),
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   Widget _buildImageGallery() {
     final images = widget.product.images;
     final hasMultiple = images.length > 1;
@@ -432,11 +489,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
-                    InteractiveViewer(
-                      transformationController: _zoomController,
-                      minScale: 1,
-                      maxScale: 4,
-                      child: Hero(
+                    GestureDetector(
+                      onTap: _openImageViewer,
+                      child: InteractiveViewer(
+                        transformationController: _zoomController,
+                        minScale: 1,
+                        maxScale: 4,
+                        child: Hero(
                         tag: 'product_img_${widget.product.id}',
                         child: Padding(
                           padding: const EdgeInsets.all(8),
@@ -467,6 +526,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       ),
                     ),
                   ),
+                    ),
                 ],
               ),
             ),
@@ -793,7 +853,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   color: ZarwintoColors.info.withValues(alpha: 0.08),
                   borderRadius: BorderRadius.circular(14),
                 ),
-                child: const Row(
+                child: Row(
                   children: [
                     Icon(Icons.info_outline, size: 18, color: ZarwintoColors.info),
                     SizedBox(width: 10),
@@ -1180,27 +1240,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     );
   }
 
-  void _checkPincodeDelivery() async {
-    final pin = _pincodeController.text.trim();
-    if (pin.length != 6) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Please enter a valid 6-digit PIN code')),
-      );
-      return;
-    }
-    setState(() => _checkingPincode = true);
-    final loc = await LocationResolver.resolvePincode(pin);
-    setState(() => _checkingPincode = false);
-    final days = math.Random().nextInt(3) + 3;
-    final place = loc != null ? (loc.cityName ?? loc.stateName ?? pin) : pin;
-    if (mounted) {
-      setState(() {
-        _deliveryEstimate =
-            'Estimated delivery to $place in $days–${days + 2} business days.';
-      });
-    }
-  }
-
   Widget _buildInfoTabs() {
     final desc = widget.product.description;
     return Container(
@@ -1391,63 +1430,6 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ],
           ),
         ),
-        const SizedBox(height: 14),
-        Row(
-          children: [
-            Expanded(
-              child: TextField(
-                controller: _pincodeController,
-                keyboardType: TextInputType.number,
-                maxLength: 6,
-                decoration: const InputDecoration(
-                  hintText: 'Enter pincode',
-                  isDense: true,
-                  contentPadding: EdgeInsets.symmetric(horizontal: 12, vertical: 10),
-                  counterText: '',
-                ),
-              ),
-            ),
-            const SizedBox(width: 10),
-            SizedBox(
-              height: 40,
-              child: ElevatedButton(
-                onPressed: _checkingPincode ? null : _checkPincodeDelivery,
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: ZarwintoColors.foreground,
-                  foregroundColor: Colors.white,
-                  shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(10)),
-                ),
-                child: _checkingPincode
-                    ? const SizedBox(
-                        width: 16,
-                        height: 16,
-                        child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white),
-                      )
-                    : const Text('Check', style: TextStyle(fontSize: 13, fontWeight: FontWeight.w700)),
-              ),
-            ),
-          ],
-        ),
-        if (_deliveryEstimate != null) ...[
-          const SizedBox(height: 10),
-          Container(
-            padding: const EdgeInsets.all(10),
-            decoration: BoxDecoration(
-              color: ZarwintoColors.info.withValues(alpha: 0.08),
-              borderRadius: BorderRadius.circular(10),
-            ),
-            child: Row(
-              children: [
-                const Icon(Icons.check_circle_outline, color: ZarwintoColors.info, size: 16),
-                const SizedBox(width: 8),
-                Expanded(
-                  child: Text(_deliveryEstimate!,
-                      style: const TextStyle(fontSize: 12.5, color: ZarwintoColors.info)),
-                ),
-              ],
-            ),
-          ),
-        ],
         const SizedBox(height: 16),
         _deliveryRow(Icons.schedule_outlined, 'Estimated Delivery',
             'Usually delivered within 4–7 business days depending on your location.'),

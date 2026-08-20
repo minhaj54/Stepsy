@@ -5,7 +5,11 @@ import 'package:supabase_flutter/supabase_flutter.dart';
 
 import 'core/theme.dart';
 import 'providers/zarwinto_store.dart';
+import 'screens/splash_screen.dart';
 import 'screens/onboarding.dart';
+import 'screens/login_screen.dart';
+import 'screens/signup_screen.dart';
+import 'screens/shell.dart';
 import 'services/connectivity_gate.dart';
 
 Future<void> main() async {
@@ -87,7 +91,14 @@ class _ZarwintoAppState extends State<ZarwintoApp> {
         title: 'Zarwinto',
         debugShowCheckedModeBanner: false,
         theme: ZarwintoTheme.light,
-        home: const ConnectivityGate(child: OnboardingScreen()),
+        initialRoute: '/',
+        routes: {
+          '/': (context) => const ConnectivityGate(child: SplashScreen()),
+          '/onboarding': (context) => const OnboardingScreen(),
+          '/login': (context) => const LoginScreen(),
+          '/signup': (context) => const SignupScreen(),
+          '/shell': (context) => const ZarwintoShell(),
+        },
       ),
     );
   }

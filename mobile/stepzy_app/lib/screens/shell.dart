@@ -63,6 +63,10 @@ class _ZarwintoShellState extends State<ZarwintoShell> {
       floatingActionButton: index == 2 && store.cart.isNotEmpty
           ? FloatingActionButton.extended(
               onPressed: () {
+                if (store.profile == null) {
+                  _showAuthRequiredDialog(context);
+                  return;
+                }
                 Navigator.of(context).push(
                   MaterialPageRoute(builder: (_) => const CheckoutPage()),
                 );
@@ -84,7 +88,13 @@ class _ZarwintoShellState extends State<ZarwintoShell> {
   }) {
     final active = store.activeTab == i;
     return GestureDetector(
-      onTap: () => store.setActiveTab(i),
+      onTap: () {
+        if (i == 3 && store.profile == null) {
+          _showAccountTabAuthPrompt(context);
+          return;
+        }
+        store.setActiveTab(i);
+      },
       behavior: HitTestBehavior.opaque,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
@@ -122,6 +132,90 @@ class _ZarwintoShellState extends State<ZarwintoShell> {
             ],
           ],
         ),
+      ),
+    );
+  }
+
+  void _showAccountTabAuthPrompt(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: ZarwintoColors.primary.withValues(alpha: .1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: HugeIcon(icon: HugeIcons.strokeRoundedUser02, color: ZarwintoColors.primary, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Text('Sign in required', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: const Text(
+          'Please sign in to view your account, orders, and wishlist.',
+          style: TextStyle(color: ZarwintoColors.muted, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).pushNamed('/login');
+            },
+            child: const Text('Sign In'),
+          ),
+        ],
+      ),
+    );
+  }
+
+  void _showAuthRequiredDialog(BuildContext context) {
+    showDialog(
+      context: context,
+      barrierDismissible: true,
+      builder: (ctx) => AlertDialog(
+        shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+        title: Row(
+          children: [
+            Container(
+              width: 40,
+              height: 40,
+              decoration: BoxDecoration(
+                color: ZarwintoColors.primary.withValues(alpha: .1),
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: HugeIcon(icon: HugeIcons.strokeRoundedLock, color: ZarwintoColors.primary, size: 20),
+            ),
+            const SizedBox(width: 12),
+            const Text('Sign in to checkout', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+          ],
+        ),
+        content: const Text(
+          'Please sign in to complete your purchase and track your orders.',
+          style: TextStyle(color: ZarwintoColors.muted, fontSize: 14),
+        ),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(ctx),
+            child: const Text('Cancel'),
+          ),
+          FilledButton(
+            onPressed: () {
+              Navigator.pop(ctx);
+              Navigator.of(context).pushNamed('/login');
+            },
+            child: const Text('Sign In'),
+          ),
+        ],
       ),
     );
   }

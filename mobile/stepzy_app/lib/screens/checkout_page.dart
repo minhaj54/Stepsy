@@ -385,6 +385,60 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final shippingCost = store.total > 999 ? 0 : 99;
     final grandTotal = store.total + shippingCost;
 
+    if (store.profile == null) {
+      return Scaffold(
+        backgroundColor: ZarwintoColors.background,
+        appBar: AppBar(
+          title: const Text('Checkout'),
+          backgroundColor: ZarwintoColors.background,
+          foregroundColor: ZarwintoColors.foreground,
+          elevation: 0,
+          surfaceTintColor: Colors.transparent,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Container(
+                  width: 64,
+                  height: 64,
+                  decoration: BoxDecoration(
+                    color: ZarwintoColors.primary.withValues(alpha: .12),
+                    borderRadius: BorderRadius.circular(20),
+                    border: Border.all(color: ZarwintoColors.primary.withValues(alpha: .2)),
+                  ),
+                  child: HugeIcon(icon: HugeIcons.strokeRoundedLock, color: ZarwintoColors.primary, size: 32),
+                ),
+                const SizedBox(height: 24),
+                Text(
+                  'Sign in to checkout',
+                  style: TextStyle(fontSize: 20, fontWeight: FontWeight.w800, color: colors.foreground),
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please sign in to complete your purchase.',
+                  textAlign: TextAlign.center,
+                  style: TextStyle(color: ZarwintoColors.muted, fontSize: 14),
+                ),
+                const SizedBox(height: 24),
+                SizedBox(
+                  width: double.infinity,
+                  child: FilledButton(
+                    onPressed: () {
+                      Navigator.of(context).pushNamed('/login');
+                    },
+                    child: const Text('Sign In'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: ZarwintoColors.background,
       appBar: AppBar(

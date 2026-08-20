@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
-import 'shell.dart';
+import '../providers/zarwinto_store.dart';
 
 class OnboardingScreen extends StatefulWidget {
   const OnboardingScreen({super.key});
@@ -12,6 +12,19 @@ class OnboardingScreen extends StatefulWidget {
 
 class _OnboardingScreenState extends State<OnboardingScreen> {
   int activeIndex = 1;
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    final store = ZarwintoScope.of(context, listen: false);
+    if (store.profile != null) {
+      _goToShell();
+    }
+  }
+
+  void _goToShell() {
+    Navigator.of(context).pushReplacementNamed('/shell');
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -176,9 +189,7 @@ class _OnboardingScreenState extends State<OnboardingScreen> {
                           ),
                         ),
                         onPressed: () {
-                          Navigator.of(context).pushReplacement(
-                            MaterialPageRoute(builder: (_) => const ZarwintoShell()),
-                          );
+                          Navigator.of(context).pushReplacementNamed('/shell');
                         },
                         child: const Text(
                           'Get Started',

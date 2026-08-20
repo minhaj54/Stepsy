@@ -56,6 +56,50 @@ class _AddressesScreenState extends State<AddressesScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final store = ZarwintoScope.of(context);
+    
+    if (store.profile == null) {
+      return Scaffold(
+        backgroundColor: ZarwintoColors.background,
+        appBar: AppBar(
+          title: const Text('My Addresses'),
+          backgroundColor: ZarwintoColors.background,
+          foregroundColor: ZarwintoColors.foreground,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 64, color: ZarwintoColors.muted),
+                const SizedBox(height: 16),
+                Text(
+                  'Sign in to manage addresses',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please sign in to save and manage your addresses.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pushNamed('/login');
+                  },
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedUser02, color: Colors.white),
+                  label: const Text('Sign In'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: ZarwintoColors.background,
       appBar: AppBar(

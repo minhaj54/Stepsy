@@ -58,6 +58,50 @@ class _OrdersScreenState extends State<OrdersScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final store = ZarwintoScope.of(context);
+    
+    if (store.profile == null) {
+      return Scaffold(
+        backgroundColor: ZarwintoColors.background,
+        appBar: AppBar(
+          title: const Text('My Orders'),
+          backgroundColor: ZarwintoColors.background,
+          foregroundColor: ZarwintoColors.foreground,
+          elevation: 0,
+        ),
+        body: Center(
+          child: Padding(
+            padding: const EdgeInsets.all(24),
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                HugeIcon(icon: HugeIcons.strokeRoundedShoppingBag01, size: 64, color: ZarwintoColors.muted),
+                const SizedBox(height: 16),
+                Text(
+                  'Sign in to view orders',
+                  style: Theme.of(context).textTheme.titleLarge,
+                ),
+                const SizedBox(height: 8),
+                Text(
+                  'Please sign in to see your order history.',
+                  textAlign: TextAlign.center,
+                  style: Theme.of(context).textTheme.bodyMedium,
+                ),
+                const SizedBox(height: 24),
+                ElevatedButton.icon(
+                  onPressed: () {
+                    Navigator.of(context).pushNamed('/login');
+                  },
+                  icon: HugeIcon(icon: HugeIcons.strokeRoundedUser02, color: Colors.white),
+                  label: const Text('Sign In'),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Scaffold(
       backgroundColor: ZarwintoColors.background,
       appBar: AppBar(

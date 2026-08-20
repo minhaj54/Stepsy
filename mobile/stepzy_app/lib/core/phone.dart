@@ -23,3 +23,8 @@ String normalizePhone(String input, {String defaultCountryCode = '91'}) {
 
   throw ArgumentError('Enter a valid 10-digit mobile number.');
 }
+
+String phoneToSyntheticEmail(String phone) {
+  final digits = phone.replaceAll(RegExp(r'\D'), '');
+  return '$digits@phone.zarwinto.app';
+}

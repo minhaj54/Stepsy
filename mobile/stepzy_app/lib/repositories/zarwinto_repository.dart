@@ -1,9 +1,8 @@
-import 'dart:convert';
 import 'dart:math';
 import 'package:flutter/foundation.dart' hide Category;
-import 'package:http/http.dart' as http;
 import 'package:supabase_flutter/supabase_flutter.dart';
 import '../core/phone.dart';
+import '../core/otp_rate_limiter.dart';
 import '../models/product.dart';
 import '../models/category.dart';
 import '../models/brand.dart';
@@ -17,7 +16,6 @@ import '../models/banner.dart';
 import '../models/review.dart';
 import '../models/testimonial.dart';
 import '../data/mock_data.dart';
-import '../core/constants.dart';
 
 class ZarwintoRepository {
   ZarwintoRepository(this.client);
@@ -222,33 +220,70 @@ class ZarwintoRepository {
     await client?.auth.signOut();
   }
 
-  Future<String?> sendOtp(String phone) async {
-    if (zarwintoApiBaseUrl.isEmpty) {
-      return 'ZARWINTO_API_BASE_URL is not configured for this build.';
+  Future<(String?, bool)> sendOtp(String phone, {String? fullName}) async {
+    if (client == null) {
+      return ('Supabase is not configured for this build.', false);
     }
     try {
       final normalizedPhone = normalizePhone(phone);
-      final response = await http.post(
-        Uri.parse('$zarwintoApiBaseUrl/api/auth/send-otp'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'phone': normalizedPhone}),
-      );
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      if (response.statusCode != 200) {
-        return data['error'] as String? ?? 'Failed to send OTP.';
+
+      final resendCheck = OtpRateLimiter.canResendOtp(normalizedPhone);
+      if (!resendCheck.allowed) {
+        final remainingSeconds = (resendCheck.remainingMs / 1000).ceil();
+        return ('Please wait $remainingSeconds seconds before requesting a new OTP.', false);
       }
-      return null;
+
+      final attemptCheck = OtpRateLimiter.recordOtpAttempt(normalizedPhone);
+      if (!attemptCheck.allowed) {
+        final lockoutMinutes = ((attemptCheck.lockedUntil ?? 0) - DateTime.now().millisecondsSinceEpoch) ~/ 60000;
+        return ('Too many failed attempts. Please try again in $lockoutMinutes minutes.', false);
+      }
+
+      final existingUser = await client!
+          .from('users')
+          .select('id, full_name')
+          .eq('phone', normalizedPhone)
+          .maybeSingle();
+      final isNewUser = existingUser == null;
+
+      try {
+        await client!.auth.signInWithOtp(
+          phone: normalizedPhone,
+          shouldCreateUser: true,
+          data: fullName != null && fullName.isNotEmpty ? {'full_name': fullName.trim()} : {},
+        );
+      } on AuthException catch (e) {
+        return (e.message, false);
+      }
+
+      OtpRateLimiter.recordOtpSend(normalizedPhone);
+      OtpRateLimiter.clearOtpAttempts(normalizedPhone);
+
+      return (null, isNewUser);
+    } on AuthException catch (err) {
+      return (err.message, false);
     } catch (e) {
-      return 'Network error. Please try again.';
+      return ('Network error. Please try again.', false);
     }
   }
 
-  Future<String?> verifyOtp(String phone, String code, String? fullName) async {
+  Future<(String?, int)> verifyOtp(
+    String phone,
+    String code, {
+    String? fullName,
+  }) async {
     if (client == null) {
-      return 'Supabase is not configured for this build.';
+      return ('Supabase is not configured for this build.', 0);
     }
     try {
       final normalizedPhone = normalizePhone(phone);
+
+      final attemptCheck = OtpRateLimiter.recordOtpAttempt(normalizedPhone);
+      if (!attemptCheck.allowed) {
+        final lockoutMinutes = (attemptCheck.lockedUntil! - DateTime.now().millisecondsSinceEpoch) ~/ 60000;
+        return ('Too many failed attempts. Please try again in $lockoutMinutes minutes.', 0);
+      }
+
       final response = await client!.auth.verifyOTP(
         phone: normalizedPhone,
         token: code.trim(),
@@ -256,8 +291,14 @@ class ZarwintoRepository {
       );
 
       if (response.session == null) {
-        return 'Failed to verify OTP.';
+        final remaining = attemptCheck.remaining - 1;
+        if (remaining <= 0) {
+          return ('Too many failed attempts. Your account has been temporarily locked.', 0);
+        }
+        return ('Invalid OTP. $remaining attempts remaining.', remaining);
       }
+
+      OtpRateLimiter.clearOtpAttempts(normalizedPhone);
 
       if (fullName != null && fullName.isNotEmpty) {
         await client!.auth.updateUser(UserAttributes(data: {'full_name': fullName.trim()}));
@@ -267,13 +308,14 @@ class ZarwintoRepository {
             .eq('id', response.user!.id);
       }
 
-      return null;
+      return (null, attemptCheck.remaining);
     } on AuthException catch (err) {
-      return err.message;
+      final remaining = OtpRateLimiter.recordOtpAttempt(normalizePhone(phone)).remaining;
+      return (err.message, remaining);
     } on ArgumentError catch (err) {
-      return err.message?.toString() ?? 'Invalid phone number.';
+      return (err.message?.toString() ?? 'Invalid phone number.', 0);
     } catch (_) {
-      return 'Network error. Please try again.';
+      return ('Network error. Please try again.', 0);
     }
   }
 

@@ -286,17 +286,23 @@ class ZarwintoStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  Future<String?> sendOtp(String phone) async {
-    return await repository.sendOtp(phone);
+  Future<(String?, bool)> sendOtp(String phone, {String? fullName}) async {
+    final result = await repository.sendOtp(phone, fullName: fullName);
+    notifyListeners();
+    return result;
   }
 
-  Future<String?> verifyOtp(String phone, String code, String? fullName) async {
-    final message = await repository.verifyOtp(phone, code, fullName);
-    if (message == null) {
+  Future<(String?, int)> verifyOtp(
+    String phone,
+    String code, {
+    String? fullName,
+  }) async {
+    final result = await repository.verifyOtp(phone, code, fullName: fullName);
+    if (result.$1 == null) {
       await _loadProfileAndWishlist();
     }
     notifyListeners();
-    return message;
+    return result;
   }
 
   void setActiveTab(int tab) {
@@ -406,19 +412,58 @@ class ZarwintoStore extends ChangeNotifier {
   Future<List<Review>> loadProductReviews(String productId) async {
     setLoadingReviews(true);
     final reviews = await repository.loadProductReviews(productId);
-    setCurrentProductReviews(reviews);
-    return reviews;
+    final resolved = reviews.map(_resolveReviewName).toList();
+    setCurrentProductReviews(resolved);
+    return resolved;
+  }
+
+  String? _myDisplayName() {
+    if (profile?.fullName.trim().isNotEmpty == true) return profile!.fullName.trim();
+    final me = repository.client?.auth.currentUser;
+    final meta = me?.userMetadata;
+    final fromMeta = (meta?['full_name'] as String?) ?? (meta?['display_name'] as String?);
+    if (fromMeta != null && fromMeta.trim().isNotEmpty) return fromMeta.trim();
+    final phone = me?.phone;
+    if (phone != null && phone.isNotEmpty) return phone;
+    return null;
+  }
+
+  Review _resolveReviewName(Review r) {
+    final name = r.userName?.trim();
+    if (name != null && name.isNotEmpty) return r;
+    // The `users(full_name)` join can be null because the `users` table RLS
+    // only allows reading your own profile. For the current user's own
+    // reviews, fall back to the locally known name.
+    final me = repository.client?.auth.currentUser;
+    if (r.userId != me?.id) return r;
+    final fallback = _myDisplayName();
+    if (fallback != null && fallback.isNotEmpty) {
+      return Review(
+        id: r.id,
+        userId: r.userId,
+        productId: r.productId,
+        rating: r.rating,
+        reviewText: r.reviewText,
+        images: r.images,
+        approved: r.approved,
+        createdAt: r.createdAt,
+        userName: fallback,
+      );
+    }
+    return r;
   }
 
   Future<void> addReview(String productId, int rating, String reviewText, {List<String> images = const []}) async {
+    final me = repository.client?.auth.currentUser;
     await repository.addReview(Review(
       id: '',
-      userId: '',
+      userId: me?.id ?? '',
       productId: productId,
       rating: rating,
       reviewText: reviewText,
       images: images,
       createdAt: DateTime.now(),
+      userName: _myDisplayName(),
     ));
   }
 

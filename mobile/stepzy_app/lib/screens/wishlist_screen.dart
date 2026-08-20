@@ -41,6 +41,39 @@ class _WishlistScreenState extends State<WishlistScreen> {
     final wishlistIds = store.wishlist;
     final products = store.products;
 
+    if (store.profile == null) {
+      return Center(
+        child: Padding(
+          padding: const EdgeInsets.all(32),
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.center,
+            children: [
+              HugeIcon(icon: HugeIcons.strokeRoundedHeartRemove, size: 64, color: ZarwintoColors.muted),
+              const SizedBox(height: 16),
+              Text(
+                'Sign in to view wishlist',
+                style: Theme.of(context).textTheme.titleLarge?.copyWith(fontWeight: FontWeight.w700),
+              ),
+              const SizedBox(height: 8),
+              const Text(
+                'Please sign in to save and view your wishlist.',
+                textAlign: TextAlign.center,
+                style: TextStyle(color: ZarwintoColors.muted, fontSize: 14),
+              ),
+              const SizedBox(height: 24),
+              ElevatedButton.icon(
+                onPressed: () {
+                  Navigator.of(context).pushNamed('/login');
+                },
+                icon: HugeIcon(icon: HugeIcons.strokeRoundedUser02, color: Colors.white),
+                label: const Text('Sign In'),
+              ),
+            ],
+          ),
+        ),
+      );
+    }
+
     if (products.isEmpty && store.loading) {
       return Shimmer.fromColors(
         baseColor: ZarwintoColors.border,
