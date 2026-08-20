@@ -590,34 +590,39 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       'Payment Method',
                       style: ZarwintoTypography.title.copyWith(color: colors.foreground),
                     ),
-                    const SizedBox(height: ZarwintoSpacing.sm),
-                    Wrap(
-                      spacing: ZarwintoSpacing.sm,
-                      runSpacing: ZarwintoSpacing.sm,
+                    const SizedBox(height: ZarwintoSpacing.md),
+                    Column(
                       children: [
                         _PaymentOption(
                           label: 'UPI (GPay, PhonePe, Paytm)',
+                          subtitle: 'Pay instantly with any UPI app',
                           icon: HugeIcons.strokeRoundedSmartPhone01,
                           selected: paymentMethod == 'cashfree_upi',
                           onTap: () => setState(() => paymentMethod = 'cashfree_upi'),
                           colors: colors,
                         ),
+                        const SizedBox(height: ZarwintoSpacing.sm),
                         _PaymentOption(
                           label: 'Credit / Debit Card',
+                          subtitle: 'Visa, Mastercard, RuPay',
                           icon: HugeIcons.strokeRoundedCreditCard,
                           selected: paymentMethod == 'card',
                           onTap: () => setState(() => paymentMethod = 'card'),
                           colors: colors,
                         ),
+                        const SizedBox(height: ZarwintoSpacing.sm),
                         _PaymentOption(
                           label: 'Net Banking',
+                          subtitle: 'All major banks supported',
                           icon: HugeIcons.strokeRoundedBuilding01,
                           selected: paymentMethod == 'netbanking',
                           onTap: () => setState(() => paymentMethod = 'netbanking'),
                           colors: colors,
                         ),
+                        const SizedBox(height: ZarwintoSpacing.sm),
                         _PaymentOption(
                           label: 'Cash on Delivery (COD)',
+                          subtitle: 'Pay when you receive',
                           icon: HugeIcons.strokeRoundedPayment01,
                           selected: paymentMethod == 'cod',
                           onTap: () => setState(() => paymentMethod = 'cod'),
@@ -891,6 +896,7 @@ class _AddressCard extends StatelessWidget {
 class _PaymentOption extends StatelessWidget {
   const _PaymentOption({
     required this.label,
+    this.subtitle,
     required this.icon,
     required this.selected,
     required this.onTap,
@@ -898,6 +904,7 @@ class _PaymentOption extends StatelessWidget {
   });
 
   final String label;
+  final String? subtitle;
   final IconData icon;
   final bool selected;
   final VoidCallback onTap;
@@ -907,31 +914,80 @@ class _PaymentOption extends StatelessWidget {
   Widget build(BuildContext context) {
     return GestureDetector(
       onTap: onTap,
-      child: Container(
-        padding: const EdgeInsets.symmetric(vertical: ZarwintoSpacing.sm, horizontal: ZarwintoSpacing.md),
+      child: AnimatedContainer(
+        duration: const Duration(milliseconds: 200),
+        padding: const EdgeInsets.all(ZarwintoSpacing.md),
         decoration: BoxDecoration(
-          color: selected ? colors.primary.withValues(alpha: 0.08) : colors.card,
-          borderRadius: BorderRadius.circular(12),
+          color: selected ? colors.primary.withValues(alpha: 0.04) : colors.card,
+          borderRadius: BorderRadius.circular(16),
           border: Border.all(
             color: selected ? colors.primary : colors.border,
             width: selected ? 2 : 1,
           ),
+          boxShadow: selected
+              ? [
+                  BoxShadow(
+                    color: colors.primary.withValues(alpha: 0.12),
+                    blurRadius: 12,
+                    offset: const Offset(0, 4),
+                  ),
+                ]
+              : null,
         ),
         child: Row(
           children: [
-            HugeIcon(icon: icon, size: 20, color: selected ? colors.primary : colors.secondaryText),
-            const SizedBox(width: ZarwintoSpacing.sm),
+            Container(
+              width: 44,
+              height: 44,
+              decoration: BoxDecoration(
+                color: selected ? colors.primary.withValues(alpha: 0.12) : colors.background,
+                borderRadius: BorderRadius.circular(12),
+              ),
+              child: HugeIcon(
+                icon: icon,
+                size: 22,
+                color: selected ? colors.primary : colors.secondaryText,
+              ),
+            ),
+            const SizedBox(width: ZarwintoSpacing.md),
             Expanded(
-              child: Text(
-                label,
-                style: ZarwintoTypography.caption.copyWith(
-                  fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
-                  color: selected ? colors.primary : colors.foreground,
-                ),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: ZarwintoTypography.body.copyWith(
+                      fontWeight: selected ? FontWeight.w700 : FontWeight.w500,
+                      color: selected ? colors.primary : colors.foreground,
+                    ),
+                  ),
+                  if (subtitle != null) ...[
+                    const SizedBox(height: 2),
+                    Text(
+                      subtitle!,
+                      style: ZarwintoTypography.caption.copyWith(
+                        color: colors.muted,
+                        fontWeight: FontWeight.w400,
+                      ),
+                    ),
+                  ],
+                ],
               ),
             ),
             if (selected)
-              HugeIcon(icon: HugeIcons.strokeRoundedCheckmarkCircle02, color: colors.primary, size: 20),
+              Container(
+                width: 24,
+                height: 24,
+                decoration: BoxDecoration(
+                  color: colors.primary,
+                  borderRadius: BorderRadius.circular(12),
+                ),
+                child: HugeIcon(
+                  icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                  size: 14,
+                  color: Colors.white,
+                ),
+              ),
           ],
         ),
       ),

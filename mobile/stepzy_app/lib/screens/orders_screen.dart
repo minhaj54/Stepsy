@@ -4,6 +4,7 @@ import 'package:intl/intl.dart';
 import '../providers/zarwinto_store.dart';
 import '../core/theme.dart';
 import '../models/order.dart';
+import '../screens/product_detail.dart';
 import '../widgets/order_status_tracker.dart';
 
 class OrdersScreen extends StatefulWidget {
@@ -239,21 +240,34 @@ class OrderCard extends StatelessWidget {
               Row(
                 children: [
                   if (order.items.isNotEmpty && order.items.first.productImage != null && order.items.first.productImage!.isNotEmpty)
-                    ClipRRect(
-                      borderRadius: BorderRadius.circular(8),
-                      child: Image.network(
-                        order.items.first.productImage!,
-                        width: 48,
-                        height: 48,
-                        fit: BoxFit.cover,
-                        errorBuilder: (context, error, stackTrace) {
-                          return Container(
-                            width: 48,
-                            height: 48,
-                            color: ZarwintoColors.background,
-                            child: HugeIcon(icon: HugeIcons.strokeRoundedImage01, size: 24, color: ZarwintoColors.muted),
+                    GestureDetector(
+                      onTap: () {
+                        final store = ZarwintoScope.of(context, listen: false);
+                        try {
+                          final product = store.products.firstWhere((p) => p.id == order.items.first.productId);
+                          Navigator.of(context).push(
+                            MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
                           );
-                        },
+                        } catch (e) {
+                          // product not found in current catalog
+                        }
+                      },
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(8),
+                        child: Image.network(
+                          order.items.first.productImage!,
+                          width: 48,
+                          height: 48,
+                          fit: BoxFit.cover,
+                          errorBuilder: (context, error, stackTrace) {
+                            return Container(
+                              width: 48,
+                              height: 48,
+                              color: ZarwintoColors.background,
+                              child: HugeIcon(icon: HugeIcons.strokeRoundedImage01, size: 24, color: ZarwintoColors.muted),
+                            );
+                          },
+                        ),
                       ),
                     ),
                   if (order.items.isNotEmpty && order.items.first.productImage != null && order.items.first.productImage!.isNotEmpty)
@@ -318,6 +332,27 @@ class OrderCard extends StatelessWidget {
                         ],
                       ),
                     )),
+                    if (order.items.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () {
+                            final store = ZarwintoScope.of(context, listen: false);
+                            try {
+                              final product = store.products.firstWhere((p) => p.id == order.items.first.productId);
+                              Navigator.of(context).push(
+                                MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
+                              );
+                            } catch (e) {
+                              // product not found in current catalog
+                            }
+                          },
+                          icon: const Icon(Icons.arrow_forward, size: 16),
+                          label: const Text('View Product'),
+                        ),
+                      ),
+                    ],
                     if (order.shippingAddress.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       const Divider(height: 1),
@@ -344,7 +379,23 @@ class OrderCard extends StatelessWidget {
                     Row(
                       mainAxisAlignment: MainAxisAlignment.spaceBetween,
                       children: [
-                        Text('Payment: ${order.paymentMethod.toUpperCase()}', style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+                        Row(
+                          children: [
+                            Text('Payment: ${order.paymentMethod.toUpperCase()} ', style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+                            Container(
+                              padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+                              decoration: BoxDecoration(
+                                color: _paymentStatusColor(order.paymentStatus).withValues(alpha: 0.1),
+                                borderRadius: BorderRadius.circular(20),
+                                border: Border.all(color: _paymentStatusColor(order.paymentStatus).withValues(alpha: 0.3)),
+                              ),
+                              child: Text(
+                                order.paymentStatus.toUpperCase(),
+                                style: TextStyle(color: _paymentStatusColor(order.paymentStatus), fontSize: 11, fontWeight: FontWeight.w700),
+                              ),
+                            ),
+                          ],
+                        ),
                         Text(moneyFormat.format(order.totalAmount), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: ZarwintoColors.primary)),
                       ],
                     ),
@@ -366,6 +417,23 @@ class OrderCard extends StatelessWidget {
       case 'delivered': return ZarwintoColors.success;
       case 'cancelled': return ZarwintoColors.error;
       default: return ZarwintoColors.muted;
+    }
+  }
+
+  Color _paymentStatusColor(String status) {
+    switch (status.toLowerCase()) {
+      case 'paid':
+        return ZarwintoColors.success;
+      case 'unpaid':
+      case 'pending':
+        return ZarwintoColors.warning;
+      case 'failed':
+      case 'cancelled':
+        return ZarwintoColors.error;
+      case 'refunded':
+        return ZarwintoColors.secondary;
+      default:
+        return ZarwintoColors.muted;
     }
   }
 }
