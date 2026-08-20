@@ -200,6 +200,8 @@ class OrderCard extends StatelessWidget {
   Widget build(BuildContext context) {
     final moneyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
     final statusColor = _getStatusColor(order.status);
+    final shortId = order.id.length > 8 ? order.id.substring(0, 8) : order.id;
+    final itemCount = order.items.fold<int>(0, (sum, item) => sum + item.quantity);
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -212,11 +214,12 @@ class OrderCard extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Text(
-                    'Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}',
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                  Expanded(
+                    child: Text(
+                      'Order #$shortId',
+                      style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14),
+                    ),
                   ),
                   Container(
                     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
@@ -227,107 +230,126 @@ class OrderCard extends StatelessWidget {
                     ),
                     child: Text(
                       order.statusDisplay,
-                      style: TextStyle(
-                        color: statusColor,
-                        fontSize: 12,
-                        fontWeight: FontWeight.w600,
-                      ),
+                      style: TextStyle(color: statusColor, fontSize: 12, fontWeight: FontWeight.w600),
                     ),
                   ),
                 ],
               ),
               const SizedBox(height: 6),
-              Text(
-                order.formattedDate,
-                style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12),
-              ),
-              const SizedBox(height: 12),
-              OrderStatusTracker(currentStatus: order.status),
-              const SizedBox(height: 14),
-              ...order.items.map((item) => Padding(
-                padding: const EdgeInsets.only(bottom: 10),
-                child: Row(
-                  children: [
-                    if (item.productImage != null && item.productImage!.isNotEmpty)
-                      ClipRRect(
-                        borderRadius: BorderRadius.circular(8),
-                        child: Image.network(
-                          item.productImage!,
-                          width: 48,
-                          height: 48,
-                          fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 48,
-                              height: 48,
-                              color: ZarwintoColors.background,
-                              child: HugeIcon(icon: HugeIcons.strokeRoundedImage01, size: 24, color: ZarwintoColors.muted),
-                            );
-                          },
-                        ),
+              Row(
+                children: [
+                  if (order.items.isNotEmpty && order.items.first.productImage != null && order.items.first.productImage!.isNotEmpty)
+                    ClipRRect(
+                      borderRadius: BorderRadius.circular(8),
+                      child: Image.network(
+                        order.items.first.productImage!,
+                        width: 48,
+                        height: 48,
+                        fit: BoxFit.cover,
+                        errorBuilder: (context, error, stackTrace) {
+                          return Container(
+                            width: 48,
+                            height: 48,
+                            color: ZarwintoColors.background,
+                            child: HugeIcon(icon: HugeIcons.strokeRoundedImage01, size: 24, color: ZarwintoColors.muted),
+                          );
+                        },
                       ),
-                    if (item.productImage != null && item.productImage!.isNotEmpty)
-                      const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
+                    ),
+                  if (order.items.isNotEmpty && order.items.first.productImage != null && order.items.first.productImage!.isNotEmpty)
+                    const SizedBox(width: 12),
+                  Expanded(
+                    child: Text(order.formattedDate, style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12)),
+                  ),
+                  Text('$itemCount item${itemCount == 1 ? '' : 's'}', style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12)),
+                  const SizedBox(width: 12),
+                  Text(moneyFormat.format(order.totalAmount), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 14)),
+                  const SizedBox(width: 4),
+                  AnimatedSwitcher(
+                    duration: const Duration(milliseconds: 200),
+                    child: Icon(
+                      isExpanded ? Icons.keyboard_arrow_up : Icons.keyboard_arrow_down,
+                      key: ValueKey(isExpanded),
+                      size: 18,
+                      color: ZarwintoColors.muted,
+                    ),
+                  ),
+                ],
+              ),
+              AnimatedCrossFade(
+                crossFadeState: isExpanded ? CrossFadeState.showSecond : CrossFadeState.showFirst,
+                duration: const Duration(milliseconds: 250),
+                firstChild: const SizedBox.shrink(),
+                secondChild: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 14),
+                    const Divider(height: 1),
+                    const SizedBox(height: 12),
+                    OrderStatusTracker(currentStatus: order.status),
+                    const SizedBox(height: 14),
+                    ...order.items.map((item) => Padding(
+                      padding: const EdgeInsets.only(bottom: 10),
+                      child: Row(
                         children: [
-                          Text(
-                            item.productTitle ?? 'Product',
-                            style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
-                            maxLines: 1,
-                            overflow: TextOverflow.ellipsis,
-                          ),
-                          if (item.variantSize != null || item.variantColor != null)
-                            Text(
-                              'Size: ${item.variantSize ?? '-'} • ${item.variantColor ?? ''}'.trim(),
-                              style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12),
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(
+                                  item.productTitle ?? 'Product',
+                                  style: const TextStyle(fontWeight: FontWeight.w600, fontSize: 13),
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
+                                ),
+                                if (item.variantSize != null || item.variantColor != null)
+                                  Text(
+                                    'Size: ${item.variantSize ?? '-'} • ${item.variantColor ?? ''}'.trim(),
+                                    style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12),
+                                  ),
+                                Text('Qty: ${item.quantity}', style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12)),
+                              ],
                             ),
+                          ),
                           Text(
-                            'Qty: ${item.quantity}',
-                            style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12),
+                            moneyFormat.format(item.lineTotal),
+                            style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
                           ),
                         ],
                       ),
-                    ),
-                    Text(
-                      moneyFormat.format(item.lineTotal),
-                      style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 13),
-                    ),
-                  ],
-                ),
-              )),
-              if (order.shippingAddress.isNotEmpty) ...[
-                const Divider(height: 16),
-                Row(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 16, color: ZarwintoColors.muted),
-                    const SizedBox(width: 6),
-                    Expanded(
-                      child: Text(
-                        'Deliver to: ${order.shippingAddress['fullName'] ?? ''}, ${order.shippingAddress['addressLine1'] ?? ''}, ${order.shippingAddress['city'] ?? ''} ${order.shippingAddress['pincode'] ?? ''}',
-                        style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12),
-                        maxLines: 2,
-                        overflow: TextOverflow.ellipsis,
+                    )),
+                    if (order.shippingAddress.isNotEmpty) ...[
+                      const SizedBox(height: 12),
+                      const Divider(height: 1),
+                      const SizedBox(height: 10),
+                      Row(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          HugeIcon(icon: HugeIcons.strokeRoundedLocation01, size: 16, color: ZarwintoColors.muted),
+                          const SizedBox(width: 6),
+                          Expanded(
+                            child: Text(
+                              'Deliver to: ${order.shippingAddress['fullName'] ?? ''}, ${order.shippingAddress['addressLine1'] ?? ''}, ${order.shippingAddress['city'] ?? ''} ${order.shippingAddress['pincode'] ?? ''}',
+                              style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12),
+                              maxLines: 2,
+                              overflow: TextOverflow.ellipsis,
+                            ),
+                          ),
+                        ],
                       ),
+                    ],
+                    const SizedBox(height: 12),
+                    const Divider(height: 1),
+                    const SizedBox(height: 10),
+                    Row(
+                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                      children: [
+                        Text('Payment: ${order.paymentMethod.toUpperCase()}', style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12, fontWeight: FontWeight.w600)),
+                        Text(moneyFormat.format(order.totalAmount), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: ZarwintoColors.primary)),
+                      ],
                     ),
                   ],
                 ),
-              ],
-              const Divider(height: 16),
-              Row(
-                mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                children: [
-                  Text(
-                    'Payment: ${order.paymentMethod.toUpperCase()}',
-                    style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12, fontWeight: FontWeight.w600),
-                  ),
-                  Text(
-                    moneyFormat.format(order.totalAmount),
-                    style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: ZarwintoColors.primary),
-                  ),
-                ],
               ),
             ],
           ),

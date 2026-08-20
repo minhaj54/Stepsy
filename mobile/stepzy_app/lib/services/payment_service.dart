@@ -1,14 +1,16 @@
 import 'dart:convert';
 import 'dart:math';
-import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
+import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../core/theme.dart';
 import '../core/constants.dart';
 import '../models/cart_item.dart';
+
+enum PaymentResult { success, failure, cancelled }
 
 class PaymentService {
   PaymentService(this.prefs);
@@ -16,11 +18,13 @@ class PaymentService {
   final SharedPreferences prefs;
 
   String get _apiBaseUrl {
-    final url = prefs.getString('zarwinto_api_base_url') ?? 'http://localhost:3000';
-    if (url.contains('localhost') && defaultTargetPlatform == TargetPlatform.android) {
-      return url.replaceFirst('localhost', '10.0.2.2');
+    final url = const String.fromEnvironment('ZARWINTO_API_BASE_URL');
+    if (url.isNotEmpty) return url;
+    if (dotenv.isInitialized) {
+      final envUrl = dotenv.env['ZARWINTO_API_BASE_URL'];
+      if (envUrl != null && envUrl.isNotEmpty) return envUrl;
     }
-    return url;
+    return 'http://localhost:3000';
   }
 
   Future<Map<String, dynamic>?> createCashfreeOrder({
@@ -32,7 +36,7 @@ class PaymentService {
   }) async {
     try {
       final response = await http.post(
-        Uri.parse('$_apiBaseUrl/api/cashfree/create-order'),
+        Uri.parse('$zarwintoDomain/api/cashfree/create-order'),
         headers: {'Content-Type': 'application/json'},
         body: jsonEncode({
           'orderId': orderId,
@@ -45,12 +49,105 @@ class PaymentService {
         }),
       );
 
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      debugPrint('[PaymentService] Create order response status: ${response.statusCode}');
+      debugPrint('[PaymentService] Create order response body: ${response.body}');
+
+      Map<String, dynamic> data;
+      try {
+        data = jsonDecode(response.body) as Map<String, dynamic>;
+      } on FormatException {
+        debugPrint('[PaymentService] Website API returned non-JSON, falling back to direct Cashfree API');
+        return await _createCashfreeOrderDirect(orderId, amount, name, email, phone);
+      }
+
       if (response.statusCode == 200 && data['success'] == true) {
         return data;
       }
+
+      debugPrint('[PaymentService] Website API error: ${data['error'] ?? response.statusCode}, falling back to direct Cashfree API');
+      return await _createCashfreeOrderDirect(orderId, amount, name, email, phone);
+    } catch (e) {
+      debugPrint('[PaymentService] Website API exception: $e, falling back to direct Cashfree API');
+      return await _createCashfreeOrderDirect(orderId, amount, name, email, phone);
+    }
+  }
+
+  Future<Map<String, dynamic>?> _createCashfreeOrderDirect(
+    String orderId,
+    double amount,
+    String name,
+    String email,
+    String phone,
+  ) async {
+    try {
+      final sanitizedPhone = phone.replaceAll(RegExp(r'\D'), '');
+      final customerPhone = sanitizedPhone.length >= 10
+          ? sanitizedPhone.substring(sanitizedPhone.length - 10)
+          : sanitizedPhone.padLeft(10, '0');
+
+      final headers = {
+        'Content-Type': 'application/json',
+        'Accept': 'application/json',
+        'x-api-version': '2026-01-01',
+        'x-client-id': cashfreeAppId,
+        'x-client-secret': cashfreeSecretKey,
+      };
+
+      final body = jsonEncode({
+        'order_id': orderId,
+        'order_amount': amount,
+        'order_currency': 'INR',
+        'customer_details': {
+          'customer_id': customerPhone,
+          'customer_name': name,
+          'customer_email': email,
+          'customer_phone': customerPhone,
+        },
+        'order_meta': {
+          'return_url': '$zarwintoDomain/checkout?status=success',
+          'notify_url': '$zarwintoDomain/api/cashfree/webhook',
+        },
+        'payment_methods': {
+          'upi': {'enabled': true},
+          'card': {'enabled': true},
+          'netbanking': {'enabled': true},
+          'wallet': {'enabled': true},
+        },
+      });
+
+      final response = await http.post(
+        Uri.parse('$_cashfreeBaseUrl/orders'),
+        headers: headers,
+        body: body,
+      );
+
+      debugPrint('[PaymentService] Direct Cashfree create order status: ${response.statusCode}');
+      debugPrint('[PaymentService] Direct Cashfree create order body: ${response.body}');
+
+      Map<String, dynamic> data;
+      try {
+        data = jsonDecode(response.body) as Map<String, dynamic>;
+      } on FormatException {
+        debugPrint('[PaymentService] Direct Cashfree returned non-JSON');
+        return null;
+      }
+
+      final cashfreeOrderId = data['order_id'] ?? data['cf_order_id'];
+      final paymentSessionId = data['payment_session_id'];
+
+      if (response.statusCode == 200 && cashfreeOrderId != null && paymentSessionId != null) {
+        return {
+          'success': true,
+          'orderId': cashfreeOrderId,
+          'paymentSessionId': paymentSessionId,
+          'orderToken': data['order_token'],
+        };
+      }
+
+      debugPrint('[PaymentService] Direct Cashfree create order failed: ${data['message'] ?? data['error_message'] ?? response.statusCode}');
       return null;
     } catch (e) {
+      debugPrint('[PaymentService] Direct Cashfree create order error: $e');
       return null;
     }
   }
@@ -58,15 +155,62 @@ class PaymentService {
   Future<Map<String, dynamic>?> verifyCashfreePayment(String orderId) async {
     try {
       final response = await http.get(
-        Uri.parse('$_apiBaseUrl/api/cashfree/verify-payment?orderId=$orderId'),
+        Uri.parse('$zarwintoDomain/api/cashfree/verify-payment?orderId=$orderId'),
       );
 
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
+      debugPrint('[PaymentService] Verify payment response status: ${response.statusCode}');
+      debugPrint('[PaymentService] Verify payment response body: ${response.body}');
+
+      Map<String, dynamic> data;
+      try {
+        data = jsonDecode(response.body) as Map<String, dynamic>;
+      } on FormatException {
+        debugPrint('[PaymentService] Website verify returned non-JSON, falling back to direct Cashfree API');
+        return await _verifyCashfreePaymentDirect(orderId);
+      }
+
       if (response.statusCode == 200 && data['success'] == true) {
+        return data;
+      }
+
+      debugPrint('[PaymentService] Website verify error: ${data['error'] ?? response.statusCode}, falling back to direct Cashfree API');
+      return await _verifyCashfreePaymentDirect(orderId);
+    } catch (e) {
+      debugPrint('[PaymentService] Website verify exception: $e, falling back to direct Cashfree API');
+      return await _verifyCashfreePaymentDirect(orderId);
+    }
+  }
+
+  Future<Map<String, dynamic>?> _verifyCashfreePaymentDirect(String orderId) async {
+    try {
+      final headers = {
+        'Accept': 'application/json',
+        'x-api-version': '2026-01-01',
+        'x-client-id': cashfreeAppId,
+        'x-client-secret': cashfreeSecretKey,
+      };
+
+      final response = await http.get(
+        Uri.parse('$_cashfreeBaseUrl/orders/$orderId'),
+        headers: headers,
+      );
+
+      debugPrint('[PaymentService] Direct Cashfree verify status: ${response.statusCode}');
+      debugPrint('[PaymentService] Direct Cashfree verify body: ${response.body}');
+
+      Map<String, dynamic> data;
+      try {
+        data = jsonDecode(response.body) as Map<String, dynamic>;
+      } on FormatException {
+        return null;
+      }
+
+      if (response.statusCode == 200 && data['order_id'] != null) {
         return data;
       }
       return null;
     } catch (e) {
+      debugPrint('[PaymentService] Direct Cashfree verify error: $e');
       return null;
     }
   }
@@ -199,40 +343,51 @@ class PaymentService {
     }
   }
 
-  Widget buildCashfreeCheckout({
-    required String paymentSessionId,
-    required VoidCallback onSuccess,
-    required VoidCallback onError,
-  }) {
-    final checkoutUrl = 'https://sandbox.cashfree.com/pg/checkout?paymentSessionId=$paymentSessionId';
+  String get _cashfreeBaseUrl {
+    return cashfreeIsProduction
+        ? 'https://api.cashfree.com/pg'
+        : 'https://sandbox.cashfree.com/pg';
+  }
 
-    return WebViewScreen(
-      initialUrl: checkoutUrl,
-      onSuccess: onSuccess,
-      onError: onError,
+  Future<PaymentResult> showCashfreeCheckout({
+    required BuildContext context,
+    required String paymentSessionId,
+    required String orderId,
+  }) async {
+    final result = await Navigator.of(context).push<PaymentResult>(
+      MaterialPageRoute(
+        builder: (_) => CashfreeWebViewScreen(
+          paymentSessionId: paymentSessionId,
+          orderId: orderId,
+        ),
+        fullscreenDialog: true,
+      ),
     );
+
+    if (result != null) return result;
+
+    return PaymentResult.cancelled;
   }
 }
 
-class WebViewScreen extends StatefulWidget {
-  const WebViewScreen({
+class CashfreeWebViewScreen extends StatefulWidget {
+  const CashfreeWebViewScreen({
     super.key,
-    required this.initialUrl,
-    required this.onSuccess,
-    required this.onError,
+    required this.paymentSessionId,
+    required this.orderId,
   });
 
-  final String initialUrl;
-  final VoidCallback onSuccess;
-  final VoidCallback onError;
+  final String paymentSessionId;
+  final String orderId;
 
   @override
-  State<WebViewScreen> createState() => _WebViewScreenState();
+  State<CashfreeWebViewScreen> createState() => _CashfreeWebViewScreenState();
 }
 
-class _WebViewScreenState extends State<WebViewScreen> {
+class _CashfreeWebViewScreenState extends State<CashfreeWebViewScreen> {
   late final WebViewController _controller;
   bool _loading = true;
+  bool _checkoutCompleted = false;
 
   @override
   void initState() {
@@ -245,23 +400,133 @@ class _WebViewScreenState extends State<WebViewScreen> {
           onPageFinished: (_) => setState(() => _loading = false),
           onNavigationRequest: (request) {
             final url = request.url;
-            if (url.contains('/checkout?status=success') ||
-                url.contains('/payment-success') ||
-                url.contains('/order-success')) {
-              widget.onSuccess();
+            
+            if (_checkoutCompleted) {
               return NavigationDecision.prevent;
             }
-            if (url.contains('/checkout?status=failure') ||
-                url.contains('/payment-failure') ||
-                url.contains('/order-failure')) {
-              widget.onError();
+
+            if (url.contains('status=success') || url.contains('status=SUCCESS')) {
+              _checkoutCompleted = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  Navigator.of(context).pop(PaymentResult.success);
+                }
+              });
               return NavigationDecision.prevent;
             }
+
+            if (url.contains('status=failure') || 
+                url.contains('status=FAILURE') ||
+                url.contains('payment-failure') ||
+                url.contains('payment_failure')) {
+              _checkoutCompleted = true;
+              WidgetsBinding.instance.addPostFrameCallback((_) {
+                if (mounted) {
+                  Navigator.of(context).pop(PaymentResult.failure);
+                }
+              });
+              return NavigationDecision.prevent;
+            }
+
             return NavigationDecision.navigate;
           },
         ),
       )
-      ..loadRequest(Uri.parse(widget.initialUrl));
+      ..loadHtmlString(_buildCheckoutHtml());
+  }
+
+  String _buildCheckoutHtml() {
+    final mode = cashfreeIsProduction ? 'production' : 'sandbox';
+    return '''
+<!DOCTYPE html>
+<html>
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
+  <style>
+    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
+    #pay-btn { 
+      display: block; 
+      width: 100%; 
+      padding: 16px; 
+      background: #000; 
+      color: #fff; 
+      border: none; 
+      border-radius: 8px; 
+      font-size: 16px; 
+      font-weight: 600;
+      cursor: pointer;
+      margin: 20px;
+    }
+    #pay-btn:disabled { background: #ccc; }
+    #status { text-align: center; padding: 20px; color: #666; }
+  </style>
+</head>
+<body>
+  <div id="status">Loading payment gateway...</div>
+  <button id="pay-btn" disabled>Pay Now</button>
+  
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const payBtn = document.getElementById('pay-btn');
+      const status = document.getElementById('status');
+      
+      function initCashfree() {
+        if (typeof Cashfree === 'undefined') {
+          status.textContent = 'Failed to load payment gateway. Please try again.';
+          return;
+        }
+        
+        try {
+          const cashfree = new Cashfree({
+            mode: '$mode'
+          });
+          
+          payBtn.disabled = false;
+          status.textContent = '';
+          
+          payBtn.addEventListener('click', function() {
+            status.textContent = 'Redirecting to payment...';
+            payBtn.disabled = true;
+            
+            cashfree.checkout({
+              paymentSessionId: '${widget.paymentSessionId}',
+              redirectTarget: '_self'
+            });
+          });
+          
+          payBtn.click();
+        } catch (e) {
+          status.textContent = 'Error initializing payment: ' + e.message;
+        }
+      }
+      
+      if (typeof Cashfree !== 'undefined') {
+        initCashfree();
+      } else {
+        window.addEventListener('load', function() {
+          setTimeout(initCashfree, 500);
+        });
+      }
+    });
+  </script>
+</body>
+</html>
+  ''';
+  }
+
+  Future<void> _handleBackPressed() async {
+    if (_checkoutCompleted) {
+      Navigator.of(context).pop(PaymentResult.cancelled);
+      return;
+    }
+    
+    _checkoutCompleted = true;
+    
+    if (mounted) {
+      Navigator.of(context).pop(PaymentResult.cancelled);
+    }
   }
 
   @override
@@ -274,7 +539,7 @@ class _WebViewScreenState extends State<WebViewScreen> {
           backgroundColor: ZarwintoColors.background,
           foregroundColor: ZarwintoColors.foreground,
           leading: IconButton(
-            onPressed: widget.onError,
+            onPressed: _handleBackPressed,
             icon: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: ZarwintoColors.foreground),
           ),
         ),

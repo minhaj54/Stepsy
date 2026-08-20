@@ -2,6 +2,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
+import '../providers/zarwinto_store.dart';
 import '../models/order.dart';
 import '../widgets/z_button.dart';
 import 'orders_screen.dart';
@@ -64,12 +65,20 @@ class _OrderConfirmationScreenState extends State<OrderConfirmationScreen>
     if (!mounted) return;
     _redirectTimer?.cancel();
 
-    Navigator.pushReplacement(
-      context,
-      MaterialPageRoute(
-        builder: (_) => OrdersScreen(initialOrderId: widget.order.id),
-      ),
-    );
+    final store = ZarwintoScope.of(context, listen: false);
+
+    Navigator.pop(context);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      store.setActiveTab(3);
+      Navigator.push(
+        context,
+        MaterialPageRoute(
+          builder: (_) => OrdersScreen(initialOrderId: widget.order.id),
+        ),
+      );
+    });
   }
 
   @override

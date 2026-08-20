@@ -2,7 +2,9 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
+import '../providers/zarwinto_store.dart';
 import '../widgets/z_button.dart';
+import 'orders_screen.dart';
 
 class CheckoutFailureScreen extends StatefulWidget {
   const CheckoutFailureScreen({
@@ -50,15 +52,34 @@ class _CheckoutFailureScreenState extends State<CheckoutFailureScreen>
       setState(() => _countdown--);
       if (_countdown <= 0) {
         timer.cancel();
-        _goBack();
+        _goToOrders();
       }
     });
   }
 
-  void _goBack() {
+  void _goToOrders() {
+    if (!mounted) return;
+    _redirectTimer?.cancel();
+
+    final store = ZarwintoScope.of(context, listen: false);
+
+    Navigator.pop(context);
+
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      if (!mounted) return;
+      store.setActiveTab(3);
+      Navigator.push(
+        context,
+        MaterialPageRoute(builder: (_) => const OrdersScreen()),
+      );
+    });
+  }
+
+  void _retry() {
     if (!mounted) return;
     _redirectTimer?.cancel();
     Navigator.pop(context);
+    widget.onRetry?.call();
   }
 
   @override
@@ -119,7 +140,7 @@ class _CheckoutFailureScreenState extends State<CheckoutFailureScreen>
                   ),
                   const SizedBox(height: ZarwintoSpacing.sm),
                   Text(
-                    'Returning to checkout in $_countdown...',
+                    'Redirecting to My Orders in $_countdown...',
                     style: TextStyle(
                       color: ZarwintoColors.error,
                       fontSize: 13,
@@ -129,18 +150,14 @@ class _CheckoutFailureScreenState extends State<CheckoutFailureScreen>
                   const SizedBox(height: ZarwintoSpacing.xxxl),
                   if (widget.onRetry != null) ...[
                     ZButton.primary(
-                      onPressed: () {
-                        _redirectTimer?.cancel();
-                        Navigator.pop(context);
-                        widget.onRetry!();
-                      },
+                      onPressed: _retry,
                       label: 'Try Again',
                     ),
                     const SizedBox(height: ZarwintoSpacing.lg),
                   ],
-                  TextButton(
-                    onPressed: _goBack,
-                    child: const Text('Back to Cart'),
+                  ZButton.text(
+                    onPressed: _goToOrders,
+                    label: 'View Orders',
                   ),
                 ],
               ),

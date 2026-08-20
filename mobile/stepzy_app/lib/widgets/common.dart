@@ -1,5 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
 import '../core/theme.dart';
@@ -13,35 +12,9 @@ class ZarwintoHeader extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Row(
-      children: [
-        Container(
-          width: 42,
-          height: 42,
-          decoration: BoxDecoration(
-            color: ZarwintoColors.primary.withValues(alpha: .18),
-            borderRadius: BorderRadius.circular(14),
-            border: Border.all(
-              color: ZarwintoColors.primary.withValues(alpha: .25),
-            ),
-          ),
-          child: HugeIcon(icon: HugeIcons.strokeRoundedFlash, color: ZarwintoColors.accent),
-        ),
-        const SizedBox(width: 12),
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
-          children: [
-            Text(
-              title,
-              style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
-            ),
-            const Text(
-              'World of shoes',
-              style: TextStyle(color: ZarwintoColors.muted),
-            ),
-          ],
-        ),
-      ],
+    return Text(
+      title,
+      style: const TextStyle(fontSize: 24, fontWeight: FontWeight.w900),
     );
   }
 }

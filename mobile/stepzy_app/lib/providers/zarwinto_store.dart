@@ -286,6 +286,12 @@ class ZarwintoStore extends ChangeNotifier {
     notifyListeners();
   }
 
+  Future<void> updateProfile({String? fullName, String? phone}) async {
+    await repository.updateProfile(fullName: fullName, phone: phone);
+    await _loadProfileAndWishlist();
+    notifyListeners();
+  }
+
   Future<(String?, bool)> sendOtp(String phone, {String? fullName}) async {
     final result = await repository.sendOtp(phone, fullName: fullName);
     notifyListeners();
@@ -410,7 +416,6 @@ class ZarwintoStore extends ChangeNotifier {
   }
 
   Future<List<Review>> loadProductReviews(String productId) async {
-    setLoadingReviews(true);
     final reviews = await repository.loadProductReviews(productId);
     final resolved = reviews.map(_resolveReviewName).toList();
     setCurrentProductReviews(resolved);

@@ -207,8 +207,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         final order = await store.fetchOrder(orderId);
         if (!mounted) return;
         final displayOrder = order ?? _buildFallbackOrder(orderId, addressData, paymentMethod, store);
-        Navigator.pushReplacement(
-          context,
+        Navigator.of(context).pushAndRemoveUntil(
           MaterialPageRoute(
             builder: (_) => OrderConfirmationScreen(
               order: displayOrder,
@@ -217,6 +216,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               },
             ),
           ),
+          (route) => route.settings.name == '/shell',
         );
       } else {
         String? orderId;
@@ -251,65 +251,70 @@ class _CheckoutPageState extends State<CheckoutPage> {
 
         if (cashfreeResult != null && mounted) {
           final sessionId = cashfreeResult['paymentSessionId'] as String;
-          await Navigator.push(
-            context,
-            MaterialPageRoute(
-              builder: (_) => paymentService.buildCashfreeCheckout(
-                paymentSessionId: sessionId,
-                onSuccess: () async {
-                  await paymentService.verifyCashfreePayment(order.id);
-
-                  try {
-                    final shiprocketResult = await paymentService.syncOrderWithShiprocket(
-                      orderId: order.id,
-                      cartItems: store.cart,
-                      shippingAddress: order.shippingAddress,
-                      paymentMethod: paymentMethod,
-                      subtotal: store.subtotal,
-                      discount: store.discount,
-                      shippingCost: shippingCost.toDouble(),
-                      fullName: order.shippingAddress['fullName'] ?? '',
-                      phone: order.shippingAddress['phone'] ?? '',
-                      email: store.profile?.email ?? '',
-                    );
-                    if (shiprocketResult != null) {
-                      await store.repository.updateOrderShiprocketIds(
-                        order.id,
-                        shiprocketResult['order_id'] as int,
-                        shiprocketResult['shipment_id'] as int,
-                      );
-                    }
-                  } catch (e) {
-                    debugPrint('[CheckoutPage] Shiprocket sync error: $e');
-                  }
-
-                  await store.loadOrders();
-                  final updatedOrder = store.orders.firstWhere(
-                    (o) => o.id == order.id,
-                    orElse: () => order,
-                  );
-                  if (mounted) {
-                    Navigator.pushReplacement(
-                      context,
-                      MaterialPageRoute(
-                        builder: (_) => OrderConfirmationScreen(order: updatedOrder),
-                      ),
-                    );
-                  }
-                },
-                onError: () {
-                  if (mounted) {
-                    ScaffoldMessenger.of(context).showSnackBar(
-                      SnackBar(
-                        content: const Text('Payment failed or cancelled.'),
-                        backgroundColor: colors.error,
-                      ),
-                    );
-                  }
-                },
-              ),
-            ),
+          final paymentResult = await paymentService.showCashfreeCheckout(
+            context: context,
+            paymentSessionId: sessionId,
+            orderId: order.id,
           );
+
+          if (paymentResult == PaymentResult.success && mounted) {
+            final verification = await paymentService.verifyCashfreePayment(order.id);
+            final paymentStatus = (verification?['paymentStatus'] ?? verification?['mappedPaymentStatus'] ?? verification?['order_status'] ?? '').toString().toLowerCase();
+            final isPaid = verification != null && (paymentStatus == 'paid' || paymentStatus == 'success');
+
+            if (isPaid) {
+              try {
+                final shiprocketResult = await paymentService.syncOrderWithShiprocket(
+                  orderId: order.id,
+                  cartItems: store.cart,
+                  shippingAddress: order.shippingAddress,
+                  paymentMethod: paymentMethod,
+                  subtotal: store.subtotal,
+                  discount: store.discount,
+                  shippingCost: shippingCost.toDouble(),
+                  fullName: order.shippingAddress['fullName'] ?? '',
+                  phone: order.shippingAddress['phone'] ?? '',
+                  email: store.profile?.email ?? '',
+                );
+                if (shiprocketResult != null) {
+                  await store.repository.updateOrderShiprocketIds(
+                    order.id,
+                    shiprocketResult['order_id'] as int,
+                    shiprocketResult['shipment_id'] as int,
+                  );
+                }
+              } catch (e) {
+                debugPrint('[CheckoutPage] Shiprocket sync error: $e');
+              }
+
+              await store.loadOrders();
+              final updatedOrder = store.orders.firstWhere(
+                (o) => o.id == order.id,
+                orElse: () => order,
+              );
+              if (mounted) {
+                Navigator.of(context).pushAndRemoveUntil(
+                  MaterialPageRoute(
+                    builder: (_) => OrderConfirmationScreen(order: updatedOrder),
+                  ),
+                  (route) => route.settings.name == '/shell',
+                );
+              }
+            } else {
+              if (mounted) {
+                _navigateToFailure(context, 'Payment was not completed. Please try again.');
+              }
+            }
+          } else if (paymentResult == PaymentResult.failure && mounted) {
+            _navigateToFailure(context, 'Payment failed. Please try again.');
+          } else if (mounted) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: const Text('Payment cancelled.'),
+                backgroundColor: colors.error,
+              ),
+            );
+          }
         } else if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
             SnackBar(
@@ -337,14 +342,14 @@ class _CheckoutPageState extends State<CheckoutPage> {
   }
 
   void _navigateToFailure(BuildContext ctx, String message) {
-    Navigator.pushReplacement(
-      ctx,
+    Navigator.of(ctx).pushAndRemoveUntil(
       MaterialPageRoute(
         builder: (_) => CheckoutFailureScreen(
           errorMessage: message,
           onRetry: () => Navigator.pop(ctx),
         ),
       ),
+      (route) => route.settings.name == '/shell',
     );
   }
 

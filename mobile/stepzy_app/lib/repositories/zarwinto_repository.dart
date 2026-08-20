@@ -220,6 +220,20 @@ class ZarwintoRepository {
     await client?.auth.signOut();
   }
 
+  Future<void> updateProfile({String? fullName, String? phone}) async {
+    final user = client?.auth.currentUser;
+    if (user == null) return;
+    final updates = <String, dynamic>{};
+    if (fullName != null) updates['full_name'] = fullName.trim();
+    if (phone != null) updates['phone'] = phone.trim();
+    if (updates.isNotEmpty) {
+      await client!.from('users').update(updates).eq('id', user.id);
+    }
+    if (fullName != null) {
+      await client!.auth.updateUser(UserAttributes(data: {'full_name': fullName.trim()}));
+    }
+  }
+
   Future<(String?, bool)> sendOtp(String phone, {String? fullName}) async {
     if (client == null) {
       return ('Supabase is not configured for this build.', false);
@@ -514,7 +528,7 @@ class ZarwintoRepository {
           *,
           order_items(
             *,
-            products(title, price, sale_price),
+            products(title, price, sale_price, product_images(image_url)),
             product_variants(size, color)
           )
         ''')

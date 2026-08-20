@@ -31,7 +31,7 @@ class _AccountTabState extends State<AccountTab> {
         child: ListView(
           padding: const EdgeInsets.fromLTRB(18, 12, 18, 120),
           children: [
-            const ZarwintoHeader(title: 'Account'),
+            const ZarwintoHeader(title: 'My account'),
             const SizedBox(height: 18),
             if (profile != null) ...[
               _buildProfileCard(store, profile),
@@ -47,6 +47,85 @@ class _AccountTabState extends State<AccountTab> {
 
   Widget _buildProfileCard(ZarwintoStore store, UserProfile profile) {
     final displayName = profile.fullName.isNotEmpty ? profile.fullName : 'Zarwinto Member';
+
+    void showEditProfileSheet() {
+      final nameCtrl = TextEditingController(text: profile.fullName);
+      final phoneCtrl = TextEditingController(text: profile.phone);
+      bool saving = false;
+      showModalBottomSheet(
+        context: context,
+        isScrollControlled: true,
+        backgroundColor: Colors.transparent,
+        builder: (ctx) => StatefulBuilder(
+          builder: (ctx, setModal) => Container(
+            decoration: const BoxDecoration(
+              color: Colors.white,
+              borderRadius: BorderRadius.vertical(top: Radius.circular(24)),
+            ),
+            padding: EdgeInsets.only(
+              left: 20,
+              right: 20,
+              top: 20,
+              bottom: MediaQuery.of(context).viewInsets.bottom + 20,
+            ),
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Center(
+                  child: Container(
+                    width: 40,
+                    height: 4,
+                    decoration: BoxDecoration(
+                      color: ZarwintoColors.border,
+                      borderRadius: BorderRadius.circular(2),
+                    ),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                const Text('Edit Profile',
+                    style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+                const SizedBox(height: 14),
+                TextField(
+                  controller: nameCtrl,
+                  decoration: const InputDecoration(
+                    labelText: 'Full Name',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 12),
+                TextField(
+                  controller: phoneCtrl,
+                  keyboardType: TextInputType.phone,
+                  decoration: const InputDecoration(
+                    labelText: 'Phone',
+                    border: OutlineInputBorder(),
+                  ),
+                ),
+                const SizedBox(height: 16),
+                SizedBox(
+                  width: double.infinity,
+                  height: 48,
+                  child: FilledButton(
+                    onPressed: saving
+                        ? null
+                        : () async {
+                            setModal(() => saving = true);
+                            await store.updateProfile(
+                              fullName: nameCtrl.text,
+                              phone: phoneCtrl.text,
+                            );
+                            if (mounted) Navigator.pop(ctx);
+                          },
+                    child: Text(saving ? 'Saving...' : 'Save Changes'),
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ),
+      );
+    }
+
     return Card(
       child: Padding(
         padding: const EdgeInsets.all(20),
@@ -71,9 +150,21 @@ class _AccountTabState extends State<AccountTab> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      Text(
-                        displayName,
-                        style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: Text(
+                              displayName,
+                              style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w800),
+                            ),
+                          ),
+                          IconButton(
+                            onPressed: showEditProfileSheet,
+                            icon: const Icon(Icons.edit, size: 18, color: ZarwintoColors.muted),
+                            padding: EdgeInsets.zero,
+                            constraints: const BoxConstraints(),
+                          ),
+                        ],
                       ),
                       const SizedBox(height: 4),
                       if (profile.phone.isNotEmpty)

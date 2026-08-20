@@ -81,7 +81,11 @@ class OrderItem {
       quantity: json['quantity'] as int,
       price: (json['price'] as num).toDouble(),
       productTitle: json['products']?['title'] as String?,
-      productImage: null,
+      productImage: json['products'] is Map &&
+              json['products']['product_images'] is List &&
+              (json['products']['product_images'] as List).isNotEmpty
+          ? (json['products']['product_images'] as List).first['image_url']?.toString()
+          : null,
       variantSize: json['product_variants']?['size'] as String?,
       variantColor: json['product_variants']?['color'] as String?,
     );
