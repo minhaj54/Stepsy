@@ -141,12 +141,12 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
         <div className="glass-card rounded-2xl p-6">
           <h2 className="text-lg font-bold text-foreground mb-6">Quick Actions</h2>
           <div className="space-y-3">
-            {quickLinks.map((link) => (
-              <Link
-                key={link.href}
-                href={link.href}
-                className="flex items-center gap-3 p-4 bg-secondary rounded-xl border border-border hover:bg-secondary hover:border-primary/20 transition-all group"
-              >
+             {quickLinks.map((link) => (
+               <Link
+                 key={link.href}
+                 href={link.href}
+                 className="flex items-center gap-3 p-4 bg-secondary rounded-xl border border-border hover:bg-muted hover:border-primary/20 transition-all group no-underline cursor-pointer"
+               >
                 <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
                   <link.icon className="h-4 w-4 text-primary" />
                 </div>

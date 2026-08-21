@@ -1,5 +1,5 @@
 import React from 'react';
-import { getHomeBanner } from '../../../lib/data/products';
+import { getAdminBanners } from '../../../lib/data/adminBanners';
 import AdminBannersClient from './AdminBannersClient';
 
 export const metadata = {
@@ -7,7 +7,7 @@ export const metadata = {
 };
 
 export default async function AdminBannersPage() {
-  const banner = await getHomeBanner();
+  const banners = await getAdminBanners();
 
-  return <AdminBannersClient initialBanner={banner} />;
+  return <AdminBannersClient initialBanners={banners} />;
 }

@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import { ArrowLeft, Plus, Edit, Trash2, X, Save, Eye, Layers, Upload, Image as ImageIcon, Search, Filter, ChevronDown, Star, Sparkles, Trophy } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '../../../lib/supabase/client';
@@ -45,8 +45,83 @@ export default function AdminProductsClient({
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState<Record<string, number>>({});
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observerRef = useRef<HTMLDivElement>(null);
 
   const configured = isSupabaseConfigured();
+
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore || !configured) return;
+    setIsLoadingMore(true);
+    const nextPage = page + 1;
+    const limit = 20;
+    const from = (nextPage - 1) * limit;
+    const to = from + limit - 1;
+
+    const supabase = createClient();
+    const query = supabase
+      .from('products')
+      .select('id, title, slug, price, sale_price, status, sku, description, featured, new_arrival, best_seller, brand_id, category_id, product_images(image_url, sort_order), product_variants(id, size, color, stock_quantity)')
+      .order('created_at', { ascending: false })
+      .range(from, to);
+    if (storeId) query.eq('store_id', storeId);
+
+    const { data } = await query;
+
+    if (data && data.length > 0) {
+      const mapped = data.map((p: any) => ({
+        id: p.id,
+        title: p.title,
+        slug: p.slug,
+        price: Number(p.price),
+        sale_price: p.sale_price ? Number(p.sale_price) : undefined,
+        status: p.status,
+        sku: p.sku,
+        description: p.description ?? '',
+        featured: p.featured,
+        new_arrival: p.new_arrival,
+        best_seller: p.best_seller,
+        brand_id: p.brand_id,
+        category_id: p.category_id,
+        images: (p.product_images ?? [])
+          .sort((a: any, b: any) => a.sort_order - b.sort_order)
+          .map((img: any) => img.image_url),
+        variants: (p.product_variants ?? []).map((v: any) => ({
+          id: v.id,
+          size: v.size,
+          color: v.color,
+          stock: v.stock_quantity,
+        })),
+        stock: (p.product_variants ?? []).reduce((sum: number, v: any) => sum + (v.stock_quantity || 0), 0),
+      }));
+      setProducts(prev => [...prev, ...mapped]);
+      setPage(nextPage);
+    }
+
+    if (!data || data.length < limit) {
+      setHasMore(false);
+    }
+    setIsLoadingMore(false);
+  }, [configured, hasMore, isLoadingMore, page, storeId]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loadMore, hasMore, isLoadingMore]);
 
   // Form Fields
   const [title, setTitle] = useState('');
@@ -448,6 +523,9 @@ export default function AdminProductsClient({
 
       if (error) {
         console.error('Error deleting product:', error);
+        addToast('Failed to delete product: ' + error.message, 'error');
+      } else {
+        addToast('Product deleted successfully!', 'success');
       }
     }
   };
@@ -652,6 +730,22 @@ export default function AdminProductsClient({
         </div>
 
       </div>
+
+      {/* Infinite scroll sentinel */}
+      {hasMore && (
+        <div ref={observerRef} className="flex items-center justify-center py-6">
+          {isLoadingMore && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <div className="h-4 w-4 rounded-full border-2 border-primary/30 border-t-primary animate-spin" />
+              Loading more products...
+            </div>
+          )}
+        </div>
+      )}
+
+      {!hasMore && products.length > 0 && (
+        <p className="text-center text-xs text-muted-foreground py-6">All products loaded</p>
+      )}
 
       {/* Add / Edit Modal */}
       {isModalOpen && (

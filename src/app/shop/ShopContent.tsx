@@ -8,16 +8,6 @@ import { useCart } from '../../context/CartContext';
 import Link from 'next/link';
 import ShimmerImage from '../../components/ShimmerImage';
 
-// Fisher-Yates shuffle for randomizing product order
-function shuffleArray<T>(array: T[]): T[] {
-  const shuffled = [...array];
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-  }
-  return shuffled;
-}
-
 interface ShopContentProps {
   products: Product[];
   brands: Brand[];
@@ -28,12 +18,6 @@ export default function ShopContent({ products, brands, categories }: ShopConten
   const router = useRouter();
   const searchParams = useSearchParams();
   const { wishlist, toggleWishlist } = useCart();
-
-  // Force shuffle on every page mount
-  const [shuffleKey, setShuffleKey] = useState(0);
-  useEffect(() => {
-    setShuffleKey(prev => prev + 1);
-  }, []);
 
   // URL parameters
   const initialCategory = searchParams.get('category') || '';
@@ -55,10 +39,8 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
   const [maxPrice, setMaxPrice] = useState(priceCeiling);
   const [sortBy, setSortBy] = useState('newest');
-  
-  // Pagination
   const [currentPage, setCurrentPage] = useState(1);
-  const PRODUCTS_PER_PAGE = 6;
+  const PRODUCTS_PER_PAGE = 9;
   
   // Mobile Filter Drawer
   const [isFilterDrawerOpen, setIsFilterDrawerOpen] = useState(false);
@@ -138,24 +120,20 @@ export default function ShopContent({ products, brands, categories }: ShopConten
     return true;
   });
 
-  // Shuffle products on each page load for better UX
-  const shuffledProducts = useMemo(() => shuffleArray(filteredProducts), [filteredProducts, shuffleKey]);
-
-  // Sorting Logic — when sort is "newest" (default), keep the shuffled order
-  // so users see a different product arrangement on each page load.
+  // Sorting Logic
   const sortedProducts = useMemo(() => {
     if (sortBy === 'price-low') {
-      return [...shuffledProducts].sort((a, b) => (a.sale_price || a.price) - (b.sale_price || b.price));
+      return [...filteredProducts].sort((a, b) => (a.sale_price || a.price) - (b.sale_price || b.price));
     }
     if (sortBy === 'price-high') {
-      return [...shuffledProducts].sort((a, b) => (b.sale_price || b.price) - (a.sale_price || a.price));
+      return [...filteredProducts].sort((a, b) => (b.sale_price || b.price) - (a.sale_price || a.price));
     }
     if (sortBy === 'rating') {
-      return [...shuffledProducts].sort((a, b) => b.rating - a.rating);
+      return [...filteredProducts].sort((a, b) => b.rating - a.rating);
     }
-    // Default "newest": return shuffled order (no deterministic sort)
-    return shuffledProducts;
-  }, [shuffledProducts, sortBy]);
+    // Default "newest": return products in original order
+    return filteredProducts;
+  }, [filteredProducts, sortBy]);
 
   // Pagination Logic
   const totalPages = Math.ceil(sortedProducts.length / PRODUCTS_PER_PAGE);
@@ -467,17 +445,17 @@ export default function ShopContent({ products, brands, categories }: ShopConten
               </button>
               
               <div className="flex items-center gap-1.5">
-                {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                {Array.from({ length: totalPages }, (_, i) => i + 1).map((pageNum) => (
                   <button
-                    key={page}
-                    onClick={() => setCurrentPage(page)}
+                    key={pageNum}
+                    onClick={() => setCurrentPage(pageNum)}
                     className={`w-10 h-10 rounded-xl text-sm font-bold transition-all cursor-pointer ${
-                      currentPage === page
+                      currentPage === pageNum
                         ? 'bg-primary text-white shadow-lg shadow-primary/25'
                         : 'bg-card border border-border text-muted-foreground hover:text-foreground hover:border-muted-foreground/50'
                     }`}
                   >
-                    {page}
+                    {pageNum}
                   </button>
                 ))}
               </div>

@@ -110,6 +110,37 @@ export async function getProductsClient(): Promise<Product[]> {
   }
 }
 
+/**
+ * Client-side paginated product fetch for infinite scroll.
+ * Fetches a page of products and falls back to mock data when Supabase
+ * is not configured or the request fails/times out.
+ */
+export async function getProductsClientPaginated(page = 1, limit = 12): Promise<Product[]> {
+  if (!isSupabaseConfigured()) {
+    return mockProducts;
+  }
+
+  try {
+    const supabase = createClient();
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const { data, error } = await supabase
+      .from('products')
+      .select(PRODUCT_SELECT)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error || !data?.length) {
+      return [];
+    }
+    return (data as DbProduct[]).map(mapDbProduct);
+  } catch {
+    return [];
+  }
+}
+
 export async function recalculateProductRating(productId: string): Promise<{ rating: number; reviews_count: number } | null> {
   if (!isSupabaseConfigured()) return null;
 

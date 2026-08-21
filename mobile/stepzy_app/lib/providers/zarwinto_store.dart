@@ -105,78 +105,94 @@ class ZarwintoStore extends ChangeNotifier {
   Future<void> bootstrap() async {
     _loadCart();
     _loadAppliedCoupon();
-    // Re-read the Supabase client now that initialization has had time to complete
     repository.setClient(_configuredSupabaseClient());
     debugPrint('[Zarwinto] bootstrap() — client available: ${repository.client != null}');
     debugPrint('[Zarwinto] bootstrap() — supabaseUrl: $supabaseUrl');
-    debugPrint('[Zarwinto] bootstrap() — supabaseAnonKey present: ${supabaseAnonKey.isNotEmpty}');
-    await refresh();
+    debugPrint('[Zarwinto] bootstrap() — supabaseAnonKey present: $supabaseAnonKey.isNotEmpty');
+    await _loadEssentialData();
+    _loadBackgroundData();
   }
 
-  Future<void> refresh() async {
+  Future<void> _loadEssentialData() async {
     loading = true;
     error = null;
     _productOffset = 0;
     _hasMoreProducts = true;
     notifyListeners();
 
-    debugPrint('[Zarwinto] refresh() started — client available: ${repository.client != null}');
+    debugPrint('[Zarwinto] _loadEssentialData() started');
 
     try {
-      debugPrint('[Zarwinto] refresh() — loading catalog (first page)...');
+      debugPrint('[Zarwinto] _loadEssentialData() — loading catalog (first page)...');
       final data = await repository.loadCatalog();
       products = data.products;
       categories = data.categories;
       brands = data.brands;
       _productOffset = products.length;
       _hasMoreProducts = false;
-      debugPrint('[Zarwinto] refresh() — catalog loaded: ${products.length} products, ${categories.length} categories, ${brands.length} brands, hasMore=$_hasMoreProducts');
+      debugPrint('[Zarwinto] _loadEssentialData() — catalog loaded: ${products.length} products, ${categories.length} categories');
 
-      debugPrint('[Zarwinto] refresh() — loading banners...');
+      debugPrint('[Zarwinto] _loadEssentialData() — loading banners...');
       banners = await repository.loadBanners();
-      debugPrint('[Zarwinto] refresh() — loaded ${banners.length} banners');
+      debugPrint('[Zarwinto] _loadEssentialData() — loaded ${banners.length} banners');
 
-      debugPrint('[Zarwinto] refresh() — loading colors...');
-      colors = await repository.fetchColors();
-      debugPrint('[Zarwinto] refresh() — loaded ${colors.length} colors');
-
-      debugPrint('[Zarwinto] refresh() — loading coupons...');
-      coupons = await repository.loadCoupons();
-      debugPrint('[Zarwinto] refresh() — loaded ${coupons.length} coupons');
-
-      debugPrint('[Zarwinto] refresh() — loading testimonials...');
-      testimonials = await repository.loadTestimonials();
-      debugPrint('[Zarwinto] refresh() — loaded ${testimonials.length} testimonials');
-
-      debugPrint('[Zarwinto] refresh() — loading profile and wishlist...');
-      await _loadProfileAndWishlist();
-      debugPrint('[Zarwinto] refresh() — profile loaded: ${profile != null}, wishlist size: ${wishlist.length}');
-
-      debugPrint('[Zarwinto] refresh() — loading orders...');
-      try {
-        await _loadOrders();
-        debugPrint('[Zarwinto] refresh() — loaded ${orders.length} orders');
-      } catch (e) {
-        debugPrint('[Zarwinto] refresh() — orders load failed: $e');
-      }
-
-      debugPrint('[Zarwinto] refresh() — loading addresses...');
-      try {
-        await _loadAddresses();
-        debugPrint('[Zarwinto] refresh() — loaded ${addresses.length} addresses');
-      } catch (e) {
-        debugPrint('[Zarwinto] refresh() — addresses load failed: $e');
-      }
-
-      debugPrint('[Zarwinto] refresh() complete');
+      debugPrint('[Zarwinto] _loadEssentialData() — essential data complete');
     } catch (err) {
-      debugPrint('[Zarwinto] refresh() error: $err');
+      debugPrint('[Zarwinto] _loadEssentialData() error: $err');
       error = err.toString();
     } finally {
       loading = false;
       notifyListeners();
-      debugPrint('[Zarwinto] refresh() finished — loading=false, products=${products.length}, categories=${categories.length}, brands=${brands.length}');
+      debugPrint('[Zarwinto] _loadEssentialData() finished — loading=false');
     }
+  }
+
+  Future<void> _loadBackgroundData() async {
+    debugPrint('[Zarwinto] _loadBackgroundData() started');
+
+    try {
+      debugPrint('[Zarwinto] _loadBackgroundData() — loading colors...');
+      colors = await repository.fetchColors();
+      debugPrint('[Zarwinto] _loadBackgroundData() — loaded ${colors.length} colors');
+
+      debugPrint('[Zarwinto] _loadBackgroundData() — loading coupons...');
+      coupons = await repository.loadCoupons();
+      debugPrint('[Zarwinto] _loadBackgroundData() — loaded ${coupons.length} coupons');
+
+      debugPrint('[Zarwinto] _loadBackgroundData() — loading testimonials...');
+      testimonials = await repository.loadTestimonials();
+      debugPrint('[Zarwinto] _loadBackgroundData() — loaded ${testimonials.length} testimonials');
+
+      debugPrint('[Zarwinto] _loadBackgroundData() — loading profile and wishlist...');
+      await _loadProfileAndWishlist();
+      debugPrint('[Zarwinto] _loadBackgroundData() — profile loaded: ${profile != null}');
+
+      debugPrint('[Zarwinto] _loadBackgroundData() — loading orders...');
+      try {
+        await _loadOrders();
+        debugPrint('[Zarwinto] _loadBackgroundData() — loaded ${orders.length} orders');
+      } catch (e) {
+        debugPrint('[Zarwinto] _loadBackgroundData() — orders load failed: $e');
+      }
+
+      debugPrint('[Zarwinto] _loadBackgroundData() — loading addresses...');
+      try {
+        await _loadAddresses();
+        debugPrint('[Zarwinto] _loadBackgroundData() — loaded ${addresses.length} addresses');
+      } catch (e) {
+        debugPrint('[Zarwinto] _loadBackgroundData() — addresses load failed: $e');
+      }
+    } catch (err) {
+      debugPrint('[Zarwinto] _loadBackgroundData() error: $err');
+    }
+
+    debugPrint('[Zarwinto] _loadBackgroundData() complete');
+    notifyListeners();
+  }
+
+  Future<void> refresh() async {
+    await _loadEssentialData();
+    _loadBackgroundData();
   }
 
   Future<void> loadMoreProducts() async {

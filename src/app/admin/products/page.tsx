@@ -31,7 +31,7 @@ export default async function AdminProductsPage() {
     }
   }
 
-  const products = await getAdminProducts(storeId);
+  const products = (await getAdminProducts(storeId)).slice(0, 20);
   const brands = await getBrands();
   const categories = await getCategories();
 

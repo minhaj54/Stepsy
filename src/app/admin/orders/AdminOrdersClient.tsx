@@ -1,14 +1,22 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import Link from 'next/link';
-import { ArrowLeft, RefreshCw, ShoppingBag, Eye, Search, Filter, Package, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, ExternalLink, CreditCard } from 'lucide-react';
+import { ArrowLeft, RefreshCw, ShoppingBag, Eye, Search, Filter, Package, MapPin, Calendar, DollarSign, ChevronDown, ChevronUp, ExternalLink, CreditCard, XCircle } from 'lucide-react';
 import { createClient, isSupabaseConfigured } from '../../../lib/supabase/client';
 import { useToast } from '../../../components/Toast';
 
 interface AdminOrdersClientProps {
   initialOrders: any[];
 }
+
+const formatDate = (dateStr: string) => {
+  const date = new Date(dateStr);
+  const day = String(date.getDate()).padStart(2, '0');
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const year = date.getFullYear();
+  return `${day}/${month}/${year}`;
+};
 
 export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientProps) {
   const [orders, setOrders] = useState<any[]>(initialOrders);
@@ -19,6 +27,10 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
   
   const configured = isSupabaseConfigured();
   const { addToast } = useToast();
+  const [page, setPage] = useState(1);
+  const [hasMore, setHasMore] = useState(true);
+  const [isLoadingMore, setIsLoadingMore] = useState(false);
+  const observerRef = useRef<HTMLDivElement>(null);
 
   const handleStatusChange = async (orderId: string, newStatus: string) => {
     setUpdatingId(orderId);
@@ -116,6 +128,82 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
       setUpdatingId(null);
     }
   };
+
+  const loadMore = useCallback(async () => {
+    if (isLoadingMore || !hasMore || !configured) return;
+    setIsLoadingMore(true);
+    const nextPage = page + 1;
+    const limit = 20;
+    const from = (nextPage - 1) * limit;
+    const to = from + limit - 1;
+
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from('orders')
+        .select('*, users(full_name, email, phone), order_items(*, products(title, price, sale_price, product_images(image_url)))')
+        .order('created_at', { ascending: false })
+        .range(from, to);
+
+      if (data && data.length > 0) {
+        const variantIds = new Set<string>();
+        data.forEach((order: any) => {
+          (order.order_items ?? []).forEach((item: any) => {
+            if (item.variant_id) variantIds.add(item.variant_id);
+          });
+        });
+
+        let variantsMap = new Map<string, { size: string; color: string }>();
+        if (variantIds.size > 0) {
+          const { data: variants } = await supabase
+            .from('product_variants')
+            .select('id, size, color')
+            .in('id', Array.from(variantIds));
+          (variants ?? []).forEach((v: any) => {
+            variantsMap.set(v.id, { size: v.size, color: v.color });
+          });
+        }
+
+        data.forEach((order: any) => {
+          (order.order_items ?? []).forEach((item: any) => {
+            const variant = variantsMap.get(item.variant_id);
+            if (variant) {
+              item.variant_size = variant.size;
+              item.variant_color = variant.color;
+            }
+          });
+        });
+
+        setOrders(prev => [...prev, ...(data as any[])]);
+        setPage(nextPage);
+      }
+
+      if (!data || data.length < limit) {
+        setHasMore(false);
+      }
+    } catch (err) {
+      console.error('Error loading more orders:', err);
+    } finally {
+      setIsLoadingMore(false);
+    }
+  }, [configured, hasMore, isLoadingMore, page]);
+
+  useEffect(() => {
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && hasMore && !isLoadingMore) {
+          loadMore();
+        }
+      },
+      { rootMargin: '200px' }
+    );
+
+    if (observerRef.current) {
+      observer.observe(observerRef.current);
+    }
+
+    return () => observer.disconnect();
+  }, [loadMore, hasMore, isLoadingMore]);
 
   const statuses = ['pending', 'processing', 'shipped', 'delivered', 'cancelled'];
   const paymentStatuses = ['unpaid', 'paid', 'refunded', 'cod_pending'];
@@ -240,7 +328,7 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
                     <div className="flex items-center gap-6">
                       <div className="text-right">
                         <p className="text-2xl font-black text-foreground">₹{Number(order.total_amount).toFixed(2)}</p>
-                        <p className="text-xs text-muted-foreground">{new Date(order.created_at).toLocaleDateString()}</p>
+                         <p className="text-xs text-muted-foreground">{formatDate(order.created_at)}</p>
                       </div>
 
                       <div className="flex items-center gap-2">
@@ -262,20 +350,39 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
                           <Package className="h-4 w-4" /> Order Items ({orderItems.length})
                         </h3>
                         <div className="space-y-2">
-                          {orderItems.map((item, idx) => (
-                            <div key={idx} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
-                              <div className="flex items-center gap-3">
-                                <div className="w-10 h-10 bg-zinc-900 rounded-lg flex items-center justify-center">
-                                  <Package className="h-5 w-5 text-muted-foreground" />
+                          {orderItems.map((item: any, idx: number) => {
+                            const imageUrl = item.products?.product_images?.[0]?.image_url;
+                            const size = item.size || item.variant_size;
+                            const color = item.color || item.variant_color;
+                            return (
+                              <div key={idx} className="flex items-center justify-between p-3 bg-secondary rounded-lg">
+                                <div className="flex items-center gap-3">
+                                  {imageUrl ? (
+                                    <img
+                                      src={imageUrl}
+                                      alt={item.products?.title || 'Product'}
+                                      className="w-10 h-10 rounded-lg object-cover"
+                                    />
+                                  ) : (
+                                    <div className="w-10 h-10 bg-zinc-900 rounded-lg flex items-center justify-center">
+                                      <Package className="h-5 w-5 text-muted-foreground" />
+                                    </div>
+                                  )}
+                                  <div>
+                                    <p className="text-sm font-semibold text-foreground">{item.products?.title || 'Product'}</p>
+                                    <p className="text-xs text-muted-foreground">
+                                      {[
+                                        size ? `Size: ${size}` : null,
+                                        color ? `Color: ${color}` : null,
+                                        `Qty: ${item.quantity}`
+                                      ].filter(Boolean).join(' • ')}
+                                    </p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="text-sm font-semibold text-foreground">{item.products?.title || 'Product'}</p>
-                                  <p className="text-xs text-muted-foreground">Qty: {item.quantity}</p>
-                                </div>
+                                <p className="text-sm font-bold text-foreground">₹{Number(item.price * item.quantity).toFixed(2)}</p>
                               </div>
-                              <p className="text-sm font-bold text-foreground">₹{Number(item.price * item.quantity).toFixed(2)}</p>
-                            </div>
-                          ))}
+                            );
+                          })}
                         </div>
                       </div>
 
@@ -329,6 +436,18 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
                                 <span className="text-foreground text-xs">{(order as any).cashfree_payment_message}</span>
                               </div>
                             )}
+                          </div>
+                        </div>
+                      )}
+
+                      {/* Cancel Reason */}
+                      {order.status === 'cancelled' && order.cancel_reason && (
+                        <div>
+                          <h3 className="text-sm font-bold text-foreground mb-3 flex items-center gap-2">
+                            <XCircle className="h-4 w-4 text-red-400" /> Cancellation Reason
+                          </h3>
+                          <div className="p-3 bg-red-500/10 border border-red-500/20 rounded-lg text-sm">
+                            <p className="text-red-400 font-medium">{order.cancel_reason}</p>
                           </div>
                         </div>
                       )}
@@ -449,6 +568,22 @@ export default function AdminOrdersClient({ initialOrders }: AdminOrdersClientPr
             );
           })}
         </div>
+      )}
+
+      {/* Infinite scroll sentinel */}
+      {hasMore && (
+        <div ref={observerRef} className="flex items-center justify-center py-6">
+          {isLoadingMore && (
+            <div className="flex items-center gap-2 text-xs text-muted-foreground">
+              <RefreshCw className="h-4 w-4 animate-spin text-primary" />
+              Loading more orders...
+            </div>
+          )}
+        </div>
+      )}
+
+      {!hasMore && orders.length > 0 && (
+        <p className="text-center text-xs text-muted-foreground py-6">All orders loaded</p>
       )}
     </div>
   );

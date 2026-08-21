@@ -11,6 +11,7 @@ class ZarwintoColors {
   static const foregroundSecondary = Color(0xFF71717A);
   static const muted = Color(0xFF71717A);
   static const primary = Color(0xFF6366F1);
+  static const primaryDark = Color(0xFF4F46E5);
   static const accent = Color(0xFFF97316);
   static const discountText = Color(0xFFEE5D50);
   static const surface = Color(0xFFFFFFFF);

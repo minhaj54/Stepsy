@@ -2,10 +2,11 @@ import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { Store as StoreIcon, AtSign, Package, ArrowRight, Settings, Star, TrendingUp, Phone } from 'lucide-react';
-import { getStoreBySlug, getProductsByStore } from '../../../lib/data/stores';
+import { getStoreBySlug, getProductsByStorePaginated } from '../../../lib/data/stores';
 import { getCurrentUser } from '../../../lib/supabase/server';
 import ShimmerImage from '../../../components/ShimmerImage';
 import VerifiedBadge from '../../../components/VerifiedBadge';
+import StoreProductGrid from './StoreProductGrid';
 
 const SOCIAL_PLATFORMS: Record<string, { icon: string; label: string }> = {
   instagram: { icon: '📷', label: 'Instagram' },
@@ -24,7 +25,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
   const store = await getStoreBySlug(slug);
   if (!store) notFound();
 
-  const products = await getProductsByStore(store.id);
+  const products = await getProductsByStorePaginated(store.id, 1, 12);
   const user = await getCurrentUser();
   const isOwner = user?.id === store.owner_id;
 
@@ -171,106 +172,16 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
           </div>
         )}
 
-        {/* Products Section */}
-        <div className="flex items-center justify-between mb-4 sm:mb-6">
-          <div className="flex items-center gap-2">
-            <Package className="h-5 w-5 text-primary" />
-            <h2 className="text-xl font-bold text-foreground">Products</h2>
-            <span className="text-sm text-muted-foreground">({products.length})</span>
-          </div>
-        </div>
+         {/* Products Section */}
+         <div className="flex items-center justify-between mb-4 sm:mb-6">
+           <div className="flex items-center gap-2">
+             <Package className="h-5 w-5 text-primary" />
+             <h2 className="text-xl font-bold text-foreground">Products</h2>
+             <span className="text-sm text-muted-foreground">({products.length})</span>
+           </div>
+         </div>
 
-        {products.length === 0 ? (
-          <div className="glass-card rounded-2xl p-12 text-center">
-            <Package className="h-12 w-12 text-muted-foreground mx-auto mb-3" />
-            <p className="text-muted-foreground text-sm">No products listed yet.</p>
-            {isOwner && (
-              <Link
-                href="/admin/products"
-                className="mt-4 inline-flex items-center gap-2 text-primary hover:text-primary-hover font-semibold text-sm"
-              >
-                Add your first product <ArrowRight className="h-4 w-4" />
-              </Link>
-            )}
-          </div>
-        ) : (
-          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 lg:gap-6">
-            {products.map((product) => {
-              const salePrice = product.sale_price;
-              const price = product.price;
-              return (
-                <Link
-                  key={product.id}
-                  href={`/product/${product.slug}`}
-                  className="glass-card rounded-2xl overflow-hidden flex flex-col h-full relative group hover:border-primary/20 transition-all duration-300"
-                >
-                  {/* Product Image */}
-                  <div className="aspect-square w-full bg-background/40 relative overflow-hidden">
-                    <ShimmerImage
-                      src={product.images[0]}
-                      alt={product.title}
-                      className="w-full h-full group-hover:scale-105 transition-transform duration-500"
-                    />
-                    {salePrice && (
-                      <div className="absolute top-2 left-2 px-2 py-1 bg-accent text-white text-[10px] font-bold uppercase rounded-md">
-                        Sale
-                      </div>
-                    )}
-                  </div>
-
-                  {/* Details */}
-                  <div className="p-3 sm:p-5 flex-grow flex flex-col justify-between">
-                    <div>
-                      <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
-                        <span>{product.brand_name}</span>
-                        <div className="flex items-center gap-0.5 text-accent font-semibold">
-                          {[1, 2, 3, 4, 5].map((star) => {
-                            const fillRatio = 4.8 - (star - 1);
-                            if (fillRatio >= 1) {
-                              return <Star key={star} className="h-3 w-3 fill-accent" />;
-                            } else if (fillRatio > 0) {
-                              return (
-                                <div key={star} className="relative h-3 w-3">
-                                  <Star className="h-3 w-3 text-zinc-700" />
-                                  <div className="absolute inset-0 overflow-hidden">
-                                    <Star className="h-3 w-3 fill-accent" />
-                                  </div>
-                                </div>
-                              );
-                            } else {
-                              return <Star key={star} className="h-3 w-3 text-zinc-700" />;
-                            }
-                          })}
-                          <span className="ml-0.5">4.8</span>
-                        </div>
-                      </div>
-
-                      <h3 className="font-bold text-foreground text-sm line-clamp-1 group-hover:text-primary transition-colors">
-                        {product.title}
-                      </h3>
-                    </div>
-
-                    <div className="flex justify-between items-center mt-3 pt-2.5 sm:mt-4 sm:pt-3 border-t border-border">
-                      <div>
-                        {salePrice ? (
-                          <div className="flex items-center gap-2">
-                            <span className="text-xs line-through text-muted-foreground">₹{price}</span>
-                            <span className="text-sm font-black text-foreground">₹{salePrice}</span>
-                          </div>
-                        ) : (
-                          <span className="text-sm font-black text-foreground">₹{price}</span>
-                        )}
-                      </div>
-                      <div className="bg-primary hover:bg-primary-hover text-primary-foreground p-2.5 rounded-xl border border-primary hover:border-primary-hover transition-all duration-300">
-                        <ArrowRight className="h-4 w-4" />
-                      </div>
-                    </div>
-                  </div>
-                </Link>
-              );
-            })}
-          </div>
-        )}
+         <StoreProductGrid initialProducts={products} storeId={store.id} isOwner={isOwner} />
       </div>
     </div>
   );

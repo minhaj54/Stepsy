@@ -281,27 +281,27 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       {/* Product Top Half */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
         {/* Left: Images */}
-        <div className="lg:col-span-5 flex gap-3 sm:gap-4">
-          {/* Thumbnails - vertical on desktop, horizontal on mobile */}
-          {product.images.length > 1 && (
-            <div className="hidden lg:flex flex-col gap-2 sm:gap-3">
-              {product.images.map((img, idx) => (
-                <button
-                  key={idx}
-                  onClick={() => setActiveImageIndex(idx)}
-                  className={`aspect-square w-14 sm:w-16 bg-background/40 border rounded-2xl p-1.5 sm:p-2 flex items-center justify-center transition-all cursor-pointer ${
-                    activeImageIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-muted-foreground/50'
-                  }`}
-                >
-                  <ShimmerImage src={img} alt="" className="max-h-[30px] sm:max-h-[40px] w-auto" />
-                </button>
-              ))}
-            </div>
-          )}
-          
-            {/* Main Image with Hover Zoom (desktop only) */}
-            <div className="flex-1">
-              <div
+         <div className="lg:col-span-5 flex lg:flex-row flex-col gap-3 sm:gap-4">
+           {/* Thumbnails - vertical on desktop, hidden on mobile */}
+           {product.images.length > 1 && (
+             <div className="hidden lg:flex flex-col gap-2 sm:gap-3">
+               {product.images.map((img, idx) => (
+                 <button
+                   key={idx}
+                   onClick={() => setActiveImageIndex(idx)}
+                   className={`aspect-square w-14 sm:w-16 bg-background/40 border rounded-2xl p-1.5 sm:p-2 flex items-center justify-center transition-all cursor-pointer ${
+                     activeImageIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-muted-foreground/50'
+                   }}`}
+                 >
+                   <ShimmerImage src={img} alt="" className="max-h-[30px] sm:max-h-[40px] w-auto" />
+                 </button>
+               ))}
+             </div>
+           )}
+           
+             {/* Main Image with Hover Zoom (desktop only) */}
+             <div className="w-full lg:flex-1">
+                <div
                 className="aspect-[3/4] sm:aspect-[4/5] bg-background/40 rounded-2xl sm:rounded-3xl overflow-hidden border border-border relative"
                 {...(isDesktop ? {
                   onMouseEnter: () => setIsHovering(true),

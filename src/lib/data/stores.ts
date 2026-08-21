@@ -133,6 +133,29 @@ export async function getProductsByStore(storeId: string): Promise<Product[]> {
   }
 }
 
+export async function getProductsByStorePaginated(storeId: string, page = 1, limit = 20): Promise<Product[]> {
+  try {
+    const { createClient } = await import('../supabase/server');
+    const supabase = await createClient();
+
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
+    const { data, error } = await supabase
+      .from('products')
+      .select(PRODUCT_SELECT)
+      .eq('store_id', storeId)
+      .eq('status', 'active')
+      .order('created_at', { ascending: false })
+      .range(from, to);
+
+    if (error || !data) return [];
+    return (data as any[]).map(mapDbProduct);
+  } catch {
+    return [];
+  }
+}
+
 export async function getAllStores() {
   try {
     const { createClient } = await import('../supabase/server');

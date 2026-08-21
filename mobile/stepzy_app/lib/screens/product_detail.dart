@@ -134,7 +134,10 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
         action: SnackBarAction(
           label: 'VIEW BAG',
           textColor: Colors.white,
-          onPressed: () => store.setActiveTab(2),
+          onPressed: () {
+            Navigator.of(context).pop();
+            store.setActiveTab(2);
+          },
         ),
       ),
     );

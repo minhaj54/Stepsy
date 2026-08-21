@@ -384,7 +384,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           variant_id: item.variant.id,
           quantity: item.quantity,
           price: item.product.sale_price || item.product.price,
-          color: item.color ?? item.variant.color
+          color: item.color ?? item.variant.color,
+          size: item.variant.size
         }));
 
         const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);

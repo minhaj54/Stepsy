@@ -101,10 +101,10 @@ export const PRODUCT_SELECT = `
   product_variants(id, product_id, size, color, stock_quantity)
 `;
 
-export async function getProducts(): Promise<Product[]> {
+export async function getProducts(limit?: number): Promise<Product[]> {
   if (!isSupabaseConfigured()) {
     console.log('Supabase not configured, returning mock products');
-    return mockProducts;
+    return limit ? mockProducts.slice(0, limit) : mockProducts;
   }
 
   try {
@@ -116,6 +116,7 @@ export async function getProducts(): Promise<Product[]> {
       .select(PRODUCT_SELECT)
       .eq('status', 'active')
       .order('created_at', { ascending: false });
+    if (limit) query.limit(limit);
 
     const result = await withTimeout(query, 4000);
 
@@ -536,20 +537,54 @@ export async function getAdminStats() {
   }
 }
 
-export async function getAdminOrders() {
+export async function getAdminOrders(page = 1, limit = 50) {
   if (!isSupabaseConfigured()) return [];
 
   try {
     const { createClient } = await import('../supabase/server');
     const supabase = await createClient();
 
+    const from = (page - 1) * limit;
+    const to = from + limit - 1;
+
     const { data } = await supabase
       .from('orders')
-       .select('*, users(full_name, email, phone), order_items(*, products(title, price, sale_price))')
+       .select('*, users(full_name, email, phone), order_items(*, products(title, price, sale_price, product_images(image_url)))')
        .order('created_at', { ascending: false })
-       .limit(50);
+       .range(from, to);
 
-    return data ?? [];
+    if (!data) return [];
+
+    const variantIds = new Set<string>();
+    data.forEach((order: any) => {
+      (order.order_items ?? []).forEach((item: any) => {
+        if (item.variant_id) variantIds.add(item.variant_id);
+      });
+    });
+
+    let variantsMap = new Map<string, { size: string; color: string }>();
+    if (variantIds.size > 0) {
+      const { data: variants } = await supabase
+        .from('product_variants')
+        .select('id, size, color')
+        .in('id', Array.from(variantIds));
+      
+      (variants ?? []).forEach((v: any) => {
+        variantsMap.set(v.id, { size: v.size, color: v.color });
+      });
+    }
+
+    data.forEach((order: any) => {
+      (order.order_items ?? []).forEach((item: any) => {
+        const variant = variantsMap.get(item.variant_id);
+        if (variant) {
+          item.variant_size = variant.size;
+          item.variant_color = variant.color;
+        }
+      });
+    });
+
+    return data;
   } catch {
     return [];
   }
@@ -837,15 +872,46 @@ export async function getStoreOrders(storeId: string) {
 
     if (orderIds.length === 0) return [];
 
-    // Get orders with user info
-    const { data } = await supabase
-      .from('orders')
-       .select('*, users(full_name, email, phone), order_items(*, products(title, price, sale_price))')
-       .in('id', orderIds)
-       .order('created_at', { ascending: false })
-       .limit(50);
+     // Get orders with user info
+     const { data } = await supabase
+       .from('orders')
+        .select('*, users(full_name, email, phone), order_items(*, products(title, price, sale_price, product_images(image_url)))')
+        .in('id', orderIds)
+        .order('created_at', { ascending: false })
+        .limit(50);
 
-    return data ?? [];
+     if (data) {
+       const variantIds = new Set<string>();
+       data.forEach((order: any) => {
+         (order.order_items ?? []).forEach((item: any) => {
+           if (item.variant_id) variantIds.add(item.variant_id);
+         });
+       });
+
+       let variantsMap = new Map<string, { size: string; color: string }>();
+       if (variantIds.size > 0) {
+         const { data: variants } = await supabase
+           .from('product_variants')
+           .select('id, size, color')
+           .in('id', Array.from(variantIds));
+         
+         (variants ?? []).forEach((v: any) => {
+           variantsMap.set(v.id, { size: v.size, color: v.color });
+         });
+       }
+
+       data.forEach((order: any) => {
+         (order.order_items ?? []).forEach((item: any) => {
+           const variant = variantsMap.get(item.variant_id);
+           if (variant) {
+             item.variant_size = variant.size;
+             item.variant_color = variant.color;
+           }
+         });
+       });
+     }
+
+     return data ?? [];
   } catch {
     return [];
   }
