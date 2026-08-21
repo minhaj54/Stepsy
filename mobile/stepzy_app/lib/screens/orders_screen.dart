@@ -1,6 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
+import 'package:shimmer/shimmer.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/zarwinto_store.dart';
 import '../core/theme.dart';
 import '../models/order.dart';
@@ -19,41 +21,76 @@ class OrdersScreen extends StatefulWidget {
 class _OrdersScreenState extends State<OrdersScreen> {
   List<Order> _orders = [];
   bool _loading = true;
+  bool _loadingMore = false;
   String? _error;
   String? _expandedOrderId;
+  int _currentPage = 1;
+  bool _hasMore = true;
+  final ScrollController _scrollController = ScrollController();
 
   @override
   void initState() {
     super.initState();
     _expandedOrderId = widget.initialOrderId;
+    _scrollController.addListener(_onScroll);
     WidgetsBinding.instance.addPostFrameCallback((_) {
-      if (mounted) _loadOrders();
+      if (mounted) _loadOrders(reset: true);
     });
   }
 
-  Future<void> _loadOrders() async {
+  @override
+  void dispose() {
+    _scrollController.removeListener(_onScroll);
+    _scrollController.dispose();
+    super.dispose();
+  }
+
+  Future<void> _launchWhatsApp() async {
+    final uri = Uri.parse('https://wa.me/917982369183');
+    if (await canLaunchUrl(uri)) await launchUrl(uri);
+  }
+
+  Future<void> _loadOrders({bool reset = true}) async {
     if (!mounted) return;
-    setState(() {
-      _loading = true;
-      _error = null;
-    });
+    if (reset) {
+      setState(() {
+        _orders = [];
+        _loading = true;
+        _error = null;
+        _currentPage = 1;
+        _hasMore = true;
+      });
+    } else if (_loadingMore || !_hasMore) {
+      return;
+    }
 
     try {
       final store = ZarwintoScope.of(context, listen: false);
-      final orders = await store.repository.loadOrders();
+      final newOrders = await store.repository.loadOrdersPage(page: _currentPage, pageSize: 10);
+
       if (mounted) {
         setState(() {
-          _orders = orders;
+          _orders = reset ? newOrders : [..._orders, ...newOrders];
           _loading = false;
+          _loadingMore = false;
+          _hasMore = newOrders.length >= 10;
+          _currentPage = _currentPage + 1;
         });
       }
     } catch (e) {
       if (mounted) {
         setState(() {
-          _error = e.toString();
+          _error = reset ? e.toString() : null;
           _loading = false;
+          _loadingMore = false;
         });
       }
+    }
+  }
+
+  void _onScroll() {
+    if (_scrollController.position.pixels >= _scrollController.position.maxScrollExtent - 200) {
+      _loadOrders(reset: false);
     }
   }
 
@@ -69,6 +106,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
           backgroundColor: ZarwintoColors.background,
           foregroundColor: ZarwintoColors.foreground,
           elevation: 0,
+          actions: [
+            IconButton(
+              onPressed: _launchWhatsApp,
+              icon: HugeIcon(
+                icon: HugeIcons.strokeRoundedBubbleChat,
+                size: 20,
+                color: ZarwintoColors.whatsappGreen,
+              ),
+              tooltip: 'Chat on WhatsApp',
+            ),
+          ],
         ),
         body: Center(
           child: Padding(
@@ -110,11 +158,26 @@ class _OrdersScreenState extends State<OrdersScreen> {
         backgroundColor: ZarwintoColors.background,
         foregroundColor: ZarwintoColors.foreground,
         elevation: 0,
+        actions: [
+          IconButton(
+            onPressed: _launchWhatsApp,
+            icon: HugeIcon(
+              icon: HugeIcons.strokeRoundedBubbleChat,
+              size: 20,
+              color: ZarwintoColors.whatsappGreen,
+            ),
+            tooltip: 'Chat on WhatsApp',
+          ),
+        ],
       ),
       body: RefreshIndicator(
         onRefresh: _loadOrders,
         child: _loading
-            ? const Center(child: CircularProgressIndicator(color: ZarwintoColors.primary))
+            ? ListView.builder(
+                padding: const EdgeInsets.all(16),
+                itemCount: 3,
+                itemBuilder: (context, index) => const ShimmerOrderCard(),
+              )
             : _error != null
                 ? Center(
                     child: Padding(
@@ -164,19 +227,39 @@ class _OrdersScreenState extends State<OrdersScreen> {
                         ),
                       )
                     : ListView.builder(
+                        controller: _scrollController,
                         padding: const EdgeInsets.all(16),
-                        itemCount: _orders.length,
+                        itemCount: _orders.length + (_hasMore || _loadingMore ? 1 : 0),
                         itemBuilder: (context, index) {
-                          final order = _orders[index];
-                          final isExpanded = _expandedOrderId == order.id;
-                          return OrderCard(
-                            order: order,
-                            isExpanded: isExpanded,
-                            onToggleExpand: () {
-                              setState(() {
-                                _expandedOrderId = isExpanded ? null : order.id;
-                              });
-                            },
+                          if (index < _orders.length) {
+                            final order = _orders[index];
+                            final isExpanded = _expandedOrderId == order.id;
+                            return OrderCard(
+                              order: order,
+                              isExpanded: isExpanded,
+                              onToggleExpand: () {
+                                setState(() {
+                                  _expandedOrderId = isExpanded ? null : order.id;
+                                });
+                              },
+                            );
+                          }
+
+                          if (_hasMore) {
+                            return const Padding(
+                              padding: EdgeInsets.symmetric(vertical: 20),
+                              child: ShimmerOrderCard(),
+                            );
+                          }
+
+                          return Padding(
+                            padding: const EdgeInsets.symmetric(vertical: 20),
+                            child: Center(
+                              child: Text(
+                                'No more orders',
+                                style: mutedStyle.copyWith(fontSize: 12),
+                              ),
+                            ),
                           );
                         },
                       ),
@@ -399,6 +482,21 @@ class OrderCard extends StatelessWidget {
                         Text(moneyFormat.format(order.totalAmount), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: ZarwintoColors.primary)),
                       ],
                     ),
+                    if (_isCancellable(order.status)) ...[
+                      const SizedBox(height: 16),
+                      SizedBox(
+                        width: double.infinity,
+                        child: OutlinedButton.icon(
+                          onPressed: () => _showCancelDialog(context, order),
+                          icon: HugeIcon(icon: HugeIcons.strokeRoundedDelete01, size: 18, color: ZarwintoColors.error),
+                          label: const Text('Cancel Order', style: TextStyle(color: ZarwintoColors.error)),
+                          style: OutlinedButton.styleFrom(
+                            side: BorderSide(color: ZarwintoColors.error.withValues(alpha: 0.3)),
+                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                          ),
+                        ),
+                      ),
+                    ],
                   ],
                 ),
               ),
@@ -435,5 +533,296 @@ class OrderCard extends StatelessWidget {
       default:
         return ZarwintoColors.muted;
     }
+  }
+
+  bool _isCancellable(String status) {
+    final lower = status.toLowerCase();
+    return lower == 'pending' || lower == 'processing';
+  }
+
+  Future<void> _showCancelDialog(BuildContext context, Order order) async {
+    final reasons = [
+      'Changed my mind',
+      'Found better price elsewhere',
+      'Ordered by mistake',
+      'Need to change address',
+      'Other',
+    ];
+
+    String? selectedReason;
+
+    await showDialog(
+      context: context,
+      barrierDismissible: false,
+      builder: (ctx) => StatefulBuilder(
+        builder: (context, setState) {
+          return AlertDialog(
+            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(20)),
+            title: Row(
+              children: [
+                Container(
+                  width: 40,
+                  height: 40,
+                  decoration: BoxDecoration(
+                    color: ZarwintoColors.error.withValues(alpha: 0.1),
+                    borderRadius: BorderRadius.circular(12),
+                  ),
+                  child: HugeIcon(icon: HugeIcons.strokeRoundedDelete01, color: ZarwintoColors.error, size: 20),
+                ),
+                const SizedBox(width: 12),
+                const Text('Cancel Order', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w800)),
+              ],
+            ),
+            content: Column(
+              mainAxisSize: MainAxisSize.min,
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  'Are you sure you want to cancel order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id}?',
+                  style: const TextStyle(color: ZarwintoColors.muted, fontSize: 14),
+                ),
+                const SizedBox(height: 16),
+                const Text('Please select a reason:', style: TextStyle(fontWeight: FontWeight.w600, fontSize: 14)),
+                const SizedBox(height: 10),
+                ...reasons.map((reason) {
+                  final isSelected = selectedReason == reason;
+                  return GestureDetector(
+                    onTap: () {
+                      setState(() => selectedReason = reason);
+                    },
+                    child: AnimatedContainer(
+                      duration: const Duration(milliseconds: 200),
+                      margin: const EdgeInsets.only(bottom: 8),
+                      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+                      decoration: BoxDecoration(
+                        color: isSelected ? ZarwintoColors.error.withValues(alpha: 0.06) : ZarwintoColors.card,
+                        borderRadius: BorderRadius.circular(12),
+                        border: Border.all(
+                          color: isSelected ? ZarwintoColors.error : ZarwintoColors.border,
+                          width: isSelected ? 2 : 1,
+                        ),
+                      ),
+                      child: Row(
+                        children: [
+                          AnimatedContainer(
+                            duration: const Duration(milliseconds: 200),
+                            width: 20,
+                            height: 20,
+                            decoration: BoxDecoration(
+                              color: isSelected ? ZarwintoColors.error : Colors.transparent,
+                              shape: BoxShape.circle,
+                              border: Border.all(
+                                color: isSelected ? ZarwintoColors.error : ZarwintoColors.muted,
+                                width: 2,
+                              ),
+                            ),
+                            child: isSelected
+                                ? const Icon(Icons.check, size: 12, color: Colors.white)
+                                : null,
+                          ),
+                          const SizedBox(width: 12),
+                          Expanded(
+                            child: Text(
+                              reason,
+                              style: TextStyle(
+                                fontSize: 14,
+                                fontWeight: isSelected ? FontWeight.w600 : FontWeight.w500,
+                                color: isSelected ? ZarwintoColors.error : ZarwintoColors.foreground,
+                              ),
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+                }),
+              ],
+            ),
+            actions: [
+              TextButton(
+                onPressed: () => Navigator.pop(ctx),
+                child: const Text('Keep Order'),
+              ),
+              FilledButton(
+                onPressed: selectedReason == null
+                    ? null
+                    : () async {
+                        Navigator.pop(ctx);
+                        final store = ZarwintoScope.of(context, listen: false);
+                        await store.cancelOrder(order.id, selectedReason!);
+                        if (context.mounted) {
+                          ScaffoldMessenger.of(context).showSnackBar(
+                            SnackBar(
+                              content: Text('Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id} cancelled'),
+                              backgroundColor: ZarwintoColors.error,
+                            ),
+                          );
+                        }
+                      },
+                style: FilledButton.styleFrom(
+                  backgroundColor: ZarwintoColors.error,
+                ),
+                child: const Text('Cancel Order'),
+              ),
+            ],
+          );
+        },
+      ),
+    );
+  }
+}
+
+class ShimmerOrderCard extends StatelessWidget {
+  const ShimmerOrderCard({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return Shimmer.fromColors(
+      baseColor: const Color(0xFFF2F2F3),
+      highlightColor: const Color(0xFFFAFAFA),
+      period: const Duration(milliseconds: 1200),
+      child: Card(
+        margin: const EdgeInsets.only(bottom: 12),
+        child: Padding(
+          padding: const EdgeInsets.all(16),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Row(
+                children: [
+                  Container(
+                    height: 14,
+                    width: 120,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(20),
+                    ),
+                    child: Container(
+                      height: 12,
+                      width: 56,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 6),
+              Row(
+                children: [
+                  Container(
+                    height: 12,
+                    width: 100,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    height: 12,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  const Spacer(),
+                  Container(
+                    height: 12,
+                    width: 64,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                  const SizedBox(width: 8),
+                  Container(
+                    width: 20,
+                    height: 20,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(4),
+                    ),
+                  ),
+                ],
+              ),
+              const SizedBox(height: 14),
+              Container(
+                height: 48,
+                width: 48,
+                decoration: BoxDecoration(
+                  color: Colors.white,
+                  borderRadius: BorderRadius.circular(8),
+                ),
+              ),
+              const SizedBox(height: 10),
+              ...List.generate(2, (_) => Padding(
+                padding: const EdgeInsets.only(bottom: 10),
+                child: Row(
+                  children: [
+                    Expanded(
+                      child: Container(
+                        height: 12,
+                        decoration: BoxDecoration(
+                          color: Colors.white,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                      ),
+                    ),
+                    const SizedBox(width: 12),
+                    Container(
+                      height: 12,
+                      width: 60,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ],
+                ),
+              )),
+              const SizedBox(height: 12),
+              Container(
+                height: 1,
+                color: Colors.white,
+              ),
+              const SizedBox(height: 10),
+              Row(
+                children: [
+                  Expanded(
+                    child: Container(
+                      height: 12,
+                      decoration: BoxDecoration(
+                        color: Colors.white,
+                        borderRadius: BorderRadius.circular(6),
+                      ),
+                    ),
+                  ),
+                  const SizedBox(width: 12),
+                  Container(
+                    height: 16,
+                    width: 80,
+                    decoration: BoxDecoration(
+                      color: Colors.white,
+                      borderRadius: BorderRadius.circular(6),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
   }
 }

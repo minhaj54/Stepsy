@@ -28,83 +28,82 @@ class ProductCard extends StatelessWidget {
       child: Card(
         margin: EdgeInsets.zero,
         clipBehavior: Clip.antiAlias,
-        child: SizedBox(
-          width: double.infinity,
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              // Image
-              SizedBox(
-                height: 130,
-                child: Stack(
-                  fit: StackFit.expand,
-                  children: [
-                    ColoredBox(
-                      color: ZarwintoColors.background,
-                      child: ZarwintoRemoteImage(
-                        url: product.images.isNotEmpty ? product.images.first : '',
-                        seed: 'prod_${product.id}',
-                      ),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            Expanded(
+              flex: 3,
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  ColoredBox(
+                    color: ZarwintoColors.background,
+                    child: ZarwintoRemoteImage(
+                      url: product.images.isNotEmpty ? product.images.first : '',
+                      seed: 'prod_${product.id}',
                     ),
-                    if (hasDiscount)
-                      Positioned(
-                        top: 6,
-                        left: 6,
-                        child: Container(
-                          padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
-                          decoration: BoxDecoration(
-                            color: ZarwintoColors.error,
-                            borderRadius: BorderRadius.circular(6),
-                          ),
-                          child: Text(
-                            '-$discountPercent%',
-                            style: const TextStyle(
-                              color: Colors.white,
-                              fontSize: 10,
-                              fontWeight: FontWeight.w800,
-                            ),
-                          ),
-                        ),
-                      ),
+                  ),
+                  if (hasDiscount)
                     Positioned(
                       top: 6,
-                      right: 6,
-                      child: GestureDetector(
-                        onTap: () => store.toggleWishlist(product.id),
-                        child: AnimatedContainer(
-                          duration: const Duration(milliseconds: 200),
-                          width: 26,
-                          height: 26,
-                          decoration: BoxDecoration(
-                            color: saved ? ZarwintoColors.accent : Colors.white,
-                            shape: BoxShape.circle,
-                            border: Border.all(
-                              color: saved ? ZarwintoColors.accent : Colors.grey.shade300,
-                              width: 1.2,
-                            ),
-                          ),
-                          child: HugeIcon(
-                            icon: saved
-                                ? HugeIcons.strokeRoundedHeartAdd
-                                : HugeIcons.strokeRoundedHeartRemove,
-                            size: 13,
-                            color: saved ? Colors.white : Colors.grey.shade600,
+                      left: 6,
+                      child: Container(
+                        padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                        decoration: BoxDecoration(
+                          color: ZarwintoColors.error,
+                          borderRadius: BorderRadius.circular(6),
+                        ),
+                        child: Text(
+                          '-$discountPercent%',
+                          style: const TextStyle(
+                            color: Colors.white,
+                            fontSize: 10,
+                            fontWeight: FontWeight.w800,
                           ),
                         ),
                       ),
                     ),
-                  ],
-                ),
+                  Positioned(
+                    top: 6,
+                    right: 6,
+                    child: GestureDetector(
+                      onTap: () => store.toggleWishlist(product.id),
+                      child: AnimatedContainer(
+                        duration: const Duration(milliseconds: 200),
+                        width: 26,
+                        height: 26,
+                        decoration: BoxDecoration(
+                          color: saved ? ZarwintoColors.accent : Colors.white,
+                          shape: BoxShape.circle,
+                          border: Border.all(
+                            color: saved ? ZarwintoColors.accent : Colors.grey.shade300,
+                            width: 1.2,
+                          ),
+                        ),
+                        child: HugeIcon(
+                          icon: saved
+                              ? HugeIcons.strokeRoundedHeartAdd
+                              : HugeIcons.strokeRoundedHeartRemove,
+                          size: 13,
+                          color: saved ? Colors.white : Colors.grey.shade600,
+                        ),
+                      ),
+                    ),
+                  ),
+                ],
               ),
-              // Product info
-              Padding(
+            ),
+            Expanded(
+              flex: 2,
+              child: Padding(
                 padding: const EdgeInsets.fromLTRB(10, 10, 10, 10),
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
+                  mainAxisAlignment: MainAxisAlignment.spaceBetween,
                   children: [
                     Text(
                       product.title,
-                      maxLines: 2,
+                      maxLines: 1,
                       overflow: TextOverflow.ellipsis,
                       style: const TextStyle(
                         fontWeight: FontWeight.w700,
@@ -112,7 +111,6 @@ class ProductCard extends StatelessWidget {
                         height: 1.25,
                       ),
                     ),
-                    const SizedBox(height: 4),
                     Row(
                       children: [
                         Expanded(
@@ -146,12 +144,12 @@ class ProductCard extends StatelessWidget {
                         ],
                       ],
                     ),
-                    const SizedBox(height: 8),
                     Row(
                       children: [
                         Expanded(
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
+                            mainAxisSize: MainAxisSize.min,
                             children: [
                               Text(
                                 hasDiscount
@@ -194,8 +192,8 @@ class ProductCard extends StatelessWidget {
                   ],
                 ),
               ),
-            ],
-          ),
+            ),
+          ],
         ),
       ),
     );

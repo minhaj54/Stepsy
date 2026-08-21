@@ -86,11 +86,11 @@ class CartRow extends StatelessWidget {
                         ),
                       ),
                       if (item.variant.size.isNotEmpty ||
-                          item.variant.color.isNotEmpty)
+                          (item.color ?? item.variant.color).isNotEmpty)
                         Padding(
                           padding: const EdgeInsets.only(top: 2),
                           child: Text(
-                            '${item.variant.size} / ${item.variant.color}'
+                            '${item.variant.size} / ${item.color ?? item.variant.color}'
                                 .trim(),
                             style: mutedStyle,
                           ),

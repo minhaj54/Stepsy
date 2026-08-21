@@ -10,6 +10,7 @@ class Order {
     required this.items,
     this.couponCode,
     this.discountAmount = 0,
+    this.cancelReason,
     required this.createdAt,
   });
 
@@ -25,6 +26,7 @@ class Order {
       shippingAddress: json['shipping_address'] as Map<String, dynamic>,
       couponCode: json['coupon_code'] as String?,
       discountAmount: (json['discount_amount'] as num?)?.toDouble() ?? 0,
+      cancelReason: json['cancel_reason'] as String?,
       createdAt: DateTime.parse(json['created_at'] as String),
       items: itemsList.map((item) => OrderItem.fromJson(item as Map<String, dynamic>)).toList(),
     );
@@ -39,6 +41,7 @@ class Order {
   final Map<String, dynamic> shippingAddress;
   final String? couponCode;
   final double discountAmount;
+  final String? cancelReason;
   final List<OrderItem> items;
   final DateTime createdAt;
 
@@ -87,7 +90,7 @@ class OrderItem {
           ? (json['products']['product_images'] as List).first['image_url']?.toString()
           : null,
       variantSize: json['product_variants']?['size'] as String?,
-      variantColor: json['product_variants']?['color'] as String?,
+      variantColor: json['color'] as String?,
     );
   }
 

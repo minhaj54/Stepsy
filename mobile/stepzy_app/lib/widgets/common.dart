@@ -215,6 +215,7 @@ class ShimmerProductCard extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
           Expanded(
+            flex: 3,
             child: Container(
               decoration: const BoxDecoration(
                 color: Color(0xFFF4F4F5),
@@ -222,17 +223,21 @@ class ShimmerProductCard extends StatelessWidget {
               ),
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.all(12),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Container(height: 10, width: 60, color: const Color(0xFFF4F4F5)),
-                const SizedBox(height: 6),
-                Container(height: 14, width: double.infinity, color: const Color(0xFFF4F4F5)),
-                const SizedBox(height: 8),
-                Container(height: 14, width: 80, color: const Color(0xFFF4F4F5)),
-              ],
+          Expanded(
+            flex: 2,
+            child: Padding(
+              padding: const EdgeInsets.all(12),
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Container(height: 10, width: 60, color: const Color(0xFFF4F4F5)),
+                  const SizedBox(height: 6),
+                  Container(height: 14, width: double.infinity, color: const Color(0xFFF4F4F5)),
+                  const SizedBox(height: 8),
+                  Container(height: 14, width: 80, color: const Color(0xFFF4F4F5)),
+                ],
+              ),
             ),
           ),
         ],

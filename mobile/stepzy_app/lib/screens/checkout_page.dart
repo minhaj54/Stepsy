@@ -287,6 +287,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 debugPrint('[CheckoutPage] Shiprocket sync error: $e');
               }
 
+              await store.repository.updateOrderPaymentStatus(order.id, 'paid');
               await store.loadOrders();
               final updatedOrder = store.orders.firstWhere(
                 (o) => o.id == order.id,
@@ -363,6 +364,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
         variantId: item.variant.id,
         quantity: item.quantity,
         price: item.product.currentPrice,
+        variantSize: item.variant.size,
+        variantColor: item.color ?? item.variant.color,
       );
     }).toList();
 

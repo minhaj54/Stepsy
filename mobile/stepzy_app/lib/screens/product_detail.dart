@@ -127,7 +127,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of stock')));
       return;
     }
-    store.addToCart(widget.product, variant, quantity: quantity);
+    store.addToCart(widget.product, variant, quantity: quantity, selectedColor: selectedColor);
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(
         content: Text('${widget.product.title} added to bag!'),
@@ -153,7 +153,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       ScaffoldMessenger.of(context).showSnackBar(const SnackBar(content: Text('Out of stock')));
       return;
     }
-    store.addToCart(widget.product, variant, quantity: quantity);
+    store.addToCart(widget.product, variant, quantity: quantity, selectedColor: selectedColor);
     Navigator.push(context, MaterialPageRoute(builder: (_) => const CheckoutPage()));
   }
 
@@ -885,6 +885,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
 
   Widget _buildSizeSelector() {
     final availableSizes = widget.product.variants.map((v) => v.size).toSet().toList();
+    availableSizes.sort((a, b) {
+      final ia = int.tryParse(a);
+      final ib = int.tryParse(b);
+      if (ia != null && ib != null) return ia.compareTo(ib);
+      return a.toLowerCase().compareTo(b.toLowerCase());
+    });
     if (availableSizes.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 8),

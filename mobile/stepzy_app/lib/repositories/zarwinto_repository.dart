@@ -502,6 +502,15 @@ class ZarwintoRepository {
     return Order.fromJson(row);
   }
 
+  Future<void> updateOrderPaymentStatus(String orderId, String paymentStatus) async {
+    if (client == null) return;
+    final updates = <String, dynamic>{'payment_status': paymentStatus};
+    if (paymentStatus.toLowerCase() == 'paid') {
+      updates['status'] = 'processing';
+    }
+    await client!.from('orders').update(updates).eq('id', orderId);
+  }
+
   Future<void> updateOrderShiprocketIds(
     String orderId,
     int shiprocketOrderId,
@@ -513,6 +522,17 @@ class ZarwintoRepository {
         .update({
           'shiprocket_order_id': shiprocketOrderId,
           'shipment_id': shipmentId,
+        })
+        .eq('id', orderId);
+  }
+
+  Future<void> cancelOrder(String orderId, String reason) async {
+    if (client == null) return;
+    await client!
+        .from('orders')
+        .update({
+          'status': 'cancelled',
+          'cancel_reason': reason,
         })
         .eq('id', orderId);
   }
@@ -534,6 +554,30 @@ class ZarwintoRepository {
         ''')
         .eq('user_id', user.id)
         .order('created_at', ascending: false);
+
+    return orders.map<Order>((row) => Order.fromJson(row)).toList();
+  }
+
+  Future<List<Order>> loadOrdersPage({int page = 1, int pageSize = 10}) async {
+    final user = client?.auth.currentUser;
+    if (client == null || user == null) return [];
+
+    final start = (page - 1) * pageSize;
+    final end = start + pageSize - 1;
+
+    final orders = await client!
+        .from('orders')
+        .select('''
+          *,
+          order_items(
+            *,
+            products(title, price, sale_price, product_images(image_url)),
+            product_variants(size, color)
+          )
+        ''')
+        .eq('user_id', user.id)
+        .order('created_at', ascending: false)
+        .range(start, end);
 
     return orders.map<Order>((row) => Order.fromJson(row)).toList();
   }

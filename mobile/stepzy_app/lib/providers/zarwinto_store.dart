@@ -215,7 +215,7 @@ class ZarwintoStore extends ChangeNotifier {
   List<Product> bestSellers() =>
       products.where((product) => product.bestSeller).take(6).toList();
 
-  void addToCart(Product product, ProductVariant variant, {int quantity = 1}) {
+  void addToCart(Product product, ProductVariant variant, {int quantity = 1, String? selectedColor}) {
     final index = cart.indexWhere((item) => item.variant.id == variant.id);
     if (index >= 0) {
       cart[index] = cart[index].copyWith(
@@ -223,7 +223,7 @@ class ZarwintoStore extends ChangeNotifier {
       );
     } else {
       cart.add(
-        CartItem(product: product, variant: variant, quantity: quantity),
+        CartItem(product: product, variant: variant, quantity: quantity, color: selectedColor),
       );
     }
     _saveCart();
@@ -356,6 +356,12 @@ class ZarwintoStore extends ChangeNotifier {
 
   Future<Order?> fetchOrder(String orderId) async {
     return repository.fetchOrder(orderId);
+  }
+
+  Future<void> cancelOrder(String orderId, String reason) async {
+    await repository.cancelOrder(orderId, reason);
+    await _loadOrders();
+    notifyListeners();
   }
 
   Future<void> loadOrders() async {

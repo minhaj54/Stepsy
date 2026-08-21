@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
+import 'package:flutter_animate/flutter_animate.dart';
 import '../core/theme.dart';
 import '../providers/zarwinto_store.dart';
 
@@ -14,15 +14,19 @@ class _SplashScreenState extends State<SplashScreen> {
   @override
   void initState() {
     super.initState();
-    _checkAuthAndNavigate();
+    _waitForBootstrap();
   }
 
-  Future<void> _checkAuthAndNavigate() async {
-    await Future.delayed(const Duration(milliseconds: 1500));
-    if (!mounted) return;
-
+  Future<void> _waitForBootstrap() async {
     final store = ZarwintoScope.of(context, listen: false);
-    
+    while (store.loading && mounted) {
+      await Future.delayed(const Duration(milliseconds: 150));
+    }
+    if (!mounted) return;
+    _navigate(store);
+  }
+
+  void _navigate(ZarwintoStore store) {
     if (store.profile != null) {
       Navigator.of(context).pushReplacementNamed('/shell');
     } else {
@@ -38,46 +42,36 @@ class _SplashScreenState extends State<SplashScreen> {
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            Container(
-              width: 100,
-              height: 100,
-              decoration: BoxDecoration(
-                color: Colors.white,
-                borderRadius: BorderRadius.circular(24),
-                boxShadow: [
-                  BoxShadow(
-                    color: Colors.black.withValues(alpha: 0.15),
-                    blurRadius: 24,
-                    offset: const Offset(0, 10),
-                  ),
-                ],
-              ),
-              child: HugeIcon(icon: HugeIcons.strokeRoundedFlash, color: ZarwintoColors.accent, size: 50),
-            ),
+            Image.asset(
+              'assets/App icon/GooglePlayStore.png',
+              width: 120,
+              height: 120,
+            ).animate().scale(
+                  duration: const Duration(milliseconds: 800),
+                  curve: Curves.easeOutBack,
+                ).fadeIn(duration: const Duration(milliseconds: 600)),
             const SizedBox(height: 24),
-            const Text(
+            Text(
               'ZARWINTO',
               style: TextStyle(
-                fontSize: 36,
-                fontWeight: FontWeight.w900,
+                fontSize: 34,
+                fontWeight: FontWeight.w800,
                 color: Colors.white,
-                letterSpacing: -0.5,
+                letterSpacing: 1.2,
+                height: 1.1,
               ),
-            ),
-            const SizedBox(height: 8),
+            ).animate().fadeIn(delay: const Duration(milliseconds: 200), duration: const Duration(milliseconds: 600)).slideY(begin: 0.2, end: 0, curve: Curves.easeOut),
+            const SizedBox(height: 10),
             Text(
-              'Your Style, Delivered',
+              'Step into the right choice',
               style: TextStyle(
-                fontSize: 16,
-                fontWeight: FontWeight.w500,
-                color: Colors.white.withValues(alpha: 0.9),
+                fontSize: 15,
+                fontWeight: FontWeight.w400,
+                color: Colors.white.withValues(alpha: 0.88),
+                letterSpacing: 0.4,
+                height: 1.4,
               ),
-            ),
-            const SizedBox(height: 60),
-            const CircularProgressIndicator(
-              valueColor: AlwaysStoppedAnimation<Color>(Colors.white),
-              strokeWidth: 3,
-            ),
+            ).animate().fadeIn(delay: const Duration(milliseconds: 400), duration: const Duration(milliseconds: 600)).slideY(begin: 0.2, end: 0, curve: Curves.easeOut),
           ],
         ),
       ),
