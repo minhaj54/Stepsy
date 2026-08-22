@@ -6,6 +6,7 @@ import { Product, ProductVariant, Review, Store } from '../../../types';
 import { useCart } from '../../../context/CartContext';
 import { useAuth } from '../../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../../lib/supabase/client';
+import { recalculateProductRating } from '../../../lib/data/products.client';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
 import { useToast } from '../../../components/Toast';
@@ -108,17 +109,18 @@ export default function ProductDetailClient({ product, store, initialReviews, re
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
   // Tab State
-  const [activeTab, setActiveTab] = useState<'description' | 'specifications' | 'shipping'>('description');
+  const [activeTab, setActiveTab] = useState<'description' | 'shipping'>('description');
 
   // Local Review State
   const [localReviews, setLocalReviews] = useState<Review[]>(initialReviews);
-  const [newReviewRating, setNewReviewRating] = useState(5);
+  const [newReviewRating, setNewReviewRating] = useState(0);
   const [newReviewText, setNewReviewText] = useState('');
-  const [newReviewName, setNewReviewName] = useState('');
   const [reviewSuccess, setReviewSuccess] = useState(false);
 
   // Hardcoded rating for all products
-  const displayRating = 4.8;
+  const displayRating = localReviews.length > 0
+    ? Math.round((localReviews.reduce((sum, r) => sum + r.rating, 0) / localReviews.length) * 10) / 10
+    : product.rating;
   const reviewCount = localReviews.length;
 
   const isWishlisted = wishlist.includes(product.id);
@@ -211,14 +213,18 @@ export default function ProductDetailClient({ product, store, initialReviews, re
 
   const handleReviewSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!newReviewName.trim() || !newReviewText.trim()) return;
+    if (!newReviewText.trim() || newReviewRating === 0) return;
 
-    // Generate a proper UUID for the review
-    const reviewId = crypto.randomUUID ? crypto.randomUUID() : `rev_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+    if (!configured || !user) {
+      addToast('Please log in to submit a review.', 'error');
+      return;
+    }
+
+    const newReviewId = crypto.randomUUID ? crypto.randomUUID() : `temp_${Date.now()}`;
     const newReview: Review = {
-      id: reviewId,
-      user_id: user?.id || 'usr_local',
-      user_name: newReviewName,
+      id: newReviewId,
+      user_id: user.id,
+      user_name: user?.full_name || user?.email || 'Anonymous',
       product_id: product.id,
       rating: newReviewRating,
       review_text: newReviewText,
@@ -226,42 +232,42 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       approved: true
     };
 
-    setLocalReviews(prev => [newReview, ...prev]);
+    setLocalReviews(prev => [
+      ...prev.filter(r => r.user_id === user.id && r.product_id === product.id),
+      newReview
+    ]);
 
-    if (configured && user) {
+    try {
       const supabase = createClient();
       const { error } = await supabase
         .from('reviews')
-        .insert({
-          id: reviewId,
+        .upsert({
           user_id: user.id,
           product_id: product.id,
           rating: newReviewRating,
           review_text: newReviewText,
           approved: true
-        });
+        }, { onConflict: 'user_id,product_id' });
 
       if (error) {
-        console.error('Error submitting review:', error);
-        // Revert local state on error
-        setLocalReviews(prev => prev.filter(r => r.id !== reviewId));
+        console.error('Error submitting review:', JSON.stringify(error, null, 2));
+        setLocalReviews(prev => prev.filter(r => r.id !== newReviewId));
         addToast('Failed to submit review. Please try again.', 'error');
-      } else {
-        addToast('Review submitted successfully!', 'success');
-        // Recalculate product rating after successful review
-        // Note: In a real app, you might want to call an API to update the product rating
+        return;
       }
-    } else if (!user) {
-      // Revert local state if not logged in
-      setLocalReviews(prev => prev.filter(r => r.id !== reviewId));
-      addToast('Please log in to submit a review.', 'error');
-    }
 
-    setNewReviewName('');
-    setNewReviewText('');
-    setNewReviewRating(5);
-    setReviewSuccess(true);
-    setTimeout(() => setReviewSuccess(false), 4000);
+      await recalculateProductRating(product.id);
+
+      addToast('Review submitted successfully!', 'success');
+      setNewReviewText('');
+      setNewReviewRating(0);
+      setReviewSuccess(true);
+      setTimeout(() => setReviewSuccess(false), 4000);
+    } catch (err) {
+      console.error('Unexpected error submitting review:', err);
+      setLocalReviews(prev => prev.filter(r => r.id !== newReviewId));
+      addToast('An unexpected error occurred. Please try again.', 'error');
+    }
   };
 
   // Available colors: prefer the seller-curated list, fall back to variant colors
@@ -392,8 +398,9 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           
            <h1 className="text-2xl sm:text-3xl font-extrabold text-foreground tracking-tight leading-tight">{product.title}</h1>
            
-           <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
-          <div className="flex items-center gap-0.5 text-accent font-bold text-sm">
+            <div className="flex flex-wrap items-center gap-x-4 gap-y-1">
+           {displayRating > 0 && (
+            <div className="flex items-center gap-0.5 text-accent font-bold text-sm">
                 {[1, 2, 3, 4, 5].map((star) => {
                   const fillRatio = displayRating - (star - 1);
                   if (fillRatio >= 1) {
@@ -414,9 +421,10 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                 <span className="text-foreground font-semibold ml-1">{displayRating}</span>
                 <span className="text-muted-foreground font-semibold ml-1">({reviewCount} reviews)</span>
               </div>
+            )}
              <span className="text-muted-foreground">|</span>
              <span className="text-xs text-muted-foreground font-semibold">SKU: {product.sku}</span>
-           </div>
+            </div>
 
           {/* Stock Status */}
           {selectedSize && activeVariant && activeVariant.stock_quantity === 0 && (
@@ -668,14 +676,6 @@ export default function ProductDetailClient({ product, store, initialReviews, re
             Description
           </button>
           <button
-            onClick={() => setActiveTab('specifications')}
-            className={`pb-3.5 font-bold tracking-wide transition-all ${
-              activeTab === 'specifications' ? 'text-foreground border-b-2 border-primary' : 'text-muted-foreground hover:text-muted-foreground'
-            }`}
-          >
-            Technical Specifications
-          </button>
-          <button
             onClick={() => setActiveTab('shipping')}
             className={`pb-3.5 font-bold tracking-wide transition-all ${
               activeTab === 'shipping' ? 'text-foreground border-b-2 border-primary' : 'text-muted-foreground hover:text-muted-foreground'
@@ -689,21 +689,6 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           {activeTab === 'description' && (
             <div className="max-w-3xl prose prose-invert prose-sm">
               {formatDescription(product.description)}
-            </div>
-          )}
-
-          {activeTab === 'specifications' && (
-            <div className="max-w-xl bg-card border border-border rounded-2xl overflow-hidden divide-y divide-border">
-              {product.specifications ? (
-                Object.entries(product.specifications).map(([key, val]) => (
-                  <div key={key} className="grid grid-cols-1 sm:grid-cols-2 p-3 sm:p-4">
-                    <span className="font-semibold text-foreground text-xs sm:text-sm">{key}</span>
-                    <span className="text-xs sm:text-sm">{val}</span>
-                  </div>
-                ))
-              ) : (
-                <p className="p-4 text-muted-foreground italic text-sm">No specifications available for this product.</p>
-              )}
             </div>
           )}
 
@@ -837,39 +822,42 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           {/* Review Form */}
           <div className="glass-card p-6 rounded-2xl border border-border space-y-4">
             <h3 className="font-bold text-foreground text-base">Write a Review</h3>
-            
+
+            {!user && (
+              <p className="text-sm text-muted-foreground">
+                Please <Link href="/login" className="text-primary hover:underline font-semibold">log in</Link> to write a review.
+              </p>
+            )}
+
+            {user && (
             <form onSubmit={handleReviewSubmit} className="space-y-4">
               <div>
                 <label className="block text-xs font-bold uppercase tracking-wider text-muted-foreground mb-2">Rating</label>
-                <div className="flex gap-1.5 text-accent">
-                  {[1, 2, 3, 4, 5].map((star) => (
-                    <button
-                      type="button"
-                      key={star}
-                      onClick={() => setNewReviewRating(star)}
-                      className="cursor-pointer transition-transform hover:scale-110"
-                    >
-                      <Star className={`h-6 w-6 ${star <= newReviewRating ? 'fill-accent' : 'text-zinc-700'}`} />
-                    </button>
-                  ))}
+                <div className="flex items-center gap-2">
+                  <div className="flex gap-1 text-accent">
+                    {[1, 2, 3, 4, 5].map((star) => (
+                      <button
+                        type="button"
+                        key={star}
+                        onClick={() => setNewReviewRating(star)}
+                        className="cursor-pointer transition-transform hover:scale-110"
+                      >
+                        <Star className={`h-6 w-6 ${star <= newReviewRating ? 'fill-accent' : 'text-zinc-700'}`} />
+                      </button>
+                    ))}
+                  </div>
+                  {newReviewRating > 0 && (
+                    <span className="text-xs font-semibold text-muted-foreground">
+                      {['', 'Poor', 'Fair', 'Good', 'Very Good', 'Excellent'][newReviewRating]}
+                    </span>
+                  )}
                 </div>
               </div>
 
               <div className="space-y-1">
-                <label htmlFor="name-input" className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Your Name</label>
-                <input
-                  id="name-input"
-                  type="text"
-                  required
-                  placeholder="e.g. Minhaj Raza"
-                  value={newReviewName}
-                  onChange={(e) => setNewReviewName(e.target.value)}
-                  className="w-full bg-background text-foreground border border-border rounded-xl px-4 py-2.5 text-sm outline-none focus:border-primary"
-                />
-              </div>
-
-              <div className="space-y-1">
-                <label htmlFor="review-input" className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Review Message</label>
+                <label htmlFor="review-input" className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">
+                  Review Message
+                </label>
                 <textarea
                   id="review-input"
                   required
@@ -883,12 +871,14 @@ export default function ProductDetailClient({ product, store, initialReviews, re
 
               <button
                 type="submit"
-                className="w-full bg-primary hover:bg-primary-hover text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
+                disabled={newReviewRating === 0}
+                className="w-full bg-primary hover:bg-primary-hover disabled:opacity-50 disabled:cursor-not-allowed text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all cursor-pointer"
               >
                 Submit Review
                 <Send className="h-3.5 w-3.5" />
               </button>
             </form>
+            )}
 
             {reviewSuccess && (
               <p className="text-xs text-green-500 font-medium text-center animate-pulse">

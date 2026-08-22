@@ -159,26 +159,28 @@ export default function HomeClient({ products, categories, brands, testimonials 
                     <div>
                       <div className="flex justify-between items-center text-xs text-muted-foreground mb-1">
                         <span>{product.brand_name}</span>
-                        <div className="flex items-center gap-0.5 text-accent font-semibold">
-                          {[1, 2, 3, 4, 5].map((star) => {
-                            const fillRatio = 4.8 - (star - 1);
-                            if (fillRatio >= 1) {
-                              return <Star key={star} className="h-3 w-3 fill-accent" />;
-                            } else if (fillRatio > 0) {
-                              return (
-                                <div key={star} className="relative h-3 w-3">
-                                  <Star className="h-3 w-3 text-zinc-700" />
-                                  <div className="absolute inset-0 overflow-hidden">
-                                    <Star className="h-3 w-3 fill-accent" />
+                        {product.rating > 0 && (
+                          <div className="flex items-center gap-0.5 text-accent font-semibold">
+                            {[1, 2, 3, 4, 5].map((star) => {
+                              const fillRatio = product.rating - (star - 1);
+                              if (fillRatio >= 1) {
+                                return <Star key={star} className="h-3 w-3 fill-accent" />;
+                              } else if (fillRatio > 0) {
+                                return (
+                                  <div key={star} className="relative h-3 w-3">
+                                    <Star className="h-3 w-3 text-zinc-700" />
+                                    <div className="absolute inset-0 overflow-hidden">
+                                      <Star className="h-3 w-3 fill-accent" />
+                                    </div>
                                   </div>
-                                </div>
-                              );
-                            } else {
-                              return <Star key={star} className="h-3 w-3 text-zinc-700" />;
-                            }
-                          })}
-                          <span className="ml-0.5">4.8</span>
-                        </div>
+                                );
+                              } else {
+                                return <Star key={star} className="h-3 w-3 text-zinc-700" />;
+                              }
+                            })}
+                            <span className="ml-0.5">{product.rating}</span>
+                          </div>
+                        )}
                       </div>
 
                       <Link href={`/product/${product.slug}`}>

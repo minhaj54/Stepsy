@@ -4,7 +4,7 @@ import React, { createContext, useContext, useEffect, useState, useCallback } fr
 import { User as SupabaseUser, Session } from '@supabase/supabase-js';
 import { createClient, isSupabaseConfigured, checkSupabaseConnectivity } from '../lib/supabase/client';
 import { normalizePhone } from '../lib/phone';
-import { canResendOtp, recordOtpSend, recordOtpAttempt, clearOtpAttempts } from '../lib/auth/rateLimiter';
+import { canResendOtp, recordOtpSend, recordOtpAttempt, clearOtpAttempts, isOtpLocked, getRemainingAttempts } from '../lib/auth/rateLimiter';
 
 export interface UserProfile {
   id: string;
@@ -218,26 +218,46 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         return { error: `Please wait ${remainingSeconds} seconds before requesting a new OTP.` };
       }
 
-      // Check if phone is locked due to too many failed attempts
-      const attemptCheck = recordOtpAttempt(normalizedPhone);
-      if (!attemptCheck.allowed) {
-        const lockoutMinutes = Math.ceil((attemptCheck.lockedUntil! - Date.now()) / 60000);
-        return { error: `Too many failed attempts. Please try again in ${lockoutMinutes} minutes.` };
+      // Check if phone is locked due to too many failed VERIFICATION attempts
+      const lockCheck = isOtpLocked(normalizedPhone);
+      if (lockCheck.locked) {
+        const lockoutMinutes = Math.ceil((lockCheck.lockedUntil! - Date.now()) / 60000);
+        return { error: `Too many failed OTP attempts. Try again in ${lockoutMinutes} minutes.` };
       }
 
-      // Check if user already exists
-      const { data: existingUser } = await supabase
-        .from('users')
-        .select('id')
-        .eq('phone', normalizedPhone)
-        .maybeSingle();
+      // Check if user already exists (tolerant of +91 vs 91 storage formats).
+      // Uses a SECURITY DEFINER RPC because the users table's SELECT RLS policy
+      // (auth.uid() = id) returns nothing for unauthenticated users.
+      const { data: existsData, error: existsErr } = await supabase
+        .rpc('check_user_registered', { p_phone: normalizedPhone });
 
-      const isNewUser = !existingUser;
+      if (existsErr) {
+        console.error('[AuthContext] check_user_registered error:', existsErr);
+        return { error: 'Unable to verify account status. Please try again.' };
+      }
+
+      const isNewUser = !existsData;
+
+      // In login mode (no fullName provided), reject unregistered users
+      if (isNewUser && !fullName) {
+        return {
+          error: 'User not registered. Please sign up first.',
+          isNewUser: false,
+        };
+      }
+
+      // In signup mode, reject already-registered users  
+      if (!isNewUser && fullName) {
+        return {
+          error: 'Account already exists with this number. Please sign in instead.',
+          isNewUser: false,
+        };
+      }
 
       const { error } = await supabase.auth.signInWithOtp({
         phone: normalizedPhone,
         options: {
-          shouldCreateUser: true,
+          shouldCreateUser: isNewUser,
           data: fullName ? { full_name: fullName.trim() } : {}
         }
       });
@@ -261,11 +281,11 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       const normalizedPhone = normalizePhone(phone);
       const supabase = createClient();
 
-      // Check if phone is locked due to too many failed attempts
-      const attemptCheck = recordOtpAttempt(normalizedPhone);
-      if (!attemptCheck.allowed) {
-        const lockoutMinutes = Math.ceil((attemptCheck.lockedUntil! - Date.now()) / 60000);
-        return { error: `Too many failed attempts. Please try again in ${lockoutMinutes} minutes.` };
+      // Check if phone is locked — read-only, does not increment attempt count
+      const lockCheck = isOtpLocked(normalizedPhone);
+      if (lockCheck.locked) {
+        const lockoutMinutes = Math.ceil((lockCheck.lockedUntil! - Date.now()) / 60000);
+        return { error: `Too many failed OTP attempts. Try again in ${lockoutMinutes} minutes.` };
       }
       
       const { error, data } = await supabase.auth.verifyOtp({
@@ -278,9 +298,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       });
 
       if (error) {
-        const remaining = attemptCheck.remaining - 1;
+        // Only count actual failed verification attempts
+        recordOtpAttempt(normalizedPhone);
+        const remaining = getRemainingAttempts(normalizedPhone);
         if (remaining <= 0) {
-          return { error: 'Too many failed attempts. Your account has been temporarily locked. Please try again later.' };
+          const lockInfo = isOtpLocked(normalizedPhone);
+          const lockoutMinutes = lockInfo.lockedUntil ? Math.ceil((lockInfo.lockedUntil - Date.now()) / 60000) : 0;
+          return { error: `Too many failed attempts. Account locked for ${lockoutMinutes} minutes.` };
         }
         return { error: `Invalid OTP. ${remaining} attempts remaining.` };
       }

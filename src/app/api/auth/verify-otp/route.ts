@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
-import { normalizePhone } from '@/lib/phone';
-import { recordOtpAttempt, clearOtpAttempts } from '@/lib/auth/rateLimiter';
+import { normalizePhone, phoneLast10 } from '@/lib/phone';
+import { isOtpLocked, recordOtpAttempt, clearOtpAttempts, getRemainingAttempts } from '@/lib/auth/rateLimiter';
 
 export async function POST(request: Request) {
   try {
@@ -13,12 +13,12 @@ export async function POST(request: Request) {
 
     const normalizedPhone = normalizePhone(phone);
 
-    // Check if phone is locked due to too many failed attempts
-    const attemptCheck = recordOtpAttempt(normalizedPhone);
-    if (!attemptCheck.allowed) {
-      const lockoutMinutes = Math.ceil((attemptCheck.lockedUntil! - Date.now()) / 60000);
+    // Read-only lock check (does not increment attempts)
+    const lockCheck = isOtpLocked(normalizedPhone);
+    if (lockCheck.locked) {
+      const lockoutMinutes = Math.ceil((lockCheck.lockedUntil! - Date.now()) / 60000);
       return NextResponse.json(
-        { error: `Too many failed attempts. Please try again in ${lockoutMinutes} minutes.` },
+        { error: `Too many failed OTP attempts. Try again in ${lockoutMinutes} minutes.` },
         { status: 429 }
       );
     }
@@ -31,11 +31,14 @@ export async function POST(request: Request) {
     });
 
     if (error) {
-      console.error('[API/verify-otp] Error:', error.message);
-      const remaining = attemptCheck.remaining - 1;
+      // Only count actual failed verification attempts
+      recordOtpAttempt(normalizedPhone);
+      const remaining = getRemainingAttempts(normalizedPhone);
       if (remaining <= 0) {
+        const lockInfo = isOtpLocked(normalizedPhone);
+        const lockoutMinutes = lockInfo.lockedUntil ? Math.ceil((lockInfo.lockedUntil - Date.now()) / 60000) : 0;
         return NextResponse.json(
-          { error: 'Too many failed attempts. Your account has been temporarily locked. Please try again later.' },
+          { error: `Too many failed attempts. Account locked for ${lockoutMinutes} minutes.` },
           { status: 429 }
         );
       }

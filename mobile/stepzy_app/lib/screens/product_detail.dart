@@ -4,6 +4,7 @@ import 'package:hugeicons/hugeicons.dart';
 import 'dart:io';
 import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart' as path_provider;
+import 'package:shimmer/shimmer.dart';
 import '../core/theme.dart';
 import '../models/product.dart';
 import '../models/product_variant.dart';
@@ -511,11 +512,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                               height: double.infinity,
                             loadingBuilder: (context, child, progress) {
                               if (progress == null) return child;
-                              return const Center(
-                                child: SizedBox(
-                                  width: 32,
-                                  height: 32,
-                                  child: CircularProgressIndicator(strokeWidth: 2),
+                              return Shimmer.fromColors(
+                                baseColor: ZarwintoColors.border,
+                                highlightColor: Colors.white,
+                                period: const Duration(milliseconds: 1200),
+                                child: Container(
+                                  width: double.infinity,
+                                  height: double.infinity,
+                                  decoration: BoxDecoration(
+                                    color: ZarwintoColors.border,
+                                    borderRadius: BorderRadius.circular(18),
+                                  ),
                                 ),
                               );
                             },
@@ -567,6 +574,22 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                           child: Image.network(
                             images[index],
                             fit: BoxFit.cover,
+                            loadingBuilder: (context, child, progress) {
+                              if (progress == null) return child;
+                              return Shimmer.fromColors(
+                                baseColor: ZarwintoColors.border,
+                                highlightColor: Colors.white,
+                                period: const Duration(milliseconds: 1200),
+                                child: Container(
+                                  width: 46,
+                                  height: 46,
+                                  decoration: BoxDecoration(
+                                    color: ZarwintoColors.border,
+                                    borderRadius: BorderRadius.circular(12),
+                                  ),
+                                ),
+                              );
+                            },
                             errorBuilder: (ctx, err, stk) => Container(
                               color: ZarwintoColors.background,
                               child: const Icon(Icons.image, size: 24, color: ZarwintoColors.muted),

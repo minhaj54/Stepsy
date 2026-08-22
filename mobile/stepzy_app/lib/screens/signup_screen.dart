@@ -8,7 +8,9 @@ import '../core/phone.dart';
 enum AuthStep { phone, otp }
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+  const SignupScreen({super.key, this.initialPhone});
+
+  final String? initialPhone;
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
@@ -25,6 +27,25 @@ class _SignupScreenState extends State<SignupScreen> {
   final phoneController = TextEditingController();
   final otpController = TextEditingController();
   final nameController = TextEditingController();
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.initialPhone != null && widget.initialPhone!.isNotEmpty) {
+      phoneController.text = widget.initialPhone!;
+    }
+  }
+
+  @override
+  void didChangeDependencies() {
+    super.didChangeDependencies();
+    if (widget.initialPhone == null || widget.initialPhone!.isEmpty) {
+      final routeArgs = ModalRoute.of(context)?.settings.arguments;
+      if (routeArgs is String && routeArgs.isNotEmpty && phoneController.text.isEmpty) {
+        phoneController.text = routeArgs;
+      }
+    }
+  }
 
   @override
   void dispose() {
@@ -112,11 +133,13 @@ class _SignupScreenState extends State<SignupScreen> {
     if (result.$1 != null) {
       setState(() => errorMessage = result.$1);
     } else {
-      _navigateToShell();
+      _navigateToProfile();
     }
   }
 
-  void _navigateToShell() {
+  void _navigateToProfile() {
+    final store = ZarwintoScope.of(context, listen: false);
+    store.setActiveTab(3);
     Navigator.of(context).pushNamedAndRemoveUntil('/shell', (route) => false);
   }
 
@@ -128,13 +151,12 @@ class _SignupScreenState extends State<SignupScreen> {
       backgroundColor: ZarwintoColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+          padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 40),
               _buildHeader(),
-              const SizedBox(height: 32),
+              const SizedBox(height: 40),
               if (step == AuthStep.phone) _buildPhoneForm(store) else _buildOtpForm(store),
               const SizedBox(height: 24),
               _buildLoginLink(),
@@ -149,24 +171,39 @@ class _SignupScreenState extends State<SignupScreen> {
     return Column(
       children: [
         Container(
-          width: 64,
-          height: 64,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
-            color: ZarwintoColors.primary.withValues(alpha: .12),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: ZarwintoColors.primary.withValues(alpha: .2)),
+            color: ZarwintoColors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: ZarwintoColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: ZarwintoColors.primary.withValues(alpha: 0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          child: HugeIcon(icon: HugeIcons.strokeRoundedFlash, color: ZarwintoColors.accent, size: 32),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Image.asset(
+              'assets/App icon/1024x1024.png',
+              width: 56,
+              height: 56,
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         const Text(
           'Join Zarwinto',
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: ZarwintoColors.foreground),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Create your account with your phone',
-          style: TextStyle(fontSize: 14, color: ZarwintoColors.muted),
+          'Create your account and start shopping',
+          style: TextStyle(fontSize: 14, color: ZarwintoColors.muted, height: 1.5),
         ),
       ],
     );
@@ -211,6 +248,11 @@ class _SignupScreenState extends State<SignupScreen> {
             hintText: '98765 43210',
             prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedCall, size: 20, color: ZarwintoColors.muted),
           ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'We will send you a one-time SMS to verify your number',
+          style: TextStyle(fontSize: 12, color: ZarwintoColors.muted, height: 1.4),
         ),
         const SizedBox(height: 16),
         FilledButton(
@@ -301,12 +343,17 @@ class _SignupScreenState extends State<SignupScreen> {
             prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedLock, size: 20, color: ZarwintoColors.muted),
           ),
         ),
+        const SizedBox(height: 8),
+        const Text(
+          'Please check your messages for the verification code',
+          style: TextStyle(fontSize: 12, color: ZarwintoColors.muted, height: 1.4),
+        ),
         const SizedBox(height: 16),
         FilledButton(
           onPressed: busy ? null : () => handleVerifyOtp(store),
           child: busy
               ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Verify & Create Account'),
+              : Text(isNewUser ? 'Verify & Create Account' : 'Verify & Sign In'),
         ),
         const SizedBox(height: 12),
         Row(

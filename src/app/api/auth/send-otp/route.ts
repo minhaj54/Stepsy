@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { createClient } from '@/lib/supabase/server';
 import { normalizePhone } from '@/lib/phone';
-import { canResendOtp, recordOtpSend, recordOtpAttempt, clearOtpAttempts } from '@/lib/auth/rateLimiter';
+import { canResendOtp, recordOtpSend, isOtpLocked, clearOtpAttempts } from '@/lib/auth/rateLimiter';
 
 export async function POST(request: Request) {
   try {
@@ -23,31 +23,41 @@ export async function POST(request: Request) {
       );
     }
 
-    // Check if phone is locked due to too many failed attempts
-    const attemptCheck = recordOtpAttempt(normalizedPhone);
-    if (!attemptCheck.allowed) {
-      const lockoutMinutes = Math.ceil((attemptCheck.lockedUntil! - Date.now()) / 60000);
+    // Read-only lock check (does not increment attempts)
+    const lockCheck = isOtpLocked(normalizedPhone);
+    if (lockCheck.locked) {
+      const lockoutMinutes = Math.ceil((lockCheck.lockedUntil! - Date.now()) / 60000);
       return NextResponse.json(
-        { error: `Too many failed attempts. Please try again in ${lockoutMinutes} minutes.` },
+        { error: `Too many failed OTP attempts. Try again in ${lockoutMinutes} minutes.` },
         { status: 429 }
       );
     }
 
     const supabase = await createClient();
 
-    // Check if user already exists
-    const { data: existingUser } = await supabase
-      .from('users')
-      .select('id, full_name')
-      .eq('phone', normalizedPhone)
-      .maybeSingle();
+    // SECURITY DEFINER RPC bypasses RLS so unauthenticated lookups work
+    const { data: existsData, error: existsErr } = await supabase
+      .rpc('check_user_registered', { p_phone: normalizedPhone });
 
-    const isNewUser = !existingUser;
+    if (existsErr) {
+      console.error('[API/send-otp] check_user_registered error:', existsErr);
+      return NextResponse.json({ error: 'Unable to verify account status. Please try again.' }, { status: 500 });
+    }
+
+    const isNewUser = !existsData;
+
+    // Reject unregistered users in login mode; reject already-registered in signup mode
+    if (isNewUser && !fullName) {
+      return NextResponse.json({ error: 'User not registered. Please sign up first.' }, { status: 400 });
+    }
+    if (!isNewUser && fullName) {
+      return NextResponse.json({ error: 'Account already exists with this number. Please sign in instead.' }, { status: 400 });
+    }
 
     const { error } = await supabase.auth.signInWithOtp({
       phone: normalizedPhone,
       options: {
-        shouldCreateUser: true,
+        shouldCreateUser: isNewUser,
         data: fullName ? { full_name: fullName.trim() } : {},
       },
     });
@@ -74,3 +84,5 @@ export async function POST(request: Request) {
     );
   }
 }
+
+

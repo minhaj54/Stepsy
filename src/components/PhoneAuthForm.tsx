@@ -26,9 +26,10 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const redirect = searchParams.get('redirect') || '/account';
+  const phoneFromUrl = searchParams.get('phone') || '';
 
   const [step, setStep] = useState<Step>('phone');
-  const [phone, setPhone] = useState('');
+  const [phone, setPhone] = useState(phoneFromUrl);
   const [fullName, setFullName] = useState('');
   const [otp, setOtp] = useState('');
   const [error, setError] = useState('');
@@ -130,6 +131,13 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
     setOtp('');
     startResendCooldown();
     setSending(false);
+  };
+
+  const handleRegisterInstead = () => {
+    const params = new URLSearchParams();
+    if (phone) params.set('phone', phone);
+    if (redirect !== '/account') params.set('redirect', redirect);
+    router.push(`/auth/signup?${params.toString()}`);
   };
 
   const handleVerifyOtp = async (e: React.FormEvent) => {
@@ -279,6 +287,26 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                     Twilio rate limits protect against abuse. Please wait before trying again.
                   </p>
                 )}
+                {error.includes('User not registered') && !isSignup && (
+                  <button
+                    type="button"
+                    onClick={handleRegisterInstead}
+                    className="mt-2 w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+                  >
+                    Register this number
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                )}
+                {error.includes('Account already exists') && isSignup && (
+                  <button
+                    type="button"
+                    onClick={() => router.push('/auth/login')}
+                    className="mt-2 w-full bg-primary hover:bg-primary-hover text-white py-2 rounded-xl font-bold text-sm transition-all flex items-center justify-center gap-2"
+                  >
+                    Sign in instead
+                    <ArrowRight className="h-4 w-4" />
+                  </button>
+                )}
               </div>
             </div>
           )}
@@ -304,23 +332,23 @@ export default function PhoneAuthForm({ mode = 'login' }: PhoneAuthFormProps) {
                 </div>
               )}
 
-              <div>
-                <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
-                  Mobile Number
-                </label>
-                <div className="relative">
-                  <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-                  <input
-                    type="tel"
-                    value={phone}
-                    onChange={(e) => setPhone(e.target.value)}
-                    required
-                    placeholder="98765 43210"
-                    className="w-full bg-secondary border border-border rounded-xl py-2.5 pl-10 pr-4 text-foreground text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
-                  />
-                </div>
-                <p className="text-[10px] text-muted-foreground mt-1.5">India (+91) numbers supported. Include country code for others.</p>
-              </div>
+               <div>
+                 <label className="block text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-2">
+                   Enter your Number
+                 </label>
+                 <div className="relative">
+                   <Phone className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                   <input
+                     type="tel"
+                     value={phone}
+                     onChange={(e) => setPhone(e.target.value)}
+                     required
+                     placeholder="98765 43210 or +1 555 123 4567"
+                     className="w-full bg-secondary border border-border rounded-xl py-2.5 pl-10 pr-4 text-foreground text-sm outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all"
+                   />
+                 </div>
+                 <p className="text-[10px] text-muted-foreground mt-1.5">India (+91) numbers supported. Include country code for others. Examples: 9876543210, +1-555-123-4567</p>
+               </div>
 
               <button
                 type="submit"

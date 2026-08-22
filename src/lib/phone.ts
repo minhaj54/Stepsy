@@ -30,3 +30,9 @@ export function phoneToSyntheticEmail(phone: string): string {
   const digits = phone.replace(/\D/g, '');
   return `${digits}@phone.zarwinto.app`;
 }
+
+/** Last 10 national digits of a phone number, used for tolerant lookups. */
+export function phoneLast10(phone: string): string {
+  const digits = phone.replace(/\D/g, '');
+  return digits.slice(-10);
+}

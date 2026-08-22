@@ -757,3 +757,19 @@ EXCEPTION
     WHEN duplicate_object THEN null;
 END $$;
 
+
+-- Allow checking registration status without being blocked by RLS on users
+CREATE OR REPLACE FUNCTION public.check_user_registered(p_phone text)
+RETURNS boolean
+LANGUAGE sql
+SECURITY DEFINER
+SET search_path = public
+AS $$
+  SELECT EXISTS (
+    SELECT 1
+    FROM public.users
+    WHERE phone LIKE '%' || right(regexp_replace(p_phone, '\D', '', 'g'), 10)
+  );
+$$;
+
+GRANT EXECUTE ON FUNCTION public.check_user_registered(text) TO anon, authenticated;

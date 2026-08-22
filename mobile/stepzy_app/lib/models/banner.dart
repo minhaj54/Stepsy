@@ -25,6 +25,18 @@ class BannerModel {
     );
   }
 
+  Map<String, dynamic> toJson() => {
+    'id': id,
+    'title': title,
+    'subtitle': subtitle,
+    'image_url': imageUrl,
+    'link_url': linkUrl,
+    'background_color': backgroundColor,
+    'text_color': textColor,
+    'is_active': isActive,
+    'sort_order': sortOrder,
+  };
+
   final String id;
   final String title;
   final String subtitle;

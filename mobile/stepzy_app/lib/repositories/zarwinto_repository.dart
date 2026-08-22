@@ -234,6 +234,54 @@ class ZarwintoRepository {
     }
   }
 
+  Future<bool> checkUserExists(String phone) async {
+    if (client == null) {
+      debugPrint('[checkUserExists] client is null');
+      return false;
+    }
+    try {
+      final normalizedPhone = normalizePhone(phone);
+      final digits = phone.replaceAll(RegExp(r'\D'), '');
+      final noPlus = normalizedPhone.replaceFirst('+', '');
+      final trimmed = phone.trim();
+
+      final candidates = <String>{
+        normalizedPhone,
+        noPlus,
+        '+$digits',
+        digits,
+        trimmed,
+        phone,
+        if (digits.length == 10) digits,
+        if (digits.startsWith('91') && digits.length == 12) digits.substring(2),
+        if (digits.startsWith('0') && digits.length == 11) digits.substring(1),
+        if (digits.length == 12 && digits.startsWith('91')) digits,
+        if (noPlus.length == 12 && noPlus.startsWith('91')) noPlus,
+      };
+
+      for (final candidate in candidates) {
+        if (candidate.isEmpty) continue;
+        try {
+          final result = await client!.rpc(
+            'check_user_registered',
+            params: {'p_phone': candidate},
+          );
+          final exists = (result as bool?) ?? false;
+          debugPrint('[checkUserExists] RPC candidate=$candidate => exists=$exists');
+          if (exists) return true;
+        } on PostgrestException catch (e) {
+          debugPrint('[checkUserExists] RPC PostgrestException candidate=$candidate: ${e.message}');
+          continue;
+        }
+      }
+
+      return false;
+    } catch (e) {
+      debugPrint('[checkUserExists] unexpected error: $e');
+      return false;
+    }
+  }
+
   Future<(String?, bool)> sendOtp(String phone, {String? fullName}) async {
     if (client == null) {
       return ('Supabase is not configured for this build.', false);
@@ -314,13 +362,13 @@ class ZarwintoRepository {
 
       OtpRateLimiter.clearOtpAttempts(normalizedPhone);
 
+      final updates = <String, dynamic>{'phone': normalizedPhone};
       if (fullName != null && fullName.isNotEmpty) {
+        updates['full_name'] = fullName.trim();
         await client!.auth.updateUser(UserAttributes(data: {'full_name': fullName.trim()}));
-        await client!
-            .from('users')
-            .update({'full_name': fullName.trim()})
-            .eq('id', response.user!.id);
       }
+
+      await client!.from('users').update(updates).eq('id', response.user!.id);
 
       return (null, attemptCheck.remaining);
     } on AuthException catch (err) {

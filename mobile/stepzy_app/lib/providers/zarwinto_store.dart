@@ -105,6 +105,7 @@ class ZarwintoStore extends ChangeNotifier {
   Future<void> bootstrap() async {
     _loadCart();
     _loadAppliedCoupon();
+    _loadCachedBanners();
     repository.setClient(_configuredSupabaseClient());
     debugPrint('[Zarwinto] bootstrap() — client available: ${repository.client != null}');
     debugPrint('[Zarwinto] bootstrap() — supabaseUrl: $supabaseUrl');
@@ -134,7 +135,14 @@ class ZarwintoStore extends ChangeNotifier {
 
       debugPrint('[Zarwinto] _loadEssentialData() — loading banners...');
       banners = await repository.loadBanners();
+      _saveBannersToCache();
       debugPrint('[Zarwinto] _loadEssentialData() — loaded ${banners.length} banners');
+
+      if (repository.client?.auth.currentUser != null) {
+        debugPrint('[Zarwinto] _loadEssentialData() — active session found, loading profile...');
+        await _loadProfileAndWishlist();
+        debugPrint('[Zarwinto] _loadEssentialData() — profile loaded: ${profile != null}');
+      }
 
       debugPrint('[Zarwinto] _loadEssentialData() — essential data complete');
     } catch (err) {
@@ -506,6 +514,26 @@ class ZarwintoStore extends ChangeNotifier {
   void _saveCart() {
     final encoded = jsonEncode(cart.map((item) => item.toJson()).toList());
     prefs.setString('zarwinto_mobile_cart', encoded);
+  }
+
+  static const _bannerCacheKey = 'zarwinto_banners_cache';
+
+  void _loadCachedBanners() {
+    final raw = prefs.getString(_bannerCacheKey);
+    if (raw == null) return;
+    try {
+      final decoded = jsonDecode(raw) as List<dynamic>;
+      banners = decoded
+          .map((item) => BannerModel.fromJson(item as Map<String, dynamic>))
+          .toList();
+    } catch (e) {
+      banners = [];
+    }
+  }
+
+  void _saveBannersToCache() {
+    final encoded = jsonEncode(banners.map((b) => b.toJson()).toList());
+    prefs.setString(_bannerCacheKey, encoded);
   }
 
   void _loadAppliedCoupon() {

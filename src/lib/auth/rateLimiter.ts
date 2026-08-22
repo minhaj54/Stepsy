@@ -39,6 +39,30 @@ export function recordOtpAttempt(phone: string): { allowed: boolean; remaining: 
   return { allowed: true, remaining: MAX_OTP_ATTEMPTS - entry.count };
 }
 
+export function isOtpLocked(phone: string): { locked: boolean; lockedUntil?: number } {
+  const entry = otpAttempts.get(phone);
+  if (!entry?.lockedUntil) return { locked: false };
+
+  const now = Date.now();
+  if (now < entry.lockedUntil) {
+    return { locked: true, lockedUntil: entry.lockedUntil };
+  }
+
+  otpAttempts.delete(phone);
+  return { locked: false };
+}
+
+export function getRemainingAttempts(phone: string): number {
+  const entry = otpAttempts.get(phone);
+  if (!entry) return MAX_OTP_ATTEMPTS;
+
+  const now = Date.now();
+  if (entry?.lockedUntil && now < entry.lockedUntil) return 0;
+  if (now - entry.firstAttempt > LOCKOUT_DURATION_MS) return MAX_OTP_ATTEMPTS;
+
+  return Math.max(0, MAX_OTP_ATTEMPTS - entry.count);
+}
+
 export function clearOtpAttempts(phone: string): void {
   otpAttempts.delete(phone);
 }

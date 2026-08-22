@@ -80,6 +80,7 @@ flutter:
   assets:
     - .env
     - assets/App icon/GooglePlayStore.png
+    - assets/App icon/1024x1024.png
     - assets/onboarding/logo.svg
 
   # An image asset can refer to one or more resolution-specific "variants", see

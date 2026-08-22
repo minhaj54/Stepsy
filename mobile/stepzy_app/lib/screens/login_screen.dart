@@ -67,6 +67,15 @@ class _LoginScreenState extends State<LoginScreen> {
       busy = true;
       errorMessage = null;
     });
+    final exists = await store.repository.checkUserExists(phone);
+    if (!exists) {
+      setState(() {
+        busy = false;
+        errorMessage = 'This number is not registered. Please create an account first.';
+        isNewUser = true;
+      });
+      return;
+    }
     final result = await store.sendOtp(phone);
     setState(() => busy = false);
     if (!mounted) return;
@@ -75,7 +84,7 @@ class _LoginScreenState extends State<LoginScreen> {
     } else {
       setState(() {
         step = AuthStep.otp;
-        isNewUser = result.$2;
+        isNewUser = false;
       });
       startResendCooldown();
     }
@@ -119,14 +128,15 @@ class _LoginScreenState extends State<LoginScreen> {
       backgroundColor: ZarwintoColors.background,
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: const EdgeInsets.fromLTRB(24, 24, 24, 40),
+          padding: const EdgeInsets.fromLTRB(24, 40, 24, 40),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              const SizedBox(height: 40),
               _buildHeader(),
-              const SizedBox(height: 32),
-              if (step == AuthStep.phone) _buildPhoneForm(store) else _buildOtpForm(store),
+              const SizedBox(height: 40),
+              if (step == AuthStep.phone) _buildPhoneForm(store)
+                  else if (!isNewUser) _buildOtpForm(store)
+                  else const SizedBox.shrink(),
               const SizedBox(height: 24),
               _buildSignupLink(),
             ],
@@ -140,24 +150,39 @@ class _LoginScreenState extends State<LoginScreen> {
     return Column(
       children: [
         Container(
-          width: 64,
-          height: 64,
+          width: 80,
+          height: 80,
           decoration: BoxDecoration(
-            color: ZarwintoColors.primary.withValues(alpha: .12),
-            borderRadius: BorderRadius.circular(20),
-            border: Border.all(color: ZarwintoColors.primary.withValues(alpha: .2)),
+            color: ZarwintoColors.white,
+            borderRadius: BorderRadius.circular(24),
+            border: Border.all(color: ZarwintoColors.border),
+            boxShadow: [
+              BoxShadow(
+                color: ZarwintoColors.primary.withValues(alpha: 0.08),
+                blurRadius: 24,
+                offset: const Offset(0, 8),
+              ),
+            ],
           ),
-          child: HugeIcon(icon: HugeIcons.strokeRoundedFlash, color: ZarwintoColors.accent, size: 32),
+          child: ClipRRect(
+            borderRadius: BorderRadius.circular(24),
+            child: Image.asset(
+              'assets/App icon/1024x1024.png',
+              width: 56,
+              height: 56,
+              fit: BoxFit.contain,
+            ),
+          ),
         ),
-        const SizedBox(height: 20),
+        const SizedBox(height: 24),
         const Text(
           'Welcome Back',
           style: TextStyle(fontSize: 28, fontWeight: FontWeight.w800, color: ZarwintoColors.foreground),
         ),
         const SizedBox(height: 8),
         const Text(
-          'Sign in with your phone number',
-          style: TextStyle(fontSize: 14, color: ZarwintoColors.muted),
+          'Sign in to continue shopping',
+          style: TextStyle(fontSize: 14, color: ZarwintoColors.muted, height: 1.5),
         ),
       ],
     );
@@ -194,15 +219,33 @@ class _LoginScreenState extends State<LoginScreen> {
             prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedCall, size: 20, color: ZarwintoColors.muted),
           ),
         ),
-        const SizedBox(height: 16),
-        FilledButton(
-          onPressed: busy ? null : () => handleSendOtp(store),
-          child: busy
-              ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
-              : const Text('Send OTP'),
+        const SizedBox(height: 8),
+        const Text(
+          'We will send you a one-time SMS to verify your number',
+          style: TextStyle(fontSize: 12, color: ZarwintoColors.muted, height: 1.4),
         ),
+        const SizedBox(height: 16),
+        if (isNewUser)
+          FilledButton(
+            onPressed: busy ? null : () => _goToSignup(store),
+            child: busy
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text('Create Account'),
+          )
+        else
+          FilledButton(
+            onPressed: busy ? null : () => handleSendOtp(store),
+            child: busy
+                ? const SizedBox(width: 20, height: 20, child: CircularProgressIndicator(strokeWidth: 2, color: Colors.white))
+                : const Text('Send OTP'),
+          ),
       ],
     );
+  }
+
+  void _goToSignup(ZarwintoStore store) {
+    final phone = phoneController.text.trim();
+    Navigator.of(context).pushNamed('/signup', arguments: phone);
   }
 
   Widget _buildOtpForm(ZarwintoStore store) {
@@ -230,41 +273,27 @@ class _LoginScreenState extends State<LoginScreen> {
         Container(
           padding: const EdgeInsets.all(12),
           decoration: BoxDecoration(
-            color: isNewUser
-                ? ZarwintoColors.success.withValues(alpha: .08)
-                : ZarwintoColors.info.withValues(alpha: .08),
+            color: ZarwintoColors.info.withValues(alpha: .08),
             borderRadius: BorderRadius.circular(12),
-            border: Border.all(
-              color: isNewUser
-                  ? ZarwintoColors.success.withValues(alpha: .2)
-                  : ZarwintoColors.info.withValues(alpha: .2),
-            ),
+            border: Border.all(color: ZarwintoColors.info.withValues(alpha: .2)),
           ),
           child: Row(
             children: [
               HugeIcon(
-                icon: isNewUser
-                    ? HugeIcons.strokeRoundedUserAdd01
-                    : HugeIcons.strokeRoundedCheckmarkCircle02,
-                color: isNewUser ? ZarwintoColors.success : ZarwintoColors.info,
+                icon: HugeIcons.strokeRoundedCheckmarkCircle02,
+                color: ZarwintoColors.info,
                 size: 18,
               ),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
-                  isNewUser
-                      ? 'Welcome! OTP sent to +91 ${phoneController.text.replaceAll(RegExp(r'\D'), '').substring(
-                          phoneController.text.replaceAll(RegExp(r'\D'), '').length > 10
-                              ? phoneController.text.replaceAll(RegExp(r'\D'), '').length - 10
-                              : 0,
-                        )}'
-                      : 'OTP sent to +91 ${phoneController.text.replaceAll(RegExp(r'\D'), '').substring(
-                          phoneController.text.replaceAll(RegExp(r'\D'), '').length > 10
-                              ? phoneController.text.replaceAll(RegExp(r'\D'), '').length - 10
-                              : 0,
-                        )}',
-                  style: TextStyle(
-                    color: isNewUser ? ZarwintoColors.success : ZarwintoColors.info,
+                  'OTP sent to +91 ${phoneController.text.replaceAll(RegExp(r'\D'), '').substring(
+                    phoneController.text.replaceAll(RegExp(r'\D'), '').length > 10
+                        ? phoneController.text.replaceAll(RegExp(r'\D'), '').length - 10
+                        : 0,
+                  )}',
+                  style: const TextStyle(
+                    color: ZarwintoColors.info,
                     fontSize: 13,
                   ),
                 ),
@@ -282,6 +311,11 @@ class _LoginScreenState extends State<LoginScreen> {
             hintText: '123456',
             prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedLock, size: 20, color: ZarwintoColors.muted),
           ),
+        ),
+        const SizedBox(height: 8),
+        const Text(
+          'Please check your messages for the verification code',
+          style: TextStyle(fontSize: 12, color: ZarwintoColors.muted, height: 1.4),
         ),
         const SizedBox(height: 16),
         FilledButton(
@@ -318,7 +352,7 @@ class _LoginScreenState extends State<LoginScreen> {
         const Text('New to Zarwinto? ', style: TextStyle(color: ZarwintoColors.muted, fontSize: 14)),
         TextButton(
           onPressed: () {
-            Navigator.of(context).pushNamed('/signup');
+            Navigator.of(context).pushNamed('/signup', arguments: phoneController.text.trim());
           },
           child: const Text('Create account', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 14)),
         ),
