@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:shimmer/shimmer.dart';
 import '../providers/zarwinto_store.dart';
 import '../widgets/product_card.dart';
 import '../core/theme.dart';
 import 'search_screen.dart';
 
-const _productsPerPage = 6;
+const _productsPerPage = 8;
 
 class ShopTab extends StatefulWidget {
   const ShopTab({super.key});
@@ -100,33 +101,35 @@ class _ShopTabState extends State<ShopTab> {
             onRefresh: () => _handleRefresh(store),
             child: AnimatedSwitcher(
               duration: const Duration(milliseconds: 250),
-              child: filtered.isEmpty
-                  ? _buildEmptyState(context)
-                  : ListView(
-                      key: ValueKey('page-$currentPage-$category-$brand-$sort'),
-                      padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
-                      children: [
-                        const SizedBox(height: 12),
-                        GridView.builder(
-                          shrinkWrap: true,
-                          physics: const NeverScrollableScrollPhysics(),
-                          gridDelegate:
-                              const SliverGridDelegateWithFixedCrossAxisCount(
-                            crossAxisCount: 2,
-                            childAspectRatio: 0.72,
-                            crossAxisSpacing: 12,
-                            mainAxisSpacing: 12,
-                          ),
-                          itemCount: paginated.length,
-                          itemBuilder: (context, index) => _StaggeredEntry(
-                            index: index,
-                            child: ProductCard(paginated[index]),
-                          ),
+              child: store.loading && filtered.isEmpty
+                  ? _buildShimmerGrid()
+                  : filtered.isEmpty
+                      ? _buildEmptyState(context)
+                      : ListView(
+                          key: ValueKey('page-$currentPage-$category-$brand-$sort'),
+                          padding: const EdgeInsets.fromLTRB(16, 0, 16, 120),
+                          children: [
+                            const SizedBox(height: 12),
+                            GridView.builder(
+                              shrinkWrap: true,
+                              physics: const NeverScrollableScrollPhysics(),
+                              gridDelegate:
+                                  const SliverGridDelegateWithFixedCrossAxisCount(
+                                crossAxisCount: 2,
+                                childAspectRatio: 0.72,
+                                crossAxisSpacing: 12,
+                                mainAxisSpacing: 12,
+                              ),
+                              itemCount: paginated.length,
+                              itemBuilder: (context, index) => _StaggeredEntry(
+                                index: index,
+                                child: ProductCard(paginated[index]),
+                              ),
+                            ),
+                            if (totalPages > 1) _buildPagination(context, totalPages),
+                            const SizedBox(height: 24),
+                          ],
                         ),
-                        if (totalPages > 1) _buildPagination(context, totalPages),
-                        const SizedBox(height: 24),
-                      ],
-                    ),
             ),
           ),
         ),
@@ -446,6 +449,35 @@ class _ShopTabState extends State<ShopTab> {
             ),
           ],
         ],
+      ),
+    );
+  }
+
+  Widget _buildShimmerGrid() {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(16, 12, 16, 120),
+      child: GridView.builder(
+        key: const ValueKey('shimmer-grid'),
+        shrinkWrap: true,
+        physics: const NeverScrollableScrollPhysics(),
+        gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
+          crossAxisCount: 2,
+          childAspectRatio: 0.72,
+          crossAxisSpacing: 12,
+          mainAxisSpacing: 12,
+        ),
+        itemCount: 6,
+        itemBuilder: (context, index) => Shimmer.fromColors(
+          baseColor: ZarwintoColors.border,
+          highlightColor: Colors.white,
+          period: const Duration(milliseconds: 1200),
+          child: Container(
+            decoration: BoxDecoration(
+              color: ZarwintoColors.border,
+              borderRadius: BorderRadius.circular(16),
+            ),
+          ),
+        ),
       ),
     );
   }

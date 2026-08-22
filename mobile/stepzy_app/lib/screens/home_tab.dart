@@ -127,18 +127,6 @@ class _HomeTabState extends State<HomeTab> {
                           padding: const EdgeInsets.symmetric(vertical: 20),
                           child: _LoadingMoreShimmer(),
                         ),
-                      if (!store.hasMoreProducts && store.products.isNotEmpty)
-                        Padding(
-                          padding: const EdgeInsets.symmetric(vertical: 20),
-                          child: Center(
-                            child: Text(
-                              'You\'ve seen it all',
-                              style: ZarwintoTypography.caption.copyWith(
-                                color: ZarwintoColors.muted,
-                              ),
-                            ),
-                          ),
-                        ),
                     ],
                   ),
           ),

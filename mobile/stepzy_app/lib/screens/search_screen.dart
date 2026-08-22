@@ -72,111 +72,214 @@ class _SearchScreenState extends State<SearchScreen> {
     });
   }
 
+  void _clearSearch() {
+    _searchController.clear();
+    _performSearch('');
+    _focusNode.requestFocus();
+  }
+
   @override
   Widget build(BuildContext context) {
     final store = ZarwintoScope.of(context);
 
     return Scaffold(
       backgroundColor: ZarwintoColors.background,
-      appBar: AppBar(
-        backgroundColor: ZarwintoColors.surface,
-        elevation: 0,
-        title: AnimatedContainer(
-          duration: const Duration(milliseconds: 250),
-          padding: const EdgeInsets.symmetric(horizontal: 16, vertical: 6),
-          decoration: BoxDecoration(
-            color: _hasFocus ? ZarwintoColors.surface : ZarwintoColors.background,
-            borderRadius: BorderRadius.circular(16),
-            border: Border.all(
-              color: _hasFocus ? ZarwintoColors.primary : ZarwintoColors.border,
-              width: _hasFocus ? 1.5 : 1,
+      body: Column(
+        children: [
+          Padding(
+            padding: EdgeInsets.only(
+              top: MediaQuery.of(context).padding.top + 10,
+              left: 16,
+              right: 16,
+              bottom: 10,
             ),
-            boxShadow: _hasFocus
-                ? [
-                    BoxShadow(
-                      color: ZarwintoColors.primary.withValues(alpha: 0.12),
-                      blurRadius: 12,
-                      offset: const Offset(0, 4),
-                    ),
-                  ]
-                : [
-                    BoxShadow(
-                      color: Colors.black.withValues(alpha: 0.03),
-                      blurRadius: 8,
-                      offset: const Offset(0, 2),
-                    ),
-                  ],
-          ),
-          child: Row(
-            children: [
-              AnimatedScale(
-                duration: const Duration(milliseconds: 200),
-                scale: _hasFocus ? 1.1 : 1.0,
-                child: HugeIcon(
-                  icon: HugeIcons.strokeRoundedSearch01,
-                  size: 22,
-                  color: _hasFocus ? ZarwintoColors.primary : ZarwintoColors.muted,
-                ),
-              ),
-              const SizedBox(width: 12),
-              Expanded(
-                child: TextField(
-                  controller: _searchController,
-                  focusNode: _focusNode,
-                  autofocus: true,
-                  decoration: InputDecoration(
-                    hintText: 'Search shoes, brands...',
-                    hintStyle: TextStyle(
-                      color: ZarwintoColors.muted,
-                      fontSize: 15,
-                      fontWeight: FontWeight.w500,
-                    ),
-                    border: InputBorder.none,
-                    isDense: true,
-                    contentPadding: const EdgeInsets.symmetric(vertical: 10),
-                  ),
-                  style: TextStyle(
-                    color: ZarwintoColors.foreground,
-                    fontSize: 15,
-                    fontWeight: FontWeight.w500,
-                  ),
-                  onChanged: _performSearch,
-                ),
-              ),
-              if (_searchController.text.isNotEmpty)
-                AnimatedScale(
-                  duration: const Duration(milliseconds: 200),
-                  scale: 1.0,
-                  child: GestureDetector(
-                    onTap: () {
-                      _searchController.clear();
-                      _performSearch('');
-                    },
-                    child: Container(
-                      padding: const EdgeInsets.all(5),
-                      decoration: BoxDecoration(
-                        color: ZarwintoColors.primary.withValues(alpha: 0.12),
-                        shape: BoxShape.circle,
+            child: Row(
+              crossAxisAlignment: CrossAxisAlignment.center,
+              children: [
+                Expanded(
+                  child: AnimatedContainer(
+                    duration: const Duration(milliseconds: 200),
+                    curve: Curves.easeOut,
+                    height: 48,
+                    decoration: BoxDecoration(
+                      color: _hasFocus
+                          ? ZarwintoColors.background
+                          : ZarwintoColors.background.withValues(alpha: 0.96),
+                      borderRadius: BorderRadius.circular(16),
+                      border: Border.all(
+                        color: _hasFocus
+                            ? ZarwintoColors.primary.withValues(alpha: 0.45)
+                            : ZarwintoColors.border.withValues(alpha: 0.7),
+                        width: 1,
                       ),
-                      child: HugeIcon(
-                        icon: HugeIcons.strokeRoundedCancel01,
-                        size: 14,
-                        color: ZarwintoColors.primary,
-                      ),
+                      boxShadow: _hasFocus
+                          ? [
+                        BoxShadow(
+                          color: ZarwintoColors.primary.withValues(alpha: 0.08),
+                          blurRadius: 12,
+                          offset: const Offset(0, 3),
+                        ),
+                      ]
+                          : [],
+                    ),
+                    child: Row(
+                      children: [
+                        const SizedBox(width: 15),
+
+                        // Search icon
+                        AnimatedContainer(
+                          duration: const Duration(milliseconds: 200),
+                          padding: const EdgeInsets.all(6),
+                          decoration: BoxDecoration(
+                            color: _hasFocus
+                                ? ZarwintoColors.primary.withValues(alpha: 0.10)
+                                : Colors.transparent,
+                            shape: BoxShape.circle,
+                          ),
+                          child: HugeIcon(
+                            icon: HugeIcons.strokeRoundedSearch01,
+                            size: 18,
+                            color: _hasFocus
+                                ? ZarwintoColors.primary
+                                : ZarwintoColors.muted,
+                          ),
+                        ),
+
+                        const SizedBox(width: 8),
+
+                        // Text field
+                        Expanded(
+                          child: TextField(
+                            controller: _searchController,
+                            focusNode: _focusNode,
+                            autofocus: true,
+                            textInputAction: TextInputAction.search,
+                            decoration: InputDecoration(
+                              hintText: 'Search shoes, brands...',
+                              hintStyle: TextStyle(
+                                color: ZarwintoColors.muted.withValues(alpha: 0.8),
+                                fontSize: 14.5,
+                                fontWeight: FontWeight.w500,
+                              ),
+                              border: InputBorder.none,
+                              enabledBorder: InputBorder.none,
+                              focusedBorder: InputBorder.none,
+                              isDense: true,
+                              contentPadding: EdgeInsets.zero,
+                            ),
+                            style: TextStyle(
+                              color: ZarwintoColors.foreground,
+                              fontSize: 14.5,
+                              fontWeight: FontWeight.w600,
+                            ),
+                            cursorColor: ZarwintoColors.primary,
+                            onChanged: _performSearch,
+                          ),
+                        ),
+
+                        // Clear button
+                        AnimatedSwitcher(
+                          duration: const Duration(milliseconds: 150),
+                          transitionBuilder: (child, animation) {
+                            return ScaleTransition(
+                              scale: animation,
+                              child: child,
+                            );
+                          },
+                          child: _searchController.text.isNotEmpty
+                              ? GestureDetector(
+                            key: const ValueKey('clear'),
+                            onTap: _clearSearch,
+                            behavior: HitTestBehavior.opaque,
+                            child: Padding(
+                              padding: const EdgeInsets.only(
+                                left: 6,
+                                right: 10,
+                              ),
+                              child: Container(
+                                width: 24,
+                                height: 24,
+                                decoration: BoxDecoration(
+                                  color: ZarwintoColors.muted.withValues(
+                                    alpha: 0.10,
+                                  ),
+                                  shape: BoxShape.circle,
+                                ),
+                                child: HugeIcon(
+                                  icon: HugeIcons.strokeRoundedCancel01,
+                                  size: 13,
+                                  color: ZarwintoColors.muted,
+                                ),
+                              ),
+                            ),
+                          )
+                              : const SizedBox(
+                            key: ValueKey('empty'),
+                            width: 10,
+                          ),
+                        ),
+                      ],
                     ),
                   ),
                 ),
-            ],
+
+                // Cancel
+                AnimatedSwitcher(
+                  duration: const Duration(milliseconds: 180),
+                  transitionBuilder: (child, animation) {
+                    return FadeTransition(
+                      opacity: animation,
+                      child: SizeTransition(
+                        sizeFactor: animation,
+                        axis: Axis.horizontal,
+                        child: child,
+                      ),
+                    );
+                  },
+                  child: _hasFocus
+                      ? Padding(
+                    key: const ValueKey('cancel'),
+                    padding: const EdgeInsets.only(left: 8),
+                    child: GestureDetector(
+                      onTap: () {
+                        _focusNode.unfocus();
+                        _clearSearch();
+                      },
+                      child: Padding(
+                        padding: const EdgeInsets.symmetric(
+                          horizontal: 4,
+                          vertical: 10,
+                        ),
+                        child: Text(
+                          'Cancel',
+                          style: TextStyle(
+                            color: ZarwintoColors.primary,
+                            fontSize: 14,
+                            fontWeight: FontWeight.w700,
+                          ),
+                        ),
+                      ),
+                    ),
+                  )
+                      : const SizedBox(
+                    key: ValueKey('no-cancel'),
+                  ),
+                ),
+              ],
+            ),
           ),
-        ),
+
+          Expanded(
+            child: _searchController.text.isEmpty
+                ? _buildInitialContent(store)
+                : _isSearching
+                    ? const Center(child: CircularProgressIndicator())
+                    : _results.isEmpty
+                        ? _buildNoResults()
+                        : _buildResults(),
+          ),
+        ],
       ),
-      body: _searchController.text.isEmpty
-          ? _buildInitialContent(store)
-          : _isSearching
-              ? const Center(child: CircularProgressIndicator())
-              : _results.isEmpty
-                  ? _buildNoResults()
-                  : _buildResults(),
     );
   }
 
@@ -186,7 +289,6 @@ class _SearchScreenState extends State<SearchScreen> {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Popular Searches
           Row(
             children: [
               HugeIcon(
@@ -222,7 +324,6 @@ class _SearchScreenState extends State<SearchScreen> {
                 .toList(),
           ),
           const SizedBox(height: 32),
-          // Trending Now
           Row(
             children: [
               HugeIcon(

@@ -6,6 +6,7 @@ import 'package:http/http.dart' as http;
 import 'package:path_provider/path_provider.dart' as path_provider;
 import 'package:shimmer/shimmer.dart';
 import '../core/theme.dart';
+import '../core/constants.dart';
 import '../models/product.dart';
 import '../models/product_variant.dart';
 import '../models/review.dart';
@@ -81,12 +82,12 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   bool _sharing = false;
-
   void _shareProduct() async {
     if (_sharing) return;
     final product = widget.product;
+    final productUrl = '$zarwintoDomain/product/${product.id}';
     final shareText =
-        'Check out ${product.title} by ${product.brandName} at ${inrFormat.format(_sellingPrice)} (${_discountPercent.toStringAsFixed(0)}% OFF) on Zarwinto!\n\nGrab it now on the Zarwinto app.';
+        'Check out ${product.title} by ${product.brandName} at ${inrFormat.format(_sellingPrice)} (${_discountPercent.toStringAsFixed(0)}% OFF) on Zarwinto!\n\nProduct Link: $productUrl\n\nGrab it now on the Zarwinto app.';
     final subject = '${product.title} by ${product.brandName}';
 
     setState(() => _sharing = true);
@@ -112,6 +113,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     } finally {
       if (mounted) setState(() => _sharing = false);
     }
+
     await Share.share(shareText, subject: subject);
   }
 
