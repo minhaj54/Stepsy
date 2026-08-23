@@ -87,7 +87,6 @@ class _CartTabState extends State<CartTab> {
   @override
   Widget build(BuildContext context) {
     final store = ZarwintoScope.of(context);
-    final freeShippingThreshold = 999.0;
 
     return Scaffold(
       backgroundColor: ZarwintoColors.background,
@@ -120,10 +119,8 @@ class _CartTabState extends State<CartTab> {
             return _EmptyBag(store: store);
           }
 
-          final remainingForFreeShipping =
-              freeShippingThreshold - store.subtotal;
-          final progress =
-              (store.subtotal / freeShippingThreshold).clamp(0.0, 1.0);
+          final remainingForFreeShipping = 0.0;
+          final progress = 1.0;
 
           return RefreshIndicator(
             color: ZarwintoColors.primary,
@@ -362,15 +359,12 @@ class _CartTabState extends State<CartTab> {
                         const SizedBox(height: 10),
                         PriceLine(
                           label: 'Estimated Shipping',
-                          value: store.total > freeShippingThreshold
-                              ? 'FREE'
-                              : inrFormat.format(99),
+                          value: 'FREE',
                         ),
                         const Divider(height: 28),
                         PriceLine(
                           label: 'Estimated Total',
-                          value: inrFormat.format(store.total +
-                              (store.total > freeShippingThreshold ? 0 : 99)),
+                          value: inrFormat.format(store.total),
                           emphasis: true,
                         ),
                         const SizedBox(height: 16),

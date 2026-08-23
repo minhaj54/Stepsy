@@ -32,7 +32,6 @@ interface CartContextType {
    initiateCashfreePayment: (address: ShippingAddress, cartItems?: CartItem[], grandTotal?: number) => Promise<{ order: Order; paymentSessionId: string } | null>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
   verifyCashfreePayment: (orderId: string) => Promise<{ success: boolean; paymentStatus?: string; orderStatus?: string }>;
-  sendOrderAlert: (orderId: string) => Promise<void>;
 }
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
@@ -496,25 +495,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const sendOrderAlert = async (orderId: string) => {
-    try {
-      const response = await fetch('/api/notifications/order-alert', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ orderId }),
-      });
-
-      const responseText = await response.text();
-      console.log('[CartContext] Order alert response:', response.status, responseText);
-
-      if (!response.ok) {
-        console.error('[CartContext] Order alert API error:', response.status, responseText);
-      }
-    } catch (error) {
-      console.error('[CartContext] Error calling order alert API:', error);
-    }
-  };
-
   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
     // Update local state immediately for responsive UI
     setOrders(prev =>
@@ -566,7 +546,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       initiateCashfreePayment,
       updateOrderStatus,
       verifyCashfreePayment,
-      sendOrderAlert,
     }}>
       {children}
     </CartContext.Provider>

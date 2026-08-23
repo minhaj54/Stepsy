@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
 import '../core/theme.dart';
+import '../providers/zarwinto_store.dart';
 
 final inrFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
 
@@ -244,5 +245,33 @@ class ShimmerProductCard extends StatelessWidget {
       ),
     );
   }
+}
+
+Future<void> toggleWishlistWithFeedback(
+  BuildContext context,
+  ZarwintoStore store,
+  String productId, {
+  required VoidCallback onGoToWishlist,
+}) async {
+  await store.toggleWishlist(productId);
+  if (!context.mounted) return;
+
+  final added = store.wishlist.contains(productId);
+  ScaffoldMessenger.of(context).showSnackBar(
+    SnackBar(
+      content: Text(
+        added ? 'Added to wishlist' : 'Removed from wishlist',
+      ),
+      behavior: SnackBarBehavior.floating,
+      duration: const Duration(seconds: 2),
+      action: SnackBarAction(
+        label: 'Go to wishlist',
+        onPressed: () {
+          ScaffoldMessenger.of(context).hideCurrentSnackBar();
+          onGoToWishlist();
+        },
+      ),
+    ),
+  );
 }
 

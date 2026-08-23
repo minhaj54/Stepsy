@@ -29,7 +29,15 @@ class AboutScreen extends StatelessWidget {
                   borderRadius: ZarwintoRadius.all20,
                   border: Border.all(color: ZarwintoColors.primary.withValues(alpha: 0.25)),
                 ),
-                child: HugeIcon(icon: HugeIcons.strokeRoundedFlash, size: 48, color: ZarwintoColors.accent),
+                child: ClipRRect(
+                  borderRadius: BorderRadius.circular(44),
+                  child: Image.asset(
+                    'assets/App icon/1024x1024.png',
+                    width: 88,
+                    height: 88,
+                    fit: BoxFit.cover,
+                  ),
+                ),
               ),
             ),
             const SizedBox(height: ZarwintoSpacing.lg),
@@ -45,7 +53,7 @@ class AboutScreen extends StatelessWidget {
             const SizedBox(height: ZarwintoSpacing.md),
             const Center(
               child: Text(
-                'World of Shoes & Sneaker Marketplace',
+                'Step into the right choice',
                 style: TextStyle(color: ZarwintoColors.muted, fontSize: 14),
               ),
             ),
@@ -110,6 +118,15 @@ class AboutScreen extends StatelessWidget {
                       isLink: true,
                     ),
                   ),
+                  const SizedBox(height: 10),
+                  InkWell(
+                    onTap: () => _launchWebsite(),
+                    child: const _ContactRow(
+                      icon: HugeIcon(icon: HugeIcons.strokeRoundedGlobe02, color: ZarwintoColors.primary, size: 18),
+                      text: 'zarwinto.com',
+                      isLink: true,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -133,7 +150,12 @@ class AboutScreen extends StatelessWidget {
 
   Future<void> _launchWhatsApp() async {
     final uri = Uri.parse('https://wa.me/917982369183');
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
+    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
+  }
+
+  Future<void> _launchWebsite() async {
+    final uri = Uri.parse('https://zarwinto.com');
+    if (await canLaunchUrl(uri)) await launchUrl(uri, mode: LaunchMode.externalApplication);
   }
 }
 

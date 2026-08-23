@@ -4,6 +4,7 @@ import '../core/theme.dart';
 import '../models/product.dart';
 import '../providers/zarwinto_store.dart';
 import '../screens/product_detail.dart';
+import '../screens/wishlist_screen.dart';
 import 'common.dart';
 
 class ProductCard extends StatelessWidget {
@@ -67,7 +68,16 @@ class ProductCard extends StatelessWidget {
                     top: 6,
                     right: 6,
                     child: GestureDetector(
-                      onTap: () => store.toggleWishlist(product.id),
+                      onTap: () => toggleWishlistWithFeedback(
+                        context,
+                        store,
+                        product.id,
+                        onGoToWishlist: () => Navigator.of(context).push(
+                          MaterialPageRoute(
+                            builder: (_) => const WishlistScreen(),
+                          ),
+                        ),
+                      ),
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 200),
                         width: 26,

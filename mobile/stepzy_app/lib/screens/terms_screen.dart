@@ -1,6 +1,4 @@
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
-import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 
 class TermsScreen extends StatelessWidget {
@@ -88,62 +86,10 @@ class TermsScreen extends StatelessWidget {
                 },
               ),
             ),
-            Container(
-              padding: const EdgeInsets.all(ZarwintoSpacing.lg),
-              decoration: const BoxDecoration(
-                color: ZarwintoColors.card,
-                borderRadius: BorderRadius.vertical(top: Radius.circular(16)),
-                border: Border(top: BorderSide(color: ZarwintoColors.border)),
-              ),
-              child: Column(
-                children: [
-                  const Text('Still have questions?', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  const SizedBox(height: ZarwintoSpacing.xs),
-                  const Text('Our support team is here to help clarify anything about your orders or account.', style: TextStyle(color: ZarwintoColors.muted, fontSize: 13)),
-                  const SizedBox(height: ZarwintoSpacing.md),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _launchEmail(),
-                          icon: HugeIcon(icon: HugeIcons.strokeRoundedMail01, size: 18, color: Colors.white),
-                          label: const Text('Email Support'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ZarwintoColors.primary,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _launchWhatsApp(),
-                          icon: HugeIcon(icon: HugeIcons.strokeRoundedBubbleChat, size: 18, color: Colors.white),
-                          label: const Text('WhatsApp'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ZarwintoColors.whatsappGreen,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
+
           ],
         ),
       ),
     );
-  }
-
-  Future<void> _launchEmail() async {
-    final uri = Uri.parse('mailto:zarwinto12@gmail.com');
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
-  }
-
-  Future<void> _launchWhatsApp() async {
-    final uri = Uri.parse('https://wa.me/917982369183');
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
   }
 }

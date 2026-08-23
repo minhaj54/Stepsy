@@ -1,0 +1,11 @@
+{
+  "applinks": {
+    "apps": [],
+    "details": [
+      {
+        "appIDs": ["REPLACE_WITH_TEAMID.com.zarwinto.app"],
+        "paths": ["*"]
+      }
+    ]
+  }
+}

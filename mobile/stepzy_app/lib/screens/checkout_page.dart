@@ -128,7 +128,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     if (!mounted) return;
     final store = ZarwintoScope.of(context);
     final colors = ZarwintoColors.of(context);
-    final shippingCost = store.total > 999 ? 0 : 99;
+    const shippingCost = 0.0;
     final grandTotal = store.total + shippingCost;
 
     if (selectedAddress == null &&
@@ -390,7 +390,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final store = ZarwintoScope.of(context);
     final colors = ZarwintoColors.of(context);
     final money = inrFormat;
-    final shippingCost = store.total > 999 ? 0 : 99;
+    const shippingCost = 0.0;
     final grandTotal = store.total + shippingCost;
 
     if (store.profile == null) {
@@ -673,8 +673,8 @@ class _CheckoutPageState extends State<CheckoutPage> {
                           ],
                           const SizedBox(height: ZarwintoSpacing.xs),
                           PriceLine(
-                            label: 'Shipping',
-                            value: shippingCost == 0 ? 'FREE' : money.format(shippingCost),
+                            label: 'Delivery',
+                            value: 'FREE',
                           ),
                           const Divider(height: 20),
                           PriceLine(

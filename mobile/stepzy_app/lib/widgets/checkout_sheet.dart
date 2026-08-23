@@ -110,7 +110,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                     mainAxisAlignment: MainAxisAlignment.spaceBetween,
                     children: [
                       const Text('Shipping', style: TextStyle(fontWeight: FontWeight.w500)),
-                      const Text('Calculated next'),
+                      const Text('FREE', style: TextStyle(fontWeight: FontWeight.w700)),
                     ],
                   ),
                   const Divider(height: 20),

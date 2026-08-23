@@ -14,6 +14,7 @@ import '../providers/zarwinto_store.dart';
 import '../widgets/common.dart';
 import '../widgets/product_card.dart';
 import 'checkout_page.dart';
+import 'wishlist_screen.dart';
 
 class ProductDetailPage extends StatefulWidget {
   const ProductDetailPage({super.key, required this.product});
@@ -1779,7 +1780,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
               padding: EdgeInsets.zero,
               icon: Icon(isFavorite ? Icons.favorite : Icons.favorite_border,
                   color: isFavorite ? ZarwintoColors.error : Colors.black, size: 20),
-              onPressed: () => store.toggleWishlist(product.id),
+              onPressed: () => toggleWishlistWithFeedback(
+                context,
+                store,
+                product.id,
+                onGoToWishlist: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const WishlistScreen()),
+                ),
+              ),
             ),
           ),
           Container(

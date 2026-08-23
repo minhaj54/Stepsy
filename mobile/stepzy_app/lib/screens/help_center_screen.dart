@@ -28,7 +28,7 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
     {
       'category': 'Shipping',
       'question': 'What are the shipping times and costs?',
-      'answer': 'Standard shipping takes 3–7 business days across India. Orders above ₹999 ship free; otherwise a flat ₹49 fee applies. You will receive tracking details by email once your order leaves the warehouse.',
+      'answer': 'Standard shipping takes 3–7 business days across India. We offer FREE delivery on all orders — no minimum purchase required. You will receive tracking details by email once your order leaves the warehouse.',
     },
     {
       'category': 'Shipping',
@@ -89,6 +89,16 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
         foregroundColor: ZarwintoColors.foreground,
         elevation: 0,
         surfaceTintColor: Colors.transparent,
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _launchWhatsApp,
+        backgroundColor: ZarwintoColors.whatsappGreen,
+        tooltip: 'Chat on WhatsApp',
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedWhatsapp,
+          color: Colors.white,
+          size: 26,
+        ),
       ),
       body: SafeArea(
         child: Column(
@@ -171,63 +181,25 @@ class _HelpCenterScreenState extends State<HelpCenterScreen> {
                       },
                     ),
             ),
-            Container(
-              padding: const EdgeInsets.all(ZarwintoSpacing.lg),
-              decoration: BoxDecoration(
-                color: ZarwintoColors.card,
-                borderRadius: const BorderRadius.vertical(top: Radius.circular(16)),
-                border: const Border(top: BorderSide(color: ZarwintoColors.border)),
-              ),
-              child: Column(
-                children: [
-                  const Text('Still have questions?', style: TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
-                  const SizedBox(height: ZarwintoSpacing.xs),
-                  const Text('Our support team is happy to help you with anything.', style: TextStyle(color: ZarwintoColors.muted, fontSize: 13)),
-                  const SizedBox(height: ZarwintoSpacing.md),
-                  Row(
-                    children: [
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _launchEmail(),
-                          icon: HugeIcon(icon: HugeIcons.strokeRoundedMail01, size: 18, color: Colors.white),
-                          label: const Text('Email Support'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ZarwintoColors.primary,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                      const SizedBox(width: 10),
-                      Expanded(
-                        child: ElevatedButton.icon(
-                          onPressed: () => _launchWhatsApp(),
-                          icon: HugeIcon(icon: HugeIcons.strokeRoundedBubbleChat, size: 18, color: Colors.white),
-                          label: const Text('WhatsApp'),
-                          style: ElevatedButton.styleFrom(
-                            backgroundColor: ZarwintoColors.whatsappGreen,
-                            foregroundColor: Colors.white,
-                          ),
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
           ],
         ),
       ),
     );
   }
 
-  Future<void> _launchEmail() async {
-    final uri = Uri.parse('mailto:zarwinto12@gmail.com');
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
-  }
-
   Future<void> _launchWhatsApp() async {
-    final uri = Uri.parse('https://wa.me/917982369183');
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
+    final uri = Uri.parse(
+      'https://wa.me/917982369183?text=${Uri.encodeComponent('Hi Zarwinto, I need help with my order.')}',
+    );
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open WhatsApp: $e')),
+        );
+      }
+    }
   }
 }
 

@@ -3,6 +3,11 @@ import 'package:hugeicons/hugeicons.dart';
 import 'package:intl/intl.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:url_launcher/url_launcher.dart';
+import 'package:pdf/pdf.dart';
+import 'package:pdf/widgets.dart' as pw;
+import 'package:path_provider/path_provider.dart';
+import 'package:share_plus/share_plus.dart';
+import 'dart:io';
 import '../providers/zarwinto_store.dart';
 import '../core/theme.dart';
 import '../models/order.dart';
@@ -46,8 +51,18 @@ class _OrdersScreenState extends State<OrdersScreen> {
   }
 
   Future<void> _launchWhatsApp() async {
-    final uri = Uri.parse('https://wa.me/917982369183');
-    if (await canLaunchUrl(uri)) await launchUrl(uri);
+    final uri = Uri.parse(
+      'https://wa.me/917982369183?text=${Uri.encodeComponent('Hi Zarwinto, I need help with my order.')}',
+    );
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      if (mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not open WhatsApp: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _loadOrders({bool reset = true}) async {
@@ -106,17 +121,7 @@ class _OrdersScreenState extends State<OrdersScreen> {
           backgroundColor: ZarwintoColors.background,
           foregroundColor: ZarwintoColors.foreground,
           elevation: 0,
-          actions: [
-            IconButton(
-              onPressed: _launchWhatsApp,
-              icon: HugeIcon(
-                icon: HugeIcons.strokeRoundedBubbleChat,
-                size: 20,
-                color: ZarwintoColors.whatsappGreen,
-              ),
-              tooltip: 'Chat on WhatsApp',
-            ),
-          ],
+          actions: const [],
         ),
         body: Center(
           child: Padding(
@@ -158,17 +163,17 @@ class _OrdersScreenState extends State<OrdersScreen> {
         backgroundColor: ZarwintoColors.background,
         foregroundColor: ZarwintoColors.foreground,
         elevation: 0,
-        actions: [
-          IconButton(
-            onPressed: _launchWhatsApp,
-            icon: HugeIcon(
-              icon: HugeIcons.strokeRoundedBubbleChat,
-              size: 20,
-              color: ZarwintoColors.whatsappGreen,
-            ),
-            tooltip: 'Chat on WhatsApp',
-          ),
-        ],
+        actions: const [],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: _launchWhatsApp,
+        backgroundColor: ZarwintoColors.whatsappGreen,
+        tooltip: 'Chat on WhatsApp',
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedWhatsapp,
+          color: Colors.white,
+          size: 26,
+        ),
       ),
       body: RefreshIndicator(
         onRefresh: _loadOrders,
@@ -280,12 +285,38 @@ class OrderCard extends StatelessWidget {
   final bool isExpanded;
   final VoidCallback? onToggleExpand;
 
+  Widget _orderItemPlaceholder([double size = 52]) => Container(
+        width: size,
+        height: size,
+        color: ZarwintoColors.background,
+        child: HugeIcon(
+          icon: HugeIcons.strokeRoundedImage01,
+          size: size * 0.46,
+          color: ZarwintoColors.muted,
+        ),
+      );
+
+  String? _resolveItemImage(ZarwintoStore store, OrderItem item) {
+    if (item.productImage != null && item.productImage!.isNotEmpty) {
+      return item.productImage;
+    }
+    try {
+      final product = store.products.firstWhere((p) => p.id == item.productId);
+      if (product.images.isNotEmpty) return product.images.first;
+    } catch (_) {
+      // product not loaded in the store
+    }
+    return null;
+  }
+
   @override
   Widget build(BuildContext context) {
     final moneyFormat = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 0);
     final statusColor = _getStatusColor(order.status);
     final shortId = order.id.length > 8 ? order.id.substring(0, 8) : order.id;
     final itemCount = order.items.fold<int>(0, (sum, item) => sum + item.quantity);
+    final store = ZarwintoScope.of(context, listen: false);
+    final headerImage = order.items.isNotEmpty ? _resolveItemImage(store, order.items.first) : null;
 
     return Card(
       margin: const EdgeInsets.only(bottom: 12),
@@ -322,10 +353,9 @@ class OrderCard extends StatelessWidget {
               const SizedBox(height: 6),
               Row(
                 children: [
-                  if (order.items.isNotEmpty && order.items.first.productImage != null && order.items.first.productImage!.isNotEmpty)
+                  if (headerImage != null)
                     GestureDetector(
                       onTap: () {
-                        final store = ZarwintoScope.of(context, listen: false);
                         try {
                           final product = store.products.firstWhere((p) => p.id == order.items.first.productId);
                           Navigator.of(context).push(
@@ -338,22 +368,15 @@ class OrderCard extends StatelessWidget {
                       child: ClipRRect(
                         borderRadius: BorderRadius.circular(8),
                         child: Image.network(
-                          order.items.first.productImage!,
+                          headerImage,
                           width: 48,
                           height: 48,
                           fit: BoxFit.cover,
-                          errorBuilder: (context, error, stackTrace) {
-                            return Container(
-                              width: 48,
-                              height: 48,
-                              color: ZarwintoColors.background,
-                              child: HugeIcon(icon: HugeIcons.strokeRoundedImage01, size: 24, color: ZarwintoColors.muted),
-                            );
-                          },
+                          errorBuilder: (context, error, stackTrace) => _orderItemPlaceholder(48),
                         ),
                       ),
                     ),
-                  if (order.items.isNotEmpty && order.items.first.productImage != null && order.items.first.productImage!.isNotEmpty)
+                  if (headerImage != null)
                     const SizedBox(width: 12),
                   Expanded(
                     child: Text(order.formattedDate, style: const TextStyle(color: ZarwintoColors.muted, fontSize: 12)),
@@ -383,9 +406,10 @@ class OrderCard extends StatelessWidget {
                     const SizedBox(height: 14),
                     const Divider(height: 1),
                     const SizedBox(height: 12),
-                    OrderStatusTracker(currentStatus: order.status),
+                    OrderStatusTracker(currentStatus: order.status, orderDate: order.createdAt),
                     const SizedBox(height: 14),
-                    ...order.items.map((item) => Padding(
+                    ...order.items.map((item) {
+                      return Padding(
                       padding: const EdgeInsets.only(bottom: 10),
                       child: Row(
                         children: [
@@ -414,28 +438,8 @@ class OrderCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                    )),
-                    if (order.items.isNotEmpty) ...[
-                      const SizedBox(height: 12),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () {
-                            final store = ZarwintoScope.of(context, listen: false);
-                            try {
-                              final product = store.products.firstWhere((p) => p.id == order.items.first.productId);
-                              Navigator.of(context).push(
-                                MaterialPageRoute(builder: (_) => ProductDetailPage(product: product)),
-                              );
-                            } catch (e) {
-                              // product not found in current catalog
-                            }
-                          },
-                          icon: const Icon(Icons.arrow_forward, size: 16),
-                          label: const Text('View Product'),
-                        ),
-                      ),
-                    ],
+                    );
+                    }),
                     if (order.shippingAddress.isNotEmpty) ...[
                       const SizedBox(height: 12),
                       const Divider(height: 1),
@@ -482,21 +486,36 @@ class OrderCard extends StatelessWidget {
                         Text(moneyFormat.format(order.totalAmount), style: const TextStyle(fontWeight: FontWeight.w800, fontSize: 16, color: ZarwintoColors.primary)),
                       ],
                     ),
-                    if (_isCancellable(order.status)) ...[
-                      const SizedBox(height: 16),
-                      SizedBox(
-                        width: double.infinity,
-                        child: OutlinedButton.icon(
-                          onPressed: () => _showCancelDialog(context, order),
-                          icon: HugeIcon(icon: HugeIcons.strokeRoundedDelete01, size: 18, color: ZarwintoColors.error),
-                          label: const Text('Cancel Order', style: TextStyle(color: ZarwintoColors.error)),
-                          style: OutlinedButton.styleFrom(
-                            side: BorderSide(color: ZarwintoColors.error.withValues(alpha: 0.3)),
-                            shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    const SizedBox(height: 16),
+                    Row(
+                      children: [
+                        if (_isCancellable(order.status)) ...[
+                          Expanded(
+                            child: OutlinedButton.icon(
+                              onPressed: () => _showCancelDialog(context, order),
+                              icon: HugeIcon(icon: HugeIcons.strokeRoundedDelete01, size: 18, color: ZarwintoColors.error),
+                              label: const Text('Cancel Order', style: TextStyle(color: ZarwintoColors.error)),
+                              style: OutlinedButton.styleFrom(
+                                side: BorderSide(color: ZarwintoColors.error.withValues(alpha: 0.3)),
+                                shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                              ),
+                            ),
+                          ),
+                          const SizedBox(width: 12),
+                        ],
+                        Expanded(
+                          child: OutlinedButton.icon(
+                            onPressed: () => _downloadInvoice(context, order),
+                            icon: HugeIcon(icon: HugeIcons.strokeRoundedDownload01, size: 18, color: ZarwintoColors.primary),
+                            label: const Text('Download Invoice', style: TextStyle(color: ZarwintoColors.primary)),
+                            style: OutlinedButton.styleFrom(
+                              side: BorderSide(color: ZarwintoColors.primary.withValues(alpha: 0.3)),
+                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                            ),
                           ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ],
                 ),
               ),
@@ -538,6 +557,186 @@ class OrderCard extends StatelessWidget {
   bool _isCancellable(String status) {
     final lower = status.toLowerCase();
     return lower == 'pending' || lower == 'processing';
+  }
+
+  pw.Document _buildInvoicePdf(Order order) {
+    final money = NumberFormat.currency(locale: 'en_IN', symbol: '₹', decimalDigits: 2);
+    final addr = order.shippingAddress;
+    final name = addr['fullName']?.toString() ?? '';
+    final phone = addr['phone']?.toString() ?? '';
+    final line1 = addr['addressLine1']?.toString() ?? '';
+    final city = addr['city']?.toString() ?? '';
+    final state = addr['state']?.toString() ?? '';
+    final pincode = addr['pincode']?.toString() ?? '';
+    final addressLine = [line1, city, state, pincode.isNotEmpty ? pincode : null]
+        .where((e) => e != null && e.isNotEmpty)
+        .join(', ');
+
+    final subtotal = order.items.fold<double>(0, (sum, i) => sum + i.lineTotal);
+    final discount = order.discountAmount;
+
+    pw.Widget cell(String text,
+        {bool bold = false, pw.TextAlign align = pw.TextAlign.left}) {
+      return pw.Padding(
+        padding: const pw.EdgeInsets.all(6),
+        child: pw.Text(
+          text,
+          textAlign: align,
+          style: pw.TextStyle(
+            fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+            fontSize: 10,
+          ),
+        ),
+      );
+    }
+
+    pw.Widget totalRow(String label, String value, {bool bold = false}) {
+      final style = pw.TextStyle(
+        fontWeight: bold ? pw.FontWeight.bold : pw.FontWeight.normal,
+        fontSize: bold ? 13 : 11,
+      );
+      return pw.Row(
+        mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+        children: [pw.Text(label, style: style), pw.Text(value, style: style)],
+      );
+    }
+
+    final doc = pw.Document(title: 'Invoice ${order.id}');
+    doc.addPage(
+      pw.Page(
+        pageFormat: PdfPageFormat.a4,
+        margin: const pw.EdgeInsets.all(32),
+        build: (context) => pw.Column(
+          crossAxisAlignment: pw.CrossAxisAlignment.start,
+          children: [
+            pw.Row(
+              mainAxisAlignment: pw.MainAxisAlignment.spaceBetween,
+              children: [
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    pw.Text('ZARWINTO',
+                        style: pw.TextStyle(fontSize: 24, fontWeight: pw.FontWeight.bold)),
+                    pw.Text('Tax Invoice',
+                        style: pw.TextStyle(fontSize: 12, color: PdfColors.grey700)),
+                  ],
+                ),
+                pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.end,
+                  children: [
+                    pw.Text('Invoice #${order.id}'),
+                    pw.Text('Date: ${order.formattedDate}'),
+                    pw.Text('Status: ${order.statusDisplay}'),
+                  ],
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 24),
+            pw.Text('Bill To / Ship To',
+                style: pw.TextStyle(fontWeight: pw.FontWeight.bold, fontSize: 14)),
+            pw.SizedBox(height: 6),
+            if (name.isNotEmpty) pw.Text(name, style: pw.TextStyle(fontSize: 12)),
+            if (addressLine.isNotEmpty)
+              pw.Text(addressLine, style: pw.TextStyle(fontSize: 12)),
+            if (phone.isNotEmpty)
+              pw.Text('Phone: $phone', style: pw.TextStyle(fontSize: 12)),
+            pw.SizedBox(height: 24),
+            pw.Table(
+              border: pw.TableBorder.all(color: PdfColors.grey400),
+              columnWidths: {
+                0: const pw.FlexColumnWidth(4),
+                1: const pw.FlexColumnWidth(2.5),
+                2: const pw.FlexColumnWidth(1),
+                3: const pw.FlexColumnWidth(1.5),
+                4: const pw.FlexColumnWidth(1.5),
+              },
+              children: [
+                pw.TableRow(
+                  decoration: const pw.BoxDecoration(color: PdfColors.grey200),
+                  children: [
+                    cell('Product', bold: true),
+                    cell('Size / Color', bold: true),
+                    cell('Qty', bold: true, align: pw.TextAlign.center),
+                    cell('Price', bold: true, align: pw.TextAlign.right),
+                    cell('Total', bold: true, align: pw.TextAlign.right),
+                  ],
+                ),
+                ...order.items.map(
+                  (item) => pw.TableRow(
+                    children: [
+                      cell(item.productTitle ?? 'Product'),
+                      cell(() {
+                        final bits = <String>[];
+                        if (item.variantSize != null && item.variantSize!.isNotEmpty) {
+                          bits.add(item.variantSize!);
+                        }
+                        if (item.variantColor != null && item.variantColor!.isNotEmpty) {
+                          bits.add(item.variantColor!);
+                        }
+                        return bits.join(' / ');
+                      }()),
+                      cell('${item.quantity}', align: pw.TextAlign.center),
+                      cell(money.format(item.price), align: pw.TextAlign.right),
+                      cell(money.format(item.lineTotal), align: pw.TextAlign.right),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+            pw.SizedBox(height: 16),
+            pw.Align(
+              alignment: pw.Alignment.centerRight,
+              child: pw.Container(
+                width: 240,
+                child: pw.Column(
+                  crossAxisAlignment: pw.CrossAxisAlignment.start,
+                  children: [
+                    totalRow('Subtotal', money.format(subtotal)),
+                    totalRow('Discount', discount > 0 ? '- ${money.format(discount)}' : money.format(0)),
+                    totalRow('Shipping', 'FREE'),
+                    pw.SizedBox(height: 6),
+                    pw.Divider(),
+                    totalRow('Total', money.format(order.totalAmount), bold: true),
+                  ],
+                ),
+              ),
+            ),
+            pw.SizedBox(height: 24),
+            pw.Divider(),
+            pw.SizedBox(height: 8),
+            pw.Text(
+              'Payment: ${order.paymentMethod.toUpperCase()}  •  ${order.paymentStatus.toUpperCase()}',
+              style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700),
+            ),
+            pw.SizedBox(height: 6),
+            pw.Text('Thank you for shopping with Zarwinto!',
+                style: pw.TextStyle(fontSize: 10, color: PdfColors.grey700)),
+          ],
+        ),
+      ),
+    );
+    return doc;
+  }
+
+  Future<void> _downloadInvoice(BuildContext context, Order order) async {
+    try {
+      final doc = _buildInvoicePdf(order);
+      final bytes = await doc.save();
+      final dir = await getTemporaryDirectory();
+      final file = File('${dir.path}/Zarwinto_Invoice_${order.id}.pdf');
+      await file.writeAsBytes(bytes);
+      await Share.shareXFiles(
+        [XFile(file.path)],
+        subject: 'Zarwinto Invoice #${order.id}',
+        text: 'Your Zarwinto invoice for order #${order.id}',
+      );
+    } catch (e) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Could not generate invoice: $e')),
+        );
+      }
+    }
   }
 
   Future<void> _showCancelDialog(BuildContext context, Order order) async {

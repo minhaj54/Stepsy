@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../providers/zarwinto_store.dart';
 import '../widgets/common.dart';
 import '../core/theme.dart';
@@ -37,6 +38,8 @@ class _AccountTabState extends State<AccountTab> {
               _buildProfileCard(store, profile),
               const SizedBox(height: 16),
               _buildMenuSection(store),
+              const SizedBox(height: 16),
+              _buildSellerCta(),
             ] else
               _buildSignInPrompt(),
           ],
@@ -193,6 +196,40 @@ class _AccountTabState extends State<AccountTab> {
         ),
       ),
     );
+  }
+
+  Widget _buildSellerCta() {
+    return SizedBox(
+      width: double.infinity,
+      height: 54,
+      child: ElevatedButton.icon(
+        onPressed: _launchSellerPortal,
+        style: ElevatedButton.styleFrom(
+          backgroundColor: ZarwintoColors.primary,
+          foregroundColor: Colors.white,
+          elevation: 0,
+          shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14)),
+        ),
+        icon: HugeIcon(icon: HugeIcons.strokeRoundedStore01, color: Colors.white, size: 20),
+        label: const Text(
+          'Start selling on Zarwinto',
+          style: TextStyle(fontWeight: FontWeight.w800, fontSize: 15),
+        ),
+      ),
+    );
+  }
+
+  Future<void> _launchSellerPortal() async {
+    if (!mounted) return;
+    final uri = Uri.parse('https://www.zarwinto.com/open-store');
+    final messenger = ScaffoldMessenger.of(context);
+    try {
+      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      messenger.showSnackBar(
+        SnackBar(content: Text('Could not open link: $e')),
+      );
+    }
   }
 
   Widget _buildMenuSection(ZarwintoStore store) {

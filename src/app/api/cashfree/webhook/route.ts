@@ -84,19 +84,6 @@ export async function POST(request: Request) {
       if (txError) {
         console.error('[Cashfree] Failed to create payment transaction:', txError);
       }
-
-      // If payment is successful, send order alert notification
-      if (mappedPaymentStatus === 'paid') {
-        try {
-          await fetch(`${process.env.NEXT_PUBLIC_SITE_URL}/api/notifications/order-alert`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ orderId }),
-          });
-        } catch (notifError) {
-          console.error('[Cashfree] Failed to send order notification:', notifError);
-        }
-      }
     }
 
     return NextResponse.json({ success: true, message: 'Webhook processed successfully' });

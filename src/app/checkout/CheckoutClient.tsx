@@ -25,7 +25,7 @@ interface ShippingRate {
 }
 
 export default function CheckoutPage() {
-  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, initiateCashfreePayment, verifyCashfreePayment, sendOrderAlert } = useCart();
+  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, initiateCashfreePayment, verifyCashfreePayment } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
 
@@ -491,7 +491,6 @@ export default function CheckoutPage() {
             setIsProcessing(false);
             triggerConfetti();
             clearBuyNow();
-            sendOrderAlert(order.id);
           } else {
             setIsProcessing(false);
             addToast('Failed to place order. Please try again.', 'error');
@@ -536,7 +535,6 @@ export default function CheckoutPage() {
             setIsProcessing(false);
             triggerConfetti();
             clearBuyNow();
-            sendOrderAlert(order.id);
           } else {
             setIsProcessing(false);
             addToast('Failed to place order. Please try again.', 'error');
@@ -602,7 +600,6 @@ export default function CheckoutPage() {
           setTimeout(() => {
             setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
             setPaymentSuccess(false);
-            sendOrderAlert(order.id);
           }, 2000);
         } else if (verifyResult.success && verifyResult.paymentStatus === 'unpaid') {
           addToast('Payment was not completed. Please try again.', 'error');
@@ -632,7 +629,6 @@ export default function CheckoutPage() {
           setTimeout(() => {
             setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
             setPaymentSuccess(false);
-            sendOrderAlert(order.id);
           }, 2000);
         } else {
           addToast('Payment verification failed. Please contact support if amount was deducted.', 'error');
@@ -662,7 +658,6 @@ export default function CheckoutPage() {
               setTimeout(() => {
                 setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
                 setPaymentSuccess(false);
-                sendOrderAlert(order.id);
               }, 2000);
             }
           } catch (error) {

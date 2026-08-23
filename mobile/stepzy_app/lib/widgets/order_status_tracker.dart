@@ -1,14 +1,17 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
+import 'package:intl/intl.dart';
 import '../core/theme.dart';
 
 class OrderStatusTracker extends StatelessWidget {
   const OrderStatusTracker({
     super.key,
     required this.currentStatus,
+    required this.orderDate,
   });
 
   final String currentStatus;
+  final DateTime orderDate;
 
   static const _steps = [
     _StepData(
@@ -32,6 +35,14 @@ class OrderStatusTracker extends StatelessWidget {
       icon: HugeIcons.strokeRoundedCheckmarkCircle01,
     ),
   ];
+
+  /// Rough estimated delivery offsets (in days) from the order date.
+  static const _dayOffsets = [0, 1, 3, 7];
+
+  static String _formatDate(DateTime d) => DateFormat('d MMM').format(d);
+
+  DateTime _estimatedDate(int index) =>
+      orderDate.add(Duration(days: _dayOffsets[index]));
 
   int get _currentIndex {
     final status = currentStatus.toLowerCase();
@@ -66,6 +77,13 @@ class OrderStatusTracker extends StatelessWidget {
                 fontWeight: FontWeight.w700,
               ),
             ),
+            const SizedBox(height: 4),
+            Text(
+              'Expected delivery was by ${_formatDate(_estimatedDate(3))}',
+              style: ZarwintoTypography.small.copyWith(
+                color: colors.error.withValues(alpha: 0.8),
+              ),
+            ),
           ],
         ),
       );
@@ -96,20 +114,43 @@ class OrderStatusTracker extends StatelessWidget {
         const SizedBox(height: ZarwintoSpacing.sm),
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceBetween,
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             for (int i = 0; i < _steps.length; i++)
               Expanded(
-                child: Text(
-                  _steps[i].label,
-                  textAlign: i == 0
-                      ? TextAlign.start
+                child: Column(
+                  crossAxisAlignment: i == 0
+                      ? CrossAxisAlignment.start
                       : i == _steps.length - 1
-                          ? TextAlign.end
-                          : TextAlign.center,
-                  style: ZarwintoTypography.small.copyWith(
-                    fontWeight: i <= current ? FontWeight.w700 : FontWeight.w500,
-                    color: i <= current ? colors.foreground : colors.secondaryText,
-                  ),
+                          ? CrossAxisAlignment.end
+                          : CrossAxisAlignment.center,
+                  children: [
+                    Text(
+                      _steps[i].label,
+                      textAlign: i == 0
+                          ? TextAlign.start
+                          : i == _steps.length - 1
+                              ? TextAlign.end
+                              : TextAlign.center,
+                      style: ZarwintoTypography.small.copyWith(
+                        fontWeight: i <= current ? FontWeight.w700 : FontWeight.w500,
+                        color: i <= current ? colors.foreground : colors.secondaryText,
+                      ),
+                    ),
+                    const SizedBox(height: 2),
+                    Text(
+                      _formatDate(_estimatedDate(i)),
+                      textAlign: i == 0
+                          ? TextAlign.start
+                          : i == _steps.length - 1
+                              ? TextAlign.end
+                              : TextAlign.center,
+                      style: ZarwintoTypography.small.copyWith(
+                        fontSize: 10,
+                        color: colors.secondaryText,
+                      ),
+                    ),
+                  ],
                 ),
               ),
           ],

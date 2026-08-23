@@ -206,9 +206,6 @@ export default function FashionBanner() {
             <div className="relative z-10 h-full flex items-center">
               <div className="px-4 sm:px-6 lg:px-8 w-full max-w-7xl mx-auto">
                 <div className="max-w-2xl space-y-4 sm:space-y-6">
-                  <span className="inline-block text-[10px] sm:text-xs font-bold uppercase tracking-[0.2em] text-primary bg-primary/10 px-3 py-1.5 rounded-full">
-                    {banner.subtitle}
-                  </span>
                   <h2 className="text-4xl sm:text-5xl lg:text-7xl font-black tracking-tight leading-[0.9]">
                     {banner.title.split(' ').map((word, i) => (
                       <span key={i} className={i === 1 ? 'text-primary' : ''}>

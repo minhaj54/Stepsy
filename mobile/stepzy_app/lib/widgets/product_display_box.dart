@@ -3,6 +3,7 @@ import 'package:hugeicons/hugeicons.dart';
 import '../core/theme.dart';
 import '../models/product.dart';
 import '../providers/zarwinto_store.dart';
+import '../screens/wishlist_screen.dart';
 import '../widgets/common.dart';
 
 class ProductDisplayBox extends StatelessWidget {
@@ -84,7 +85,14 @@ class ProductDisplayBox extends StatelessWidget {
             top: 12,
             right: 12,
             child: GestureDetector(
-              onTap: () => store.toggleWishlist(product.id),
+              onTap: () => toggleWishlistWithFeedback(
+                context,
+                store,
+                product.id,
+                onGoToWishlist: () => Navigator.of(context).push(
+                  MaterialPageRoute(builder: (_) => const WishlistScreen()),
+                ),
+              ),
               child: AnimatedContainer(
                 duration: const Duration(milliseconds: 250),
                 width: 36,
