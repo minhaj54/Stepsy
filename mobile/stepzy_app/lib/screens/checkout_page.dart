@@ -223,82 +223,68 @@ class _CheckoutPageState extends State<CheckoutPage> {
           (route) => route.settings.name == '/shell',
         );
       } else {
-        String? orderId;
-        try {
-          orderId = await store.createPendingOrder(addressData, paymentMethod: paymentMethod);
-        } catch (e) {
-          debugPrint('[CheckoutPage] Online createPendingOrder error: $e');
-        }
-        if (!mounted || orderId == null) {
-          if (!mounted) return;
-          setState(() => busy = false);
-          _navigateToFailure(context, 'Failed to create order. Please try again.');
-          return;
-        }
-
-        final order = await store.fetchOrder(orderId);
-        if (!mounted) return;
-        if (order == null) {
-          setState(() => busy = false);
-          _navigateToFailure(context, 'Order created but details not loaded. Please check My Orders.');
-          return;
-        }
-
+        // Online payment flow - DON'T create Supabase order yet
+        // Create Cashfree order first, then create Supabase order only after payment succeeds
+        
         final paymentService = PaymentService(store.prefs);
+        
+        // Generate a temporary order ID for Cashfree
+        final tempOrderId = 'ord_${DateTime.now().millisecondsSinceEpoch}';
+        
         final cashfreeResult = await paymentService.createCashfreeOrder(
-          orderId: order.id,
+          orderId: tempOrderId,
           amount: grandTotal,
-          name: order.shippingAddress['fullName'] ?? '',
+          name: addressData.fullName,
           email: store.profile?.email ?? 'customer@example.com',
-          phone: order.shippingAddress['phone'] ?? '',
+          phone: addressData.phone,
         );
 
         if (cashfreeResult != null && mounted) {
           final sessionId = cashfreeResult['paymentSessionId'] as String;
+          
+          // Open Cashfree checkout - WebView has its own loading indicator
           final paymentResult = await paymentService.showCashfreeCheckout(
             context: context,
             paymentSessionId: sessionId,
-            orderId: order.id,
+            orderId: tempOrderId,
           );
 
           if (paymentResult == PaymentResult.success && mounted) {
-            final verification = await paymentService.verifyCashfreePayment(order.id);
-            final paymentStatus = (verification?['paymentStatus'] ?? verification?['mappedPaymentStatus'] ?? verification?['order_status'] ?? '').toString().toLowerCase();
-            final isPaid = verification != null && (paymentStatus == 'paid' || paymentStatus == 'success');
+            // Verify payment with polling
+            _showVerifyingDialog(context);
+            
+            bool isPaid = false;
+            for (int i = 0; i < 3; i++) {
+              await Future.delayed(const Duration(seconds: 2));
+              isPaid = await paymentService.verifyPaymentStatus(tempOrderId);
+              if (isPaid) break;
+            }
+            
+            // Dismiss verifying dialog
+            if (mounted && Navigator.of(context).canPop()) {
+              Navigator.of(context).pop();
+            }
 
             if (isPaid) {
-              /* Shiprocket integration disabled
-              try {
-                final shiprocketResult = await paymentService.syncOrderWithShiprocket(
-                  orderId: order.id,
-                  cartItems: store.cart,
-                  shippingAddress: order.shippingAddress,
-                  paymentMethod: paymentMethod,
-                  subtotal: store.subtotal,
-                  discount: store.discount,
-                  shippingCost: shippingCost.toDouble(),
-                  fullName: order.shippingAddress['fullName'] ?? '',
-                  phone: order.shippingAddress['phone'] ?? '',
-                  email: store.profile?.email ?? '',
-                );
-                if (shiprocketResult != null) {
-                  await store.repository.updateOrderShiprocketIds(
-                    order.id,
-                    shiprocketResult['order_id'] as int,
-                    shiprocketResult['shipment_id'] as int,
-                  );
-                }
-              } catch (e) {
-                debugPrint('[CheckoutPage] Shiprocket sync error: $e');
+              // PAYMENT VERIFIED - NOW create the order in Supabase
+              final orderId = await store.createConfirmedOrder(
+                addressData,
+                paymentMethod: paymentMethod,
+              );
+              
+              if (!mounted || orderId == null) {
+                if (!mounted) return;
+                setState(() => busy = false);
+                _navigateToFailure(context, 'Payment successful but failed to create order. Please contact support.');
+                return;
               }
-              */
 
-              await store.repository.updateOrderPaymentStatus(order.id, 'paid');
               await store.loadOrders();
               final updatedOrder = store.orders.firstWhere(
-                (o) => o.id == order.id,
-                orElse: () => order,
+                (o) => o.id == orderId,
+                orElse: () => _buildFallbackOrder(orderId, addressData, paymentMethod, store),
               );
+              
               if (mounted) {
                 Navigator.of(context).pushAndRemoveUntil(
                   MaterialPageRoute(
@@ -308,19 +294,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
                 );
               }
             } else {
+              // Payment verification failed
               if (mounted) {
-                _navigateToFailure(context, 'Payment was not completed. Please try again.');
+                _navigateToFailure(context, 'Payment verification failed. Please try again or contact support.');
               }
             }
           } else if (paymentResult == PaymentResult.failure && mounted) {
             _navigateToFailure(context, 'Payment failed. Please try again.');
           } else if (mounted) {
-            ScaffoldMessenger.of(context).showSnackBar(
-              SnackBar(
-                content: const Text('Payment cancelled.'),
-                backgroundColor: colors.error,
-              ),
-            );
+            // Payment was cancelled by user
+            _navigateToFailure(context, 'Payment was cancelled. Please try again or choose a different payment method.');
           }
         } else if (mounted) {
           ScaffoldMessenger.of(context).showSnackBar(
@@ -357,6 +340,34 @@ class _CheckoutPageState extends State<CheckoutPage> {
         ),
       ),
       (route) => route.settings.name == '/shell',
+    );
+  }
+
+  void _showVerifyingDialog(BuildContext ctx) {
+    final colors = ZarwintoColors.of(ctx);
+    showDialog(
+      context: ctx,
+      barrierDismissible: false,
+      builder: (_) => PopScope(
+        canPop: false,
+        child: AlertDialog(
+          backgroundColor: colors.card,
+          content: const Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              CircularProgressIndicator(),
+              SizedBox(height: 16),
+              Text('Verifying payment...'),
+              SizedBox(height: 8),
+              Text(
+                'Please wait while we confirm your payment',
+                style: TextStyle(fontSize: 12, color: Colors.grey),
+                textAlign: TextAlign.center,
+              ),
+            ],
+          ),
+        ),
+      ),
     );
   }
 

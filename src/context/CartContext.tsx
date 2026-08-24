@@ -29,8 +29,10 @@ interface CartContextType {
   toggleWishlist: (productId: string) => void;
   orders: Order[];
   placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree', cartItems?: CartItem[]) => Promise<Order | null>;
-   initiateCashfreePayment: (address: ShippingAddress, cartItems?: CartItem[], grandTotal?: number) => Promise<{ order: Order; paymentSessionId: string } | null>;
+  initiateCashfreePayment: (address: ShippingAddress, cartItems?: CartItem[], grandTotal?: number) => Promise<{ order: Order; paymentSessionId: string } | null>;
+  redirectToCashfreePayment: (address: ShippingAddress, cartItems?: CartItem[], grandTotal?: number) => Promise<boolean>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
+  updateOrderPaymentStatus: (orderId: string, paymentStatus: 'unpaid' | 'paid' | 'refunded' | 'cod_pending' | 'failed', status?: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled') => Promise<void>;
   verifyCashfreePayment: (orderId: string) => Promise<{ success: boolean; paymentStatus?: string; orderStatus?: string }>;
 }
 
@@ -301,12 +303,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
      return total + (item.product.sale_price || item.product.price) * item.quantity;
    }, 0);
 
-   const newOrder: Order = {
-     id: orderId,
-     user_id: user.id,
-     status: isCashfree ? 'pending' : 'processing',
-     payment_status: isCashfree ? 'unpaid' : (paymentMethod === 'cod' ? 'cod_pending' : 'paid'),
-     payment_method: internalPaymentMethod,
+    const newOrder: Order = {
+      id: orderId,
+      user_id: user.id,
+      status: isCashfree ? 'pending' : 'processing',
+      payment_status: isCashfree ? 'unpaid' : (paymentMethod === 'cod' ? 'cod_pending' : 'paid'),
+      payment_method: internalPaymentMethod,
       total_amount: orderTotal,
      shipping_address: address,
       items: items.map(item => ({
@@ -507,28 +509,101 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  // Verify Cashfree payment status
-  const verifyCashfreePayment = async (orderId: string): Promise<{ success: boolean; paymentStatus?: string; orderStatus?: string }> => {
-    try {
-      const response = await fetch(`/api/cashfree/verify-payment?orderId=${encodeURIComponent(orderId)}`);
-      const data = await response.json();
+   // Verify Cashfree payment status
+   const verifyCashfreePayment = async (orderId: string): Promise<{ success: boolean; paymentStatus?: string; orderStatus?: string }> => {
+     try {
+       const response = await fetch(`/api/cashfree/verify-payment?orderId=${encodeURIComponent(orderId)}`);
+       const data = await response.json();
 
-      if (!response.ok || !data.success) {
-        return { success: false };
-      }
+       if (!response.ok || !data.success) {
+         return { success: false };
+       }
 
-      return {
-        success: true,
-        paymentStatus: data.mappedPaymentStatus,
-        orderStatus: data.mappedOrderStatus,
-      };
-    } catch (error) {
-      console.error('Error verifying Cashfree payment:', error);
-      return { success: false };
-    }
-  };
+       return {
+         success: true,
+         paymentStatus: data.mappedPaymentStatus,
+         orderStatus: data.mappedOrderStatus,
+       };
+     } catch (error) {
+       console.error('Error verifying Cashfree payment:', error);
+       return { success: false };
+     }
+   };
 
-  const updateOrderStatus = async (orderId: string, status: Order['status']) => {
+   // Redirect to Cashfree payment processing page
+   const redirectToCashfreePayment = async (address: ShippingAddress, cartItems?: CartItem[], grandTotal?: number): Promise<boolean> => {
+     const items = cartItems || cart;
+     if (items.length === 0 || !user) return false;
+
+     try {
+       const orderId = `ord_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+       const cashfreeAmount = grandTotal !== undefined ? grandTotal : Math.round(items.reduce((total, item) => total + (item.product.sale_price || item.product.price) * item.quantity, 0) * 100) / 100;
+
+       const response = await fetch('/api/cashfree/create-order', {
+         method: 'POST',
+         headers: { 'Content-Type': 'application/json' },
+         body: JSON.stringify({
+           orderId,
+           amount: Math.round(cashfreeAmount * 100) / 100,
+           customerDetails: {
+             name: address.fullName,
+             email: user.email || 'customer@example.com',
+             phone: address.phone,
+           },
+         }),
+       });
+
+       const data = await response.json();
+
+       if (!response.ok || !data.paymentSessionId) {
+         addToast(data.error || 'Failed to initiate payment. Please try again.', 'error');
+         return false;
+       }
+
+       const pendingOrder = {
+         orderId,
+         cashfreeOrderId: data.orderId,
+         address,
+         cartItems: items.map(item => ({
+           product_id: item.product.id,
+           product_title: item.product.title,
+           product_image: item.product.images?.[0] ?? '',
+           variant_id: item.variant.id,
+           size: item.variant.size,
+           color: item.color ?? item.variant.color,
+           quantity: item.quantity,
+           price: item.product.sale_price || item.product.price
+         })),
+         total_amount: Math.round(cashfreeAmount * 100) / 100,
+         payment_method: 'cashfree_upi',
+         coupon_code: appliedCoupon?.code ?? null,
+         discount_amount: discountAmount,
+         store_id: items[0]?.product?.store_id ?? null
+       };
+
+       sessionStorage.setItem('zarwinto_pending_order', JSON.stringify(pendingOrder));
+
+       const params = new URLSearchParams({
+         orderId,
+         cashfreeOrderId: data.orderId,
+         sessionId: data.paymentSessionId,
+         amount: String(Math.round(cashfreeAmount * 100) / 100),
+       });
+
+       window.location.href = `/payment/processing?${params.toString()}`;
+       return true;
+     } catch (error) {
+       console.error('Error initiating Cashfree payment:', error);
+       addToast('Failed to initiate payment. Please try again.', 'error');
+       return false;
+     }
+   };
+
+   const setProcessStep = (step: string) => {
+     console.log('[Payment]', step);
+   };
+
+   const updateOrderStatus = async (orderId: string, status: Order['status']) => {
     // Update local state immediately for responsive UI
     setOrders(prev =>
       prev.map(o => (o.id === orderId ? { ...o, status } : o))
@@ -558,6 +633,68 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
+  useEffect(() => {
+    const handler = (e: any) => {
+      const data = e.detail;
+      if (!data || !data.orderId) return;
+      setOrders(prev => {
+        if (prev.some(o => o.id === data.orderId)) return prev;
+        const order: Order = {
+          id: data.orderId,
+          user_id: user?.id || '',
+          status: 'processing',
+          payment_status: 'paid',
+          payment_method: data.payment_method || 'cashfree_upi',
+          total_amount: data.total_amount || 0,
+          shipping_address: data.address || {},
+          created_at: new Date().toISOString(),
+          items: (data.cartItems || []).map((item: any) => ({
+            product_id: item.product_id,
+            product_title: item.product_title,
+            product_image: item.product_image,
+            variant_id: item.variant_id,
+            size: item.size,
+            color: item.color,
+            quantity: item.quantity,
+            price: item.price
+          }))
+        };
+        return [order, ...prev];
+      });
+    };
+    window.addEventListener('order-created', handler);
+    return () => window.removeEventListener('order-created', handler);
+  }, [user]);
+
+   const updateOrderPaymentStatus = async (
+     orderId: string, 
+     paymentStatus: 'unpaid' | 'paid' | 'refunded' | 'cod_pending' | 'failed',
+     status?: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'
+   ) => {
+     const newStatus = status || (paymentStatus === 'paid' ? 'processing' : 'pending');
+
+     setOrders(prev =>
+       prev.map(o => (o.id === orderId ? { ...o, payment_status: paymentStatus, status: newStatus } : o))
+     );
+     localStorage.setItem('zarwinto_orders', JSON.stringify(
+       orders.map(o => (o.id === orderId ? { ...o, payment_status: paymentStatus, status: newStatus } : o))
+     ));
+
+    if (configured && user) {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('orders')
+        .update({ payment_status: paymentStatus, status: newStatus })
+        .eq('id', orderId)
+        .eq('user_id', user.id);
+
+      if (error) {
+        console.error('Error updating order payment status:', error);
+        addToast('Failed to update order payment status. Please try again.', 'error');
+      }
+    }
+  };
+
   return (
     <CartContext.Provider value={{
       cart,
@@ -577,7 +714,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       orders,
       placeOrder,
       initiateCashfreePayment,
+      redirectToCashfreePayment,
       updateOrderStatus,
+      updateOrderPaymentStatus,
       verifyCashfreePayment,
     }}>
       {children}

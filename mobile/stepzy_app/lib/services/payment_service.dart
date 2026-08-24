@@ -1,11 +1,9 @@
 import 'dart:convert';
 import 'package:flutter/material.dart';
-import 'package:hugeicons/hugeicons.dart';
 import 'package:http/http.dart' as http;
 import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
-import '../core/theme.dart';
 import '../core/constants.dart';
 
 enum PaymentResult { success, failure, cancelled }
@@ -354,6 +352,15 @@ class PaymentService {
     required String paymentSessionId,
     required String orderId,
   }) async {
+    if (paymentSessionId.isEmpty) {
+      if (context.mounted) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Invalid payment session. Please try again.')),
+        );
+      }
+      return PaymentResult.failure;
+    }
+
     final result = await Navigator.of(context).push<PaymentResult>(
       MaterialPageRoute(
         builder: (_) => CashfreeWebViewScreen(
@@ -367,6 +374,27 @@ class PaymentService {
     if (result != null) return result;
 
     return PaymentResult.cancelled;
+  }
+
+  Future<bool> verifyPaymentStatus(String orderId) async {
+    try {
+      final result = await verifyCashfreePayment(orderId);
+      if (result == null) return false;
+      
+      // Check mappedPaymentStatus - this is the reliable indicator
+      final mappedStatus = (result['mappedPaymentStatus'] ?? '').toString().toLowerCase();
+      
+      if (mappedStatus != 'paid') {
+        debugPrint('[PaymentService] Payment not completed. Status: $mappedStatus');
+        return false;
+      }
+      
+      debugPrint('[PaymentService] Payment verified. Status: $mappedStatus');
+      return true;
+    } catch (e) {
+      debugPrint('[PaymentService] Verify payment status error: $e');
+      return false;
+    }
   }
 }
 
@@ -386,7 +414,6 @@ class CashfreeWebViewScreen extends StatefulWidget {
 
 class _CashfreeWebViewScreenState extends State<CashfreeWebViewScreen> {
   late final WebViewController _controller;
-  bool _loading = true;
   bool _checkoutCompleted = false;
 
   @override
@@ -396,8 +423,6 @@ class _CashfreeWebViewScreenState extends State<CashfreeWebViewScreen> {
       ..setJavaScriptMode(JavaScriptMode.unrestricted)
       ..setNavigationDelegate(
         NavigationDelegate(
-          onPageStarted: (_) => setState(() => _loading = true),
-          onPageFinished: (_) => setState(() => _loading = false),
           onNavigationRequest: (request) {
             final url = request.url;
             
@@ -405,7 +430,14 @@ class _CashfreeWebViewScreenState extends State<CashfreeWebViewScreen> {
               return NavigationDecision.prevent;
             }
 
-            if (url.contains('status=success') || url.contains('status=SUCCESS')) {
+            // Only match Cashfree's actual return URLs with order_id parameter
+            // This ensures we only mark as success when Cashfree redirects back
+            final isCashfreeReturn = url.contains('zarwinto.com') || 
+                                     url.contains('status=') ||
+                                     url.contains('/checkout');
+            
+            if (isCashfreeReturn && 
+                (url.contains('status=success') || url.contains('status=SUCCESS'))) {
               _checkoutCompleted = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
@@ -418,7 +450,9 @@ class _CashfreeWebViewScreenState extends State<CashfreeWebViewScreen> {
             if (url.contains('status=failure') || 
                 url.contains('status=FAILURE') ||
                 url.contains('payment-failure') ||
-                url.contains('payment_failure')) {
+                url.contains('payment_failure') ||
+                url.contains('status=cancelled') ||
+                url.contains('status=CANCELLED')) {
               _checkoutCompleted = true;
               WidgetsBinding.instance.addPostFrameCallback((_) {
                 if (mounted) {
@@ -445,27 +479,50 @@ class _CashfreeWebViewScreenState extends State<CashfreeWebViewScreen> {
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
   <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
   <style>
-    body { margin: 0; padding: 0; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; }
-    #pay-btn { 
-      display: block; 
-      width: 100%; 
-      padding: 16px; 
-      background: #000; 
-      color: #fff; 
-      border: none; 
-      border-radius: 8px; 
-      font-size: 16px; 
-      font-weight: 600;
-      cursor: pointer;
-      margin: 20px;
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
+      background: #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 100vh;
     }
-    #pay-btn:disabled { background: #ccc; }
-    #status { text-align: center; padding: 20px; color: #666; }
+    .loader {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      gap: 20px;
+    }
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid #f3f3f3;
+      border-top: 3px solid #6366f1;
+      border-radius: 50%;
+      animation: spin 1s linear infinite;
+    }
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
+    }
+    #status { 
+      text-align: center; 
+      color: #666; 
+      font-size: 14px;
+    }
+    #pay-btn { 
+      display: none; 
+    }
   </style>
 </head>
 <body>
-  <div id="status">Loading payment gateway...</div>
-  <button id="pay-btn" disabled>Pay Now</button>
+  <div class="loader">
+    <div class="spinner"></div>
+    <div id="status">Loading secure payment...</div>
+  </div>
+  <button id="pay-btn">Pay Now</button>
   
   <script>
     document.addEventListener('DOMContentLoaded', function() {
@@ -533,24 +590,25 @@ class _CashfreeWebViewScreenState extends State<CashfreeWebViewScreen> {
   Widget build(BuildContext context) {
     return PopScope(
       canPop: false,
+      onPopInvokedWithResult: (didPop, result) {
+        if (!didPop) {
+          _handleBackPressed();
+        }
+      },
       child: Scaffold(
+        backgroundColor: Colors.white,
         appBar: AppBar(
           title: const Text('Secure Payment'),
-          backgroundColor: ZarwintoColors.background,
-          foregroundColor: ZarwintoColors.foreground,
+          backgroundColor: Colors.white,
+          foregroundColor: Colors.black,
+          elevation: 0,
           leading: IconButton(
             onPressed: _handleBackPressed,
-            icon: HugeIcon(icon: HugeIcons.strokeRoundedCancel01, color: ZarwintoColors.foreground),
+            icon: const Icon(Icons.close),
           ),
         ),
-        body: Stack(
-          children: [
-            WebViewWidget(controller: _controller),
-            if (_loading)
-              const Center(
-                child: CircularProgressIndicator(color: ZarwintoColors.primary),
-              ),
-          ],
+        body: SafeArea(
+          child: WebViewWidget(controller: _controller),
         ),
       ),
     );

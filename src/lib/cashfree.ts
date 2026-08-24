@@ -5,19 +5,19 @@
  * 
  * Environment Variables Required:
  * - CASHFREE_APP_ID: Your Cashfree App ID
- * - CASHFREE_SECRET_KEY: Your Cashfree Secret Key
- * - CASHFREE_WEBHOOK_SECRET: Webhook verification secret
+ * - CASHFREE_SECRET_KEY: Your Cashfree Secret Key (also used for webhook verification)
  * 
  * For sandbox/testing: Use sandbox credentials from Cashfree dashboard
  * For production: Use production credentials
  */
 
-const CASHFREE_BASE_URL = process.env.NODE_ENV === 'production'
+const CASHFREE_BASE_URL = process.env.CASHFREE_ENV === 'production'
   ? 'https://api.cashfree.com/pg'
   : 'https://sandbox.cashfree.com/pg';
 
 const APP_ID = process.env.CASHFREE_APP_ID;
 const SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
+const IS_PRODUCTION = process.env.CASHFREE_ENV === 'production';
 
 if (!APP_ID || !SECRET_KEY) {
   console.warn('[Cashfree] Missing CASHFREE_APP_ID or CASHFREE_SECRET_KEY. Payment features will not work.');
@@ -252,22 +252,14 @@ export async function verifyCashfreeWebhook(
   signature: string
 ): Promise<boolean> {
   if (!SECRET_KEY) {
-    console.warn('[Cashfree] Secret key not configured, skipping webhook verification');
-    return true; // In development, allow through
+    console.error('[Cashfree] Secret key not configured, rejecting webhook');
+    return false;
   }
 
-  // Cashfree uses HMAC-SHA256 for webhook verification with your Client Secret Key
-  // Use Web Crypto API for Edge runtime compatibility
   const encoder = new TextEncoder();
   const keyData = encoder.encode(SECRET_KEY);
   const messageData = encoder.encode(payload);
 
-  // For Edge runtime, we need to use the Web Crypto API
-  // However, Web Crypto doesn't support createHmac directly
-  // We'll use a simple comparison approach for Edge runtime
-  // In production, you should use a proper HMAC implementation
-  
-  // Fallback: use SubtleCrypto for HMAC-SHA256
   return crypto.subtle.importKey(
     'raw',
     keyData,
@@ -280,10 +272,9 @@ export async function verifyCashfreeWebhook(
     const hashArray = Array.from(new Uint8Array(signatureBuffer));
     const hashBase64 = btoa(String.fromCharCode.apply(null, hashArray));
     return signature === hashBase64;
-  }).catch(() => {
-    // If SubtleCrypto fails, fall back to simple comparison (not recommended for production)
-    console.warn('[Cashfree] Webhook verification using fallback method');
-    return true;
+  }).catch((error) => {
+    console.error('[Cashfree] Webhook verification failed:', error);
+    return false;
   });
 }
 
@@ -336,4 +327,11 @@ export function getPaymentMethodDisplay(method: string): string {
     default:
       return method || 'Online Payment';
   }
+}
+
+/**
+ * Check if running in production mode
+ */
+export function isCashfreeProduction(): boolean {
+  return IS_PRODUCTION;
 }

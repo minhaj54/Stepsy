@@ -140,7 +140,7 @@ export interface Order {
   id: string;
   user_id: string;
   status: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
-  payment_status: 'unpaid' | 'paid' | 'refunded' | 'cod_pending';
+  payment_status: 'unpaid' | 'paid' | 'refunded' | 'cod_pending' | 'failed';
   payment_method: 'prepaid' | 'cod' | 'cashfree_upi' | 'cashfree_card' | 'cashfree_netbanking';
   total_amount: number;
   shipping_address: ShippingAddress;

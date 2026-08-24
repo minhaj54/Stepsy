@@ -5,11 +5,10 @@ import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../lib/supabase/client';
-import { ArrowLeft, CheckCircle, CreditCard, ShieldCheck, ShoppingBag, Landmark, Sparkles, MapPin, Truck, Loader2, Smartphone, XCircle, RefreshCw, Plus, Edit3 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CreditCard, ShieldCheck, ShoppingBag, MapPin, Truck, Loader2, Smartphone, XCircle, Plus, Edit3 } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useToast } from '../../components/Toast';
 import ShimmerImage from '../../components/ShimmerImage';
-import { Order } from '../../types';
 
 interface ShippingRate {
   courier_company_id: number;
@@ -25,7 +24,7 @@ interface ShippingRate {
 }
 
 export default function CheckoutPage() {
-  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, initiateCashfreePayment, verifyCashfreePayment } = useCart();
+  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, redirectToCashfreePayment } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
 
@@ -91,12 +90,6 @@ export default function CheckoutPage() {
 
   // Payment Options
   const [paymentMethod, setPaymentMethod] = useState<'cashfree_upi' | 'card' | 'netbanking' | 'cod'>('cashfree_upi');
-
-  // Cashfree payment state
-  const [isCashfreeProcessing, setIsCashfreeProcessing] = useState(false);
-  const [cashfreeOrder, setCashfreeOrder] = useState<any>(null);
-  const [paymentVerifying, setPaymentVerifying] = useState(false);
-  const [paymentSuccess, setPaymentSuccess] = useState(false);
 
   // Shipping Options
   const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
@@ -515,27 +508,16 @@ export default function CheckoutPage() {
           }
         }, 1500);
       } else if (paymentMethod === 'cashfree_upi') {
-        // Cashfree UPI flow - using official Cashfree JS SDK
+        // Cashfree UPI flow - redirect to payment processing page
         setProcessStep('Initializing secure payment gateway...');
         
-        try {
-          const result = await initiateCashfreePayment(address, effectiveCart, finalTotal);
-          
-          if (result && result.paymentSessionId) {
-            setCashfreeOrder(result);
-            setIsProcessing(false);
-            
-            // Open Cashfree checkout using official SDK
-            openCashfreeCheckout(result);
-          } else {
-            setIsProcessing(false);
-            addToast('Failed to initialize payment. Please try again.', 'error');
-          }
-        } catch (error) {
-          console.error('Cashfree payment initiation error:', error);
+        const success = await redirectToCashfreePayment(address, effectiveCart, finalTotal);
+        
+        if (!success) {
           setIsProcessing(false);
           addToast('Failed to initialize payment. Please try again.', 'error');
         }
+        // On success, page will redirect - no need to set isProcessing to false
       } else {
         // Card/Netbanking - simulated for now
         setTimeout(async () => {
@@ -561,140 +543,7 @@ export default function CheckoutPage() {
       }
    };
 
-  // Open Cashfree checkout using official JS SDK
-  const openCashfreeCheckout = async (result: { order: Order; paymentSessionId: string }) => {
-    const orderId = result.order.id;
-    const paymentSessionId = result.paymentSessionId;
-    
-    if (!paymentSessionId) {
-      addToast('Invalid payment session. Please try again.', 'error');
-      return;
-    }
-
-    try {
-      // Dynamically import Cashfree SDK
-      const { load } = await import('@cashfreepayments/cashfree-js');
-      
-      // Initialize Cashfree SDK
-      const cashfree = await load({
-        mode: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
-      });
-
-      if (!cashfree) {
-        addToast('Failed to load payment gateway. Please try again.', 'error');
-        return;
-      }
-
-      console.log('[Checkout] Opening Cashfree checkout with session:', paymentSessionId);
-
-      // Open checkout using SDK
-      const checkoutResult = await cashfree.checkout({
-        paymentSessionId: paymentSessionId,
-        redirectTarget: '_modal',
-      });
-
-      console.log('[Checkout] Cashfree checkout result:', checkoutResult);
-
-      // Handle checkout result
-      if (checkoutResult.error) {
-        // User closed popup or payment error occurred
-        console.log('[Checkout] Payment closed or error:', checkoutResult.error);
-        
-        // Verify payment status
-        setPaymentVerifying(true);
-        const verifyResult = await verifyCashfreePayment(orderId);
-        setPaymentVerifying(false);
-        
-        if (verifyResult.success && verifyResult.paymentStatus === 'paid') {
-          const order = result.order;
-          try {
-            // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
-          } catch (error) {
-            console.error('Failed to sync with Shiprocket:', error);
-          }
-          setPaymentSuccess(true);
-          triggerConfetti();
-          
-          setTimeout(() => {
-            setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
-            setPaymentSuccess(false);
-          }, 2000);
-        } else if (verifyResult.success && verifyResult.paymentStatus === 'unpaid') {
-          addToast('Payment was not completed. Please try again.', 'error');
-        }
-        return;
-      }
-
-      if (checkoutResult.paymentDetails) {
-        // Payment completed - check status
-        console.log('[Checkout] Payment completed:', checkoutResult.paymentDetails);
-        
-        // Verify payment status from server
-        setPaymentVerifying(true);
-        const verifyResult = await verifyCashfreePayment(orderId);
-        setPaymentVerifying(false);
-        
-        if (verifyResult.success && verifyResult.paymentStatus === 'paid') {
-          const order = result.order;
-          try {
-            // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
-          } catch (error) {
-            console.error('Failed to sync with Shiprocket:', error);
-          }
-          setPaymentSuccess(true);
-          triggerConfetti();
-          
-          setTimeout(() => {
-            setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
-            setPaymentSuccess(false);
-          }, 2000);
-        } else {
-          addToast('Payment verification failed. Please contact support if amount was deducted.', 'error');
-        }
-        return;
-      }
-
-      if (checkoutResult.redirect) {
-        // Payment will be redirected (exceptional case for inAppBrowser)
-        console.log('[Checkout] Payment will be redirected');
-        
-        // Poll for payment completion
-        const pollInterval = setInterval(async () => {
-          try {
-            const verifyResult = await verifyCashfreePayment(orderId);
-            if (verifyResult.success && verifyResult.paymentStatus === 'paid') {
-              clearInterval(pollInterval);
-              const order = result.order;
-              try {
-                // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
-              } catch (error) {
-                console.error('Failed to sync with Shiprocket:', error);
-              }
-              setPaymentSuccess(true);
-              triggerConfetti();
-              
-              setTimeout(() => {
-                setCompletedOrder({ ...order, payment_status: 'paid', status: 'processing' });
-                setPaymentSuccess(false);
-              }, 2000);
-            }
-          } catch (error) {
-            console.error('Payment verification error:', error);
-          }
-        }, 3000);
-
-        // Cleanup after 10 minutes
-        setTimeout(() => {
-          clearInterval(pollInterval);
-        }, 10 * 60 * 1000);
-      }
-    } catch (error) {
-      console.error('Cashfree checkout error:', error);
-      addToast('Payment failed. Please try again.', 'error');
-    }
-  };
-
-  // ===== Shiprocket order sync DISABLED (commented out) =====
+   // ===== Shiprocket order sync DISABLED (commented out) =====
   // The implementation is preserved below as a comment so it can be re-enabled later.
   /*
   const syncOrderWithShiprocket = async (order: any) => {
@@ -804,115 +653,6 @@ export default function CheckoutPage() {
     }());
   };
 
-  // Payment success view
-  if (paymentSuccess && !completedOrder) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex-grow flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in duration-500">
-        <div className="h-24 w-24 bg-green-500/10 border border-green-500/20 text-green-500 rounded-full flex items-center justify-center text-5xl relative">
-          <CheckCircle className="h-16 w-16 text-green-500" />
-          <div className="absolute inset-0 rounded-full border border-green-500 animate-ping opacity-25 pointer-events-none" />
-        </div>
-
-        <div className="space-y-3">
-          <span className="text-xs font-bold text-primary uppercase tracking-widest flex items-center justify-center gap-1">
-            <Sparkles className="h-4 w-4 text-accent" /> Payment Successful
-          </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Payment Received!</h1>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            Your payment has been processed successfully. Preparing your order details...
-          </p>
-        </div>
-
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
-          <Loader2 className="h-4 w-4 animate-spin" />
-          <span>Loading order details...</span>
-        </div>
-      </div>
-    );
-  }
-
-  // Success view
-  if (completedOrder) {
-    return (
-      <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-20 flex-grow flex flex-col items-center justify-center text-center space-y-8 animate-in fade-in duration-500">
-        <div className="h-24 w-24 bg-green-500/10 border border-green-500/20 text-green-500 rounded-full flex items-center justify-center text-5xl relative">
-          <CheckCircle className="h-16 w-16 text-green-500" />
-          <div className="absolute inset-0 rounded-full border border-green-500 animate-ping opacity-25 pointer-events-none" />
-        </div>
-
-        <div className="space-y-3">
-          <span className="text-xs font-bold text-primary uppercase tracking-widest flex items-center justify-center gap-1">
-          <Sparkles className="h-4 w-4 text-accent" /> Order Confirmed
-        </span>
-          <h1 className="text-3xl sm:text-4xl font-extrabold text-foreground tracking-tight">Your order has been placed!</h1>
-          <p className="text-muted-foreground text-sm max-w-md mx-auto">
-            Order Reference: <strong className="text-foreground font-bold">{completedOrder.id}</strong>. {completedOrder.payment_method === 'cod' ? 'Pay cash at the time of delivery.' : "We've sent a detailed shipping breakdown to your registered email."}
-          </p>
-        </div>
-
-        {/* Short Order Info */}
-        <div className="w-full glass-card p-6 rounded-3xl border border-border text-left space-y-4 max-w-lg">
-          <h3 className="font-extrabold text-foreground text-sm uppercase tracking-wider border-b border-border pb-2">Shipping Destination</h3>
-          <div className="text-xs space-y-1 text-muted-foreground">
-            <p className="font-bold text-foreground">{completedOrder.shipping_address.full_name || completedOrder.shipping_address.fullName}</p>
-            <p>{completedOrder.shipping_address.address_line1 || completedOrder.shipping_address.addressLine1}</p>
-            <p>{completedOrder.shipping_address.city}, {completedOrder.shipping_address.state} {completedOrder.shipping_address.pincode}</p>
-            <p>Phone: {completedOrder.shipping_address.phone}</p>
-          </div>
-
-          <h3 className="font-extrabold text-foreground text-sm uppercase tracking-wider border-b border-border pb-2 pt-2">Payment Details</h3>
-          {completedOrder.payment_method === 'cod' ? (
-            <div className="flex justify-between text-xs font-semibold text-muted-foreground">
-              <span>Payment Method</span>
-              <span className="text-foreground">Cash on Delivery</span>
-            </div>
-          ) : completedOrder.payment_method?.startsWith('cashfree') ? (
-            <>
-              <div className="flex justify-between text-xs font-semibold text-muted-foreground">
-                <span>Payment Gateway</span>
-                <span className="text-foreground">Cashfree Payments</span>
-              </div>
-              <div className="flex justify-between text-xs font-semibold text-muted-foreground">
-                <span>Payment Method</span>
-                <span className="text-foreground">{completedOrder.payment_method === 'cashfree_upi' ? 'UPI' : completedOrder.payment_method === 'cashfree_card' ? 'Card' : 'Net Banking'}</span>
-              </div>
-              {completedOrder.cashfree_payment_id && (
-                <div className="flex justify-between text-xs font-semibold text-muted-foreground">
-                  <span>Transaction ID</span>
-                  <span className="text-foreground font-mono text-[10px]">{completedOrder.cashfree_payment_id}</span>
-                </div>
-              )}
-            </>
-          ) : (
-            <div className="flex justify-between text-xs font-semibold text-muted-foreground">
-              <span>Payment Method</span>
-              <span className="text-foreground">Online Payment</span>
-            </div>
-          )}
-          <div className="flex justify-between text-sm font-bold text-foreground border-t border-border pt-2">
-            <span>{completedOrder.payment_method === 'cod' ? 'Amount to Pay' : 'Total Debited'}</span>
-            <span className="text-primary font-black">₹{completedOrder.total_amount}</span>
-          </div>
-        </div>
-
-        <div className="flex gap-4">
-          <Link
-            href="/account?tab=orders"
-            className="bg-zinc-900 border border-border hover:border-muted-foreground/50 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors"
-          >
-            Track Order
-          </Link>
-          <Link
-            href="/shop"
-            className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all glow-btn"
-          >
-            Continue Shopping
-          </Link>
-        </div>
-      </div>
-    );
-  }
-
    // Fallback empty view
    if (effectiveCart.length === 0) {
     return (
@@ -927,16 +667,11 @@ export default function CheckoutPage() {
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-grow relative space-y-6 sm:space-y-8">
       {/* Loading Overlay */}
-      {(isProcessing || paymentVerifying) && (
+      {isProcessing && (
         <div className="fixed inset-0 z-50 bg-background/90 flex flex-col items-center justify-center text-center p-4 animate-in fade-in duration-300">
           <div className="h-14 w-14 border-4 border-primary border-t-transparent rounded-full animate-spin mb-4" />
-          <h2 className="text-xl font-bold text-foreground tracking-tight">
-            {paymentVerifying ? 'Verifying Payment' : 'Processing Transactions'}
-          </h2>
+          <h2 className="text-xl font-bold text-foreground tracking-tight">Processing Transactions</h2>
           <p className="text-muted-foreground text-xs mt-1 animate-pulse font-medium">{processStep}</p>
-          {paymentVerifying && (
-            <p className="text-muted-foreground text-[10px] mt-2">Please wait while we confirm your payment with Cashfree...</p>
-          )}
         </div>
       )}
 

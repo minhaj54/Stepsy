@@ -394,6 +394,8 @@ class ZarwintoRepository {
     required String paymentMethod,
     String? couponCode,
     double discountAmount = 0,
+    String? initialStatus,
+    String? initialPaymentStatus,
   }) async {
     final user = client?.auth.currentUser;
     if (client == null || user == null) return null;
@@ -410,10 +412,10 @@ class ZarwintoRepository {
       (sum, item) => sum + item.product.currentPrice * item.quantity,
     );
 
-    final status = isOnline ? 'pending' : 'processing';
-    final paymentStatus = isOnline
+    final status = initialStatus ?? (isOnline ? 'pending' : 'processing');
+    final paymentStatus = initialPaymentStatus ?? (isOnline
         ? 'unpaid'
-        : (paymentMethod == 'cod' ? 'cod_pending' : 'paid');
+        : (paymentMethod == 'cod' ? 'cod_pending' : 'paid'));
 
     try {
       await _saveAddressIfNeeded(user.id, address);
@@ -525,6 +527,24 @@ class ZarwintoRepository {
       paymentMethod: paymentMethod,
       couponCode: couponCode,
       discountAmount: discountAmount,
+    );
+  }
+
+  Future<String?> createConfirmedOrder(
+    List<CartItem> cart,
+    ShippingAddress address, {
+    required String paymentMethod,
+    String? couponCode,
+    double discountAmount = 0,
+  }) async {
+    return _createOrder(
+      cart: cart,
+      address: address,
+      paymentMethod: paymentMethod,
+      couponCode: couponCode,
+      discountAmount: discountAmount,
+      initialStatus: 'processing',
+      initialPaymentStatus: 'paid',
     );
   }
 

@@ -8,6 +8,7 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const orderId = searchParams.get('orderId');
+    const cashfreeOrderId = searchParams.get('cashfreeOrderId');
 
     if (!orderId) {
       return NextResponse.json(
@@ -16,27 +17,64 @@ export async function GET(request: Request) {
       );
     }
 
-    // Fetch order details from Cashfree
-    const result = await getCashfreeOrder(orderId);
+    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
+    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+    
+    let supabaseOrder = null;
+    if (supabaseUrl && supabaseKey) {
+      const supabase = await createClient();
+      const { data } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .single();
+      
+      if (data) {
+        supabaseOrder = data;
+      }
+    }
 
-    if (!result.success) {
+    const cfOrderId = cashfreeOrderId || supabaseOrder?.cashfree_order_id || orderId;
+    const result = await getCashfreeOrder(cfOrderId);
+
+    if (!result.success && !supabaseOrder) {
       return NextResponse.json(
-        { success: false, error: result.error },
+        { success: false, error: result.error || 'Order not found' },
         { status: 400 }
       );
+    }
+
+    // If we have Supabase order but Cashfree fetch failed, return Supabase data
+    if (!result.success && supabaseOrder) {
+      return NextResponse.json({
+        success: true,
+        order: {
+          id: supabaseOrder.id,
+          total_amount: supabaseOrder.total_amount,
+          payment_method: supabaseOrder.payment_method,
+          payment_status: supabaseOrder.payment_status,
+          status: supabaseOrder.status,
+          cashfree_payment_id: supabaseOrder.cashfree_payment_id,
+          cashfree_payment_method: supabaseOrder.cashfree_payment_method,
+          created_at: supabaseOrder.created_at,
+          shipping_address: supabaseOrder.shipping_address,
+        },
+        mappedPaymentStatus: supabaseOrder.payment_status,
+        mappedOrderStatus: supabaseOrder.status,
+      });
     }
 
     const order = result.order;
     const payment = order.payments?.[0] || order.latest_payment || {};
     
-    const paymentStatus = payment.payment_status || order.order_status || 'PENDING';
+    // CRITICAL: Only use payment.payment_status - NEVER fall back to order.order_status
+    // order.order_status can be 'SUCCESS' even when no payment is made
+    // payment.payment_status is only set when an actual payment occurs
+    const paymentStatus = payment.payment_status || 'PENDING';
     const { paymentStatus: mappedPaymentStatus, orderStatus: mappedOrderStatus } = mapCashfreeStatus(paymentStatus);
 
     // Update order in Supabase with latest status
-    const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-    const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (supabaseUrl && supabaseKey) {
+    if (supabaseUrl && supabaseKey && supabaseOrder) {
       const supabase = await createClient();
 
       const { error } = await supabase
@@ -49,15 +87,53 @@ export async function GET(request: Request) {
           payment_status: mappedPaymentStatus,
           status: mappedOrderStatus,
         })
-        .eq('cashfree_order_id', orderId);
+        .eq('id', orderId);
 
       if (error) {
         console.error('[Cashfree] Failed to update order status:', error);
+      }
+
+      // Fetch updated order
+      const { data: updatedOrder } = await supabase
+        .from('orders')
+        .select('*')
+        .eq('id', orderId)
+        .single();
+
+      if (updatedOrder) {
+        return NextResponse.json({
+          success: true,
+          order: {
+            id: updatedOrder.id,
+            total_amount: updatedOrder.total_amount,
+            payment_method: updatedOrder.payment_method,
+            payment_status: updatedOrder.payment_status,
+            status: updatedOrder.status,
+            cashfree_payment_id: updatedOrder.cashfree_payment_id,
+            cashfree_payment_method: updatedOrder.cashfree_payment_method,
+            created_at: updatedOrder.created_at,
+            shipping_address: updatedOrder.shipping_address,
+          },
+          mappedPaymentStatus,
+          mappedOrderStatus,
+          paymentId: payment.payment_id,
+        });
       }
     }
 
     return NextResponse.json({
       success: true,
+      order: supabaseOrder ? {
+        id: supabaseOrder.id,
+        total_amount: supabaseOrder.total_amount,
+        payment_method: supabaseOrder.payment_method,
+        payment_status: supabaseOrder.payment_status,
+        status: supabaseOrder.status,
+        cashfree_payment_id: supabaseOrder.cashfree_payment_id,
+        cashfree_payment_method: supabaseOrder.cashfree_payment_method,
+        created_at: supabaseOrder.created_at,
+        shipping_address: supabaseOrder.shipping_address,
+      } : null,
       orderStatus: order.order_status,
       paymentStatus: paymentStatus,
       mappedPaymentStatus,

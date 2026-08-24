@@ -378,6 +378,22 @@ class ZarwintoStore extends ChangeNotifier {
     );
   }
 
+  Future<String?> createConfirmedOrder(
+    ShippingAddress address, {
+    required String paymentMethod,
+  }) async {
+    if (cart.isEmpty) return null;
+    if (profile == null) return null;
+
+    return repository.createConfirmedOrder(
+      cart,
+      address,
+      paymentMethod: paymentMethod,
+      couponCode: appliedCoupon?.code,
+      discountAmount: discount,
+    );
+  }
+
   Future<Order?> fetchOrder(String orderId) async {
     return repository.fetchOrder(orderId);
   }
