@@ -308,8 +308,34 @@ export function mapCashfreeStatus(cashfreeStatus: string): {
 }
 
 /**
- * Get payment method display name
+ * Resolve a Cashfree status into our internal payment/order status.
+ * Returns null for non-final states (PENDING / PROCESSING / unknown) so callers
+ * DON'T downgrade an already-paid order while Cashfree is still confirming the
+ * payment asynchronously. Only definitive outcomes are returned.
  */
+export function resolveCashfreePaymentStatus(raw?: string): {
+  paymentStatus: 'unpaid' | 'paid' | 'refunded' | 'cod_pending';
+  orderStatus: 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled';
+} | null {
+  const s = (raw || 'PENDING').toUpperCase();
+  switch (s) {
+    case 'PAID':
+    case 'SUCCESS':
+      return { paymentStatus: 'paid', orderStatus: 'processing' };
+    case 'REFUNDED':
+    case 'PARTIALLY_REFUNDED':
+      return { paymentStatus: 'refunded', orderStatus: 'processing' };
+    case 'FAILED':
+    case 'EXPIRED':
+      return { paymentStatus: 'unpaid', orderStatus: 'pending' };
+    case 'CANCELLED':
+    case 'USER_DROPPED':
+      return { paymentStatus: 'unpaid', orderStatus: 'cancelled' };
+    default:
+      // PENDING / PROCESSING / unknown — not a final outcome; caller should skip.
+      return null;
+  }
+}
 export function getPaymentMethodDisplay(method: string): string {
   switch (method.toUpperCase()) {
     case 'UPI':

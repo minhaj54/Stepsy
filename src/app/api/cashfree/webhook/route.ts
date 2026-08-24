@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { verifyCashfreeWebhook, mapCashfreeStatus } from '@/lib/cashfree';
+import { verifyCashfreeWebhook, resolveCashfreePaymentStatus } from '@/lib/cashfree';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 
 export const runtime = 'edge';
@@ -29,13 +29,14 @@ export async function POST(request: Request) {
     const orderId = order.order_id;
     const cashfreeOrderId = order.order_id;
     const cashfreePaymentId = payment?.payment_id || '';
-    const paymentStatus = payment?.payment_status || 'PENDING';
+    const paymentStatus = payment?.payment_status || order?.order_status || 'PENDING';
     const paymentMethod = payment?.payment_method || '';
     const paymentMessage = payment?.payment_message || '';
     const amount = order.order_amount;
 
-    // Map Cashfree status to our internal status
-    const { paymentStatus: mappedPaymentStatus, orderStatus: mappedOrderStatus } = mapCashfreeStatus(paymentStatus);
+    // Resolve to a definitive status. Null means non-final (PENDING/unknown) —
+    // we then only refresh Cashfree metadata and never downgrade a paid order.
+    const resolution = resolveCashfreePaymentStatus(paymentStatus);
 
     // Update order in Supabase (prefer service-role to bypass RLS; fall back to anon)
     const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
@@ -45,19 +46,23 @@ export async function POST(request: Request) {
     if (supabaseUrl && (serviceKey || supabaseKey)) {
       const supabase = serviceKey ? createServiceClient()! : await createClient();
 
+      const orderUpdate: Record<string, unknown> = {
+        cashfree_order_id: cashfreeOrderId,
+        cashfree_payment_id: cashfreePaymentId,
+        cashfree_payment_status: paymentStatus,
+        cashfree_payment_method: paymentMethod,
+        cashfree_payment_message: paymentMessage,
+        cashfree_webhook_received: true,
+      };
+      if (resolution) {
+        orderUpdate.payment_status = resolution.paymentStatus;
+        orderUpdate.status = resolution.orderStatus;
+      }
+
       // Update the order
       const { error: orderError } = await supabase
         .from('orders')
-        .update({
-          cashfree_order_id: cashfreeOrderId,
-          cashfree_payment_id: cashfreePaymentId,
-          cashfree_payment_status: paymentStatus,
-          cashfree_payment_method: paymentMethod,
-          cashfree_payment_message: paymentMessage,
-          cashfree_webhook_received: true,
-          payment_status: mappedPaymentStatus,
-          status: mappedOrderStatus,
-        })
+        .update(orderUpdate)
         .eq('cashfree_order_id', cashfreeOrderId);
 
       if (orderError) {

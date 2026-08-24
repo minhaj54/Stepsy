@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { getCashfreeOrder, mapCashfreeStatus } from '@/lib/cashfree';
+import { getCashfreeOrder, resolveCashfreePaymentStatus } from '@/lib/cashfree';
 import { createClient, createServiceClient } from '@/lib/supabase/server';
 
 export const runtime = 'edge';
@@ -78,26 +78,30 @@ export async function GET(request: Request) {
       const cfOrder = result.order;
       const payment = cfOrder?.payments?.[0] || cfOrder?.latest_payment || {};
 
-      // CRITICAL: Only use payment.payment_status - NEVER fall back to order.order_status
-      // order.order_status can be 'SUCCESS' even when no payment is made
-      // payment.payment_status is only set when an actual payment occurs
-      const paymentStatus = payment.payment_status || 'PENDING';
-      const { paymentStatus: mappedPaymentStatus, orderStatus: mappedOrderStatus } = mapCashfreeStatus(paymentStatus);
+      // Resolve to a definitive status. Null means non-final (PENDING/unknown) —
+      // we then only refresh Cashfree metadata and never downgrade a paid order.
+      const resolution = resolveCashfreePaymentStatus(payment?.payment_status || cfOrder?.order_status);
+      const mappedPaymentStatus = resolution?.paymentStatus ?? 'unpaid';
+      const mappedOrderStatus = resolution?.orderStatus ?? 'pending';
 
       if (supabaseOrder) {
         const updater = serviceClient || (supabaseUrl && anonKey ? await createClient() : null);
         if (updater) {
+          const orderUpdate: Record<string, unknown> = {
+            cashfree_order_id: cfOrderId,
+            cashfree_payment_status: payment?.payment_status || cfOrder?.order_status || 'PENDING',
+            cashfree_payment_id: payment?.payment_id || '',
+            cashfree_payment_method: payment?.payment_method || '',
+            cashfree_payment_message: payment?.payment_message || '',
+          };
+          if (resolution) {
+            orderUpdate.payment_status = resolution.paymentStatus;
+            orderUpdate.status = resolution.orderStatus;
+          }
+
           const { error } = await updater
             .from('orders')
-            .update({
-              cashfree_order_id: cfOrderId,
-              cashfree_payment_status: paymentStatus,
-              cashfree_payment_id: payment.payment_id || '',
-              cashfree_payment_method: payment.payment_method || '',
-              cashfree_payment_message: payment.payment_message || '',
-              payment_status: mappedPaymentStatus,
-              status: mappedOrderStatus,
-            })
+            .update(orderUpdate)
             .eq('id', orderId);
 
           if (error) {
