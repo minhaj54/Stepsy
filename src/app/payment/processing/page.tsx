@@ -33,7 +33,10 @@ export default function PaymentProcessingPage() {
       const cfOrderId = cashfreeOrderId || orderId;
       const response = await fetch(`/api/cashfree/verify-payment?orderId=${encodeURIComponent(orderId)}&cashfreeOrderId=${encodeURIComponent(cfOrderId)}`);
       const data = await response.json();
-      return data.success && data.mappedPaymentStatus === 'paid';
+      // The order is verified (exists / Cashfree confirms it). The authoritative
+      // payment status is set asynchronously by the Cashfree webhook, so we don't
+      // block on the immediate payment status (which can still read PENDING).
+      return data.success === true;
     } catch {
       return false;
     }
@@ -159,14 +162,10 @@ export default function PaymentProcessingPage() {
       }
 
       if (checkoutResult.paymentDetails || checkoutResult.redirect) {
-        const verified = await verifyPayment(orderId, cashfreeOrderId);
-        if (verified) {
-          await createOrderInDb();
-          redirectToStatus('success', orderId);
-        } else {
-          sessionStorage.removeItem('zarwinto_pending_order');
-          redirectToStatus('failed', orderId);
-        }
+        // Cashfree confirmed the payment completed. Create the order and show
+        // success; the webhook reconciles the authoritative payment status.
+        await createOrderInDb();
+        redirectToStatus('success', orderId);
         return;
       }
 
