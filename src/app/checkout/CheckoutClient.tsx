@@ -656,8 +656,9 @@ export default function CheckoutPage() {
     }());
   };
 
-   // Fallback empty view
-   if (effectiveCart.length === 0) {
+   // Fallback empty view (skip when an order was just completed, so the
+   // confirmation box below is shown even though the cart is now cleared)
+   if (effectiveCart.length === 0 && !completedOrder) {
     return (
       <div className="max-w-md mx-auto px-4 py-20 text-center space-y-4 flex-grow flex flex-col justify-center">
         <h1 className="text-2xl font-black text-foreground">Checkout Unavailable</h1>
