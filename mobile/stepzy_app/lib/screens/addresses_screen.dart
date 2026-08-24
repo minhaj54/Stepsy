@@ -297,6 +297,7 @@ class _AddAddressBottomSheetState extends State<AddAddressBottomSheet> {
   final _fullNameController = TextEditingController();
   final _phoneController = TextEditingController();
   final _addressLine1Controller = TextEditingController();
+  final _addressLine2Controller = TextEditingController();
   final _cityController = TextEditingController();
   final _stateController = TextEditingController();
   final _pincodeController = TextEditingController();
@@ -311,6 +312,7 @@ class _AddAddressBottomSheetState extends State<AddAddressBottomSheet> {
       _fullNameController.text = widget.address!.fullName;
       _phoneController.text = widget.address!.phone;
       _addressLine1Controller.text = widget.address!.addressLine1;
+      _addressLine2Controller.text = widget.address!.addressLine2;
       _cityController.text = widget.address!.city;
       _stateController.text = widget.address!.state;
       _pincodeController.text = widget.address!.pincode;
@@ -339,6 +341,7 @@ class _AddAddressBottomSheetState extends State<AddAddressBottomSheet> {
     _fullNameController.dispose();
     _phoneController.dispose();
     _addressLine1Controller.dispose();
+    _addressLine2Controller.dispose();
     _cityController.dispose();
     _stateController.dispose();
     _pincodeController.dispose();
@@ -353,10 +356,11 @@ class _AddAddressBottomSheetState extends State<AddAddressBottomSheet> {
 
     final address = Address(
       id: widget.address?.id ?? '',
-      userId: widget.address?.userId ?? '',
+      userId: (widget.address?.userId ?? store.profile?.id ?? ''),
       fullName: _fullNameController.text.trim(),
       phone: _phoneController.text.trim(),
       addressLine1: _addressLine1Controller.text.trim(),
+      addressLine2: _addressLine2Controller.text.trim(),
       city: _cityController.text.trim(),
       state: _stateController.text.trim(),
       pincode: _pincodeController.text.trim(),
@@ -364,15 +368,27 @@ class _AddAddressBottomSheetState extends State<AddAddressBottomSheet> {
       createdAt: widget.address?.createdAt ?? DateTime.now(),
     );
 
-    if (widget.address == null) {
-      await store.addAddress(address);
-    } else {
-      await store.updateAddress(address);
-    }
+    try {
+      if (widget.address == null) {
+        final newAddress = await store.addAddress(address);
+        if (newAddress == null) throw Exception('Failed to save address');
+      } else {
+        await store.updateAddress(address);
+      }
 
-    if (mounted) {
-      setState(() => _saving = false);
-      Navigator.pop(context);
+      if (mounted) {
+        Navigator.pop(context);
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text('Address saved')),
+        );
+      }
+    } catch (e) {
+      if (mounted) {
+        setState(() => _saving = false);
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text('Failed to save address: $e')),
+        );
+      }
     }
   }
 
@@ -425,8 +441,13 @@ class _AddAddressBottomSheetState extends State<AddAddressBottomSheet> {
               const SizedBox(height: 12),
               TextFormField(
                 controller: _addressLine1Controller,
-                decoration: const InputDecoration(labelText: 'House/Flat No., Street, Landmark'),
+                decoration: const InputDecoration(labelText: 'Address Line 1'),
                 validator: (v) => v?.trim().isEmpty ?? true ? 'Required' : null,
+              ),
+              const SizedBox(height: 12),
+              TextFormField(
+                controller: _addressLine2Controller,
+                decoration: const InputDecoration(labelText: 'Address Line 2 / Landmark'),
               ),
               const SizedBox(height: 12),
               Row(

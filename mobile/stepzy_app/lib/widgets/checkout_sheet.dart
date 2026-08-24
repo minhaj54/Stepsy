@@ -138,6 +138,7 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                           fullName: fullName.text,
                           phone: phone.text,
                           addressLine1: address.text,
+                          addressLine2: '',
                           city: city.text,
                           state: state.text,
                           pincode: pincode.text,

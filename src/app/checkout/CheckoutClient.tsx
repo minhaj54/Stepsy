@@ -56,8 +56,18 @@ export default function CheckoutPage() {
        return total + price * item.quantity;
      }, 0);
    }, [effectiveCart]);
-   const effectiveDiscountedTotal = effectiveTotal;
-   const effectiveDiscountAmount = 0;
+    const effectiveDiscountedTotal = effectiveTotal;
+    const effectiveDiscountAmount = 0;
+
+    // MRP = sum of original (non-sale) prices; discount = MRP - selling (sale) price
+    const mrpTotal = React.useMemo(() => {
+      return effectiveCart.reduce((total: number, item: any) => {
+        const mrp = item.product.price || item.product.sale_price || 0;
+        return total + mrp * item.quantity;
+      }, 0);
+    }, [effectiveCart]);
+    const discountTotal = Math.max(0, mrpTotal - effectiveTotal);
+    const discountPercent = mrpTotal > 0 ? (discountTotal / mrpTotal) * 100 : 0;
 
   // Clean up buyNow from sessionStorage after order is placed
   const clearBuyNow = () => {
@@ -214,48 +224,56 @@ export default function CheckoutPage() {
        setShippingError(null);
        setSelectedShipping(null);
 
-       try {
-         const { weight, length, breadth, height, declaredValue } = calculatePackageDetails();
-         
-         const response = await fetch('/api/shiprocket/shipping-rates', {
-           method: 'POST',
-           headers: {
-             'Content-Type': 'application/json',
-           },
-           body: JSON.stringify({
-             pickupPincode: pickupPincode,
-             deliveryPincode: pincode,
-             weight,
-             length,
-             breadth,
-             height,
-             declaredValue,
-             cod: paymentMethod === 'cod' ? 1 : 0,
-           }),
-         });
+        // Shiprocket shipping-rates lookup DISABLED.
+        // The implementation below is preserved as a comment for re-enablement.
+        /*
+        try {
+          const { weight, length, breadth, height, declaredValue } = calculatePackageDetails();
+          
+          const response = await fetch('/api/shiprocket/shipping-rates', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              pickupPincode: pickupPincode,
+              deliveryPincode: pincode,
+              weight,
+              length,
+              breadth,
+              height,
+              declaredValue,
+              cod: paymentMethod === 'cod' ? 1 : 0,
+            }),
+          });
 
-         const data = await response.json();
+          const data = await response.json();
 
-         if (!response.ok || data.status !== 1) {
-           throw new Error(data.error || 'Failed to fetch shipping rates');
-         }
+          if (!response.ok || data.status !== 1) {
+            throw new Error(data.error || 'Failed to fetch shipping rates');
+          }
 
-         setShippingRates(data.data);
-         
-         // Auto-select the cheapest option
-         if (data.data.length > 0) {
-           const cheapest = data.data.reduce((min: ShippingRate, rate: ShippingRate) => 
-             rate.total_charges < min.total_charges ? rate : min
-           );
-           setSelectedShipping(cheapest);
-         }
-       } catch (error) {
-         console.error('Error fetching shipping rates:', error);
-         setShippingError(error instanceof Error ? error.message : 'Failed to fetch shipping rates');
-         setShippingRates([]);
-       } finally {
-         setIsLoadingRates(false);
-       }
+          setShippingRates(data.data);
+          
+          // Auto-select the cheapest option
+          if (data.data.length > 0) {
+            const cheapest = data.data.reduce((min: ShippingRate, rate: ShippingRate) => 
+              rate.total_charges < min.total_charges ? rate : min
+            );
+            setSelectedShipping(cheapest);
+          }
+        } catch (error) {
+          console.error('Error fetching shipping rates:', error);
+          setShippingError(error instanceof Error ? error.message : 'Failed to fetch shipping rates');
+          setShippingRates([]);
+        } finally {
+          setIsLoadingRates(false);
+        }
+        */
+
+        // No-op while Shiprocket is disabled: keep no shipping options selected (shipping is free).
+        setShippingRates([]);
+        setIsLoadingRates(false);
      };
 
      // Debounce the API call
@@ -482,7 +500,7 @@ export default function CheckoutPage() {
          if (order) {
            try {
              setProcessStep('Syncing with Shiprocket...');
-             await syncOrderWithShiprocket(order);
+             // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
            } catch (error) {
              console.error('Failed to sync with Shiprocket:', error);
            }
@@ -526,7 +544,7 @@ export default function CheckoutPage() {
           if (order) {
             try {
               setProcessStep('Syncing with Shiprocket...');
-              await syncOrderWithShiprocket(order);
+              // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
             } catch (error) {
               console.error('Failed to sync with Shiprocket:', error);
             }
@@ -590,7 +608,7 @@ export default function CheckoutPage() {
         if (verifyResult.success && verifyResult.paymentStatus === 'paid') {
           const order = result.order;
           try {
-            await syncOrderWithShiprocket(order);
+            // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
           } catch (error) {
             console.error('Failed to sync with Shiprocket:', error);
           }
@@ -619,7 +637,7 @@ export default function CheckoutPage() {
         if (verifyResult.success && verifyResult.paymentStatus === 'paid') {
           const order = result.order;
           try {
-            await syncOrderWithShiprocket(order);
+            // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
           } catch (error) {
             console.error('Failed to sync with Shiprocket:', error);
           }
@@ -648,7 +666,7 @@ export default function CheckoutPage() {
               clearInterval(pollInterval);
               const order = result.order;
               try {
-                await syncOrderWithShiprocket(order);
+                // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
               } catch (error) {
                 console.error('Failed to sync with Shiprocket:', error);
               }
@@ -676,6 +694,9 @@ export default function CheckoutPage() {
     }
   };
 
+  // ===== Shiprocket order sync DISABLED (commented out) =====
+  // The implementation is preserved below as a comment so it can be re-enabled later.
+  /*
   const syncOrderWithShiprocket = async (order: any) => {
     const { weight, length, breadth, height, declaredValue } = calculatePackageDetails();
 
@@ -753,6 +774,9 @@ export default function CheckoutPage() {
     console.log('Order synced with Shiprocket:', data.data);
     return data.data;
   };
+  */
+  // No-op replacement so existing call sites don't break while Shiprocket is disabled.
+  const syncOrderWithShiprocket = async () => null;
 
   const triggerConfetti = () => {
     const duration = 3 * 1000;
@@ -1094,7 +1118,7 @@ export default function CheckoutPage() {
               ))}
             </div>
 
-            {/* Shipping Options */}
+            {/* Shipping Options — DISABLED (Shiprocket off)
             {pincode && pincode.length === 6 && (
               <div className="border-t border-border pt-4">
                 <h4 className="text-xs font-bold text-foreground uppercase tracking-wider mb-3 flex items-center gap-2">
@@ -1143,26 +1167,26 @@ export default function CheckoutPage() {
                   </p>
                 )}
               </div>
-            )}
+            */} {/* Shipping Options block disabled (Shiprocket off) */}
 
             {/* Financial breakdown */}
             <div className="border-t border-border pt-4 text-xs space-y-2">
               <div className="flex justify-between text-muted-foreground font-semibold">
-                <span>Subtotal</span>
-                 <span>₹{effectiveTotal}</span>
+                <span>MRP</span>
+                <span>₹{mrpTotal.toFixed(2)}</span>
               </div>
+              {discountTotal > 0 && (
+                <div className="flex justify-between text-muted-foreground font-semibold">
+                  <span>Discount ({discountPercent.toFixed(0)}%)</span>
+                  <span className="text-green-400">-₹{discountTotal.toFixed(2)}</span>
+                </div>
+              )}
               <div className="flex justify-between text-muted-foreground font-semibold">
                 <span>Shipping</span>
-                <span>{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
+                <span className="text-green-400">{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
               </div>
-               {effectiveDiscountAmount > 0 && (
-                 <div className="flex justify-between text-muted-foreground font-semibold">
-                   <span>Discount</span>
-                   <span className="text-green-400">-₹{effectiveDiscountAmount}</span>
-                 </div>
-              )}
               <div className="flex justify-between text-sm font-black text-foreground border-t border-border pt-3">
-                <span>Grand Total</span>
+                <span>Total</span>
                 <span className="text-primary font-black">₹{finalTotal.toFixed(2)}</span>
               </div>
             </div>
