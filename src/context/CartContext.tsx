@@ -148,15 +148,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
             cashfree_payment_message: o.cashfree_payment_message,
             cashfree_webhook_received: o.cashfree_webhook_received,
             items: (o.order_items || []).map((item: any) => {
-              const images = (item.products?.product_images || [])
+              // Prefer the denormalized snapshot stored at order time so the
+              // order history stays correct even if the product is later edited
+              // or removed. Fall back to the joined products table if missing.
+              const joinedImages = (item.products?.product_images || [])
                 .sort((a: any, b: any) => a.sort_order - b.sort_order)
                 .map((img: any) => img.image_url);
               return {
                 product_id: item.product_id,
-                product_title: item.products?.title ?? 'Product',
-                product_image: images[0] ?? '',
+                product_title: item.product_title || item.products?.title || 'Product',
+                product_image: item.product_image || joinedImages[0] || '',
                 variant_id: item.variant_id,
-                size: item.product_variants?.size ?? '',
+                size: item.size || item.product_variants?.size || '',
                 color: item.color || item.product_variants?.color || '',
                 quantity: item.quantity,
                 price: Number(item.price)
