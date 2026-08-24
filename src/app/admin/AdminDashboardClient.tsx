@@ -110,54 +110,61 @@ export default function AdminDashboardClient({ stats, recentOrders, totalStores 
           ) : (
             <div className="space-y-3">
               {recentOrders.map((order) => (
-                <div key={order.id} className="flex items-center justify-between p-3 bg-secondary rounded-xl border border-border hover:bg-secondary transition-colors">
+                <Link
+                  key={order.id}
+                  href={`/admin/orders?orderId=${order.id}`}
+                  className="flex items-center justify-between p-3 bg-secondary rounded-xl border border-border hover:bg-muted hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 no-underline cursor-pointer group active:scale-[0.99]"
+                >
                   <div className="flex items-center gap-3">
-                    <div className="p-2 bg-primary/10 rounded-lg">
+                    <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
                       <ShoppingBag className="h-4 w-4 text-primary" />
                     </div>
                     <div>
-                      <p className="text-sm font-semibold text-foreground">#{order.id.slice(0, 8)}</p>
+                      <p className="text-sm font-semibold text-foreground group-hover:text-primary transition-colors">#{order.id.slice(0, 8)}</p>
                       <p className="text-xs text-muted-foreground">{order.users?.full_name || 'Unknown'}</p>
                     </div>
                   </div>
-                  <div className="text-right">
-                    <p className="text-sm font-bold text-foreground">₹{Number(order.total_amount).toFixed(2)}</p>
-                    <div className="flex items-center gap-2 justify-end">
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${getStatusColor(order.status)}`}>
-                        {order.status}
-                      </span>
-                      <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${getPaymentStatusColor(order.payment_status)}`}>
-                        {order.payment_status}
-                      </span>
+                  <div className="text-right flex items-center gap-3">
+                    <div>
+                      <p className="text-sm font-bold text-foreground">₹{Number(order.total_amount).toFixed(2)}</p>
+                      <div className="flex items-center gap-2 justify-end">
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase border ${getStatusColor(order.status)}`}>
+                          {order.status}
+                        </span>
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-bold uppercase ${getPaymentStatusColor(order.payment_status)}`}>
+                          {order.payment_status}
+                        </span>
+                      </div>
                     </div>
+                    <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200" />
                   </div>
-                </div>
+                </Link>
               ))}
             </div>
           )}
         </div>
 
-        {/* Quick Actions */}
+{/* Quick Actions */}
         <div className="glass-card rounded-2xl p-6">
           <h2 className="text-lg font-bold text-foreground mb-6">Quick Actions</h2>
-          <div className="space-y-3">
+          <div className="grid grid-cols-1 gap-3">
              {quickLinks.map((link) => (
                <Link
                  key={link.href}
                  href={link.href}
-                 className="flex items-center gap-3 p-4 bg-secondary rounded-xl border border-border hover:bg-muted hover:border-primary/20 transition-all group no-underline cursor-pointer"
-               >
-                <div className="p-2 bg-primary/10 rounded-lg group-hover:bg-primary/20 transition-colors">
-                  <link.icon className="h-4 w-4 text-primary" />
-                </div>
-                <div className="flex-1">
-                  <h3 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors">{link.label}</h3>
-                  <p className="text-xs text-muted-foreground mt-0.5">{link.description}</p>
-                </div>
-                <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
-              </Link>
-            ))}
-          </div>
+                 className="flex items-center gap-3 p-4 bg-secondary rounded-xl border border-border hover:bg-muted hover:border-primary/30 hover:shadow-md hover:shadow-primary/5 transition-all duration-200 group no-underline cursor-pointer active:scale-[0.98]"
+                >
+                 <div className="p-2.5 bg-primary/10 rounded-lg group-hover:bg-primary/20 group-hover:scale-105 transition-all duration-200">
+                   <link.icon className="h-5 w-5 text-primary" />
+                 </div>
+                 <div className="flex-1 min-w-0">
+                   <h3 className="font-bold text-foreground text-sm group-hover:text-primary transition-colors truncate">{link.label}</h3>
+                   <p className="text-xs text-muted-foreground mt-0.5 truncate">{link.description}</p>
+                 </div>
+                 <ArrowRight className="h-4 w-4 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all duration-200 flex-shrink-0" />
+               </Link>
+             ))}
+           </div>
         </div>
       </div>
 

@@ -240,11 +240,13 @@ class _SearchScreenState extends State<SearchScreen> {
                       ? Padding(
                     key: const ValueKey('cancel'),
                     padding: const EdgeInsets.only(left: 8),
-                    child: GestureDetector(
-                      onTap: () {
-                        _focusNode.unfocus();
-                        _clearSearch();
-                      },
+                      child: GestureDetector(
+                        onTap: () {
+                          _focusNode.unfocus();
+                          if (mounted) {
+                            Navigator.of(context).pop();
+                          }
+                        },
                       child: Padding(
                         padding: const EdgeInsets.symmetric(
                           horizontal: 4,

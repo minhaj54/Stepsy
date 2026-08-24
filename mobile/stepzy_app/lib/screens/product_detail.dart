@@ -58,11 +58,25 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   ProductVariant? get _selectedVariant {
     final variants = widget.product.variants;
     if (variants.isEmpty) return null;
-    return variants.firstWhere(
-      (v) => (selectedSize == null || v.size == selectedSize) &&
-             (selectedColor == null || v.color == selectedColor),
-      orElse: () => variants.first,
-    );
+
+    final bySize = <String, List<ProductVariant>>{};
+    for (final v in variants) {
+      bySize.putIfAbsent(v.size, () => []).add(v);
+    }
+
+    ProductVariant? match;
+    if (selectedSize != null) {
+      final sizeMatches = bySize[selectedSize];
+      if (sizeMatches != null && sizeMatches.isNotEmpty) {
+        match = sizeMatches.firstWhere(
+          (v) => selectedColor == null || v.color == selectedColor,
+          orElse: () => sizeMatches.first,
+        );
+        return match;
+      }
+    }
+
+    return variants.first;
   }
 
   int get _selectedVariantStock => _selectedVariant?.stockQuantity ?? 0;
@@ -86,7 +100,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   void _shareProduct() async {
     if (_sharing) return;
     final product = widget.product;
-    final productUrl = '$zarwintoDomain/product/${product.id}';
+    final productUrl = '$zarwintoDomain/product/${product.slug}';
     final shareText =
         'Check out ${product.title} by ${product.brandName} at ${inrFormat.format(_sellingPrice)} (${_discountPercent.toStringAsFixed(0)}% OFF) on Zarwinto!\n\nProduct Link: $productUrl\n\nGrab it now on the Zarwinto app.';
     final subject = '${product.title} by ${product.brandName}';

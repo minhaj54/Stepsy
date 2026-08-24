@@ -830,8 +830,8 @@ export default function CheckoutPage() {
         <div className="w-full glass-card p-6 rounded-3xl border border-border text-left space-y-4 max-w-lg">
           <h3 className="font-extrabold text-foreground text-sm uppercase tracking-wider border-b border-border pb-2">Shipping Destination</h3>
           <div className="text-xs space-y-1 text-muted-foreground">
-            <p className="font-bold text-foreground">{completedOrder.shipping_address.fullName}</p>
-            <p>{completedOrder.shipping_address.addressLine1}</p>
+            <p className="font-bold text-foreground">{completedOrder.shipping_address.full_name || completedOrder.shipping_address.fullName}</p>
+            <p>{completedOrder.shipping_address.address_line1 || completedOrder.shipping_address.addressLine1}</p>
             <p>{completedOrder.shipping_address.city}, {completedOrder.shipping_address.state} {completedOrder.shipping_address.pincode}</p>
             <p>Phone: {completedOrder.shipping_address.phone}</p>
           </div>

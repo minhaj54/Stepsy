@@ -383,9 +383,14 @@ class ZarwintoStore extends ChangeNotifier {
   }
 
   Future<void> cancelOrder(String orderId, String reason) async {
-    await repository.cancelOrder(orderId, reason);
-    await _loadOrders();
-    notifyListeners();
+    try {
+      await repository.cancelOrder(orderId, reason);
+      await _loadOrders();
+      notifyListeners();
+    } catch (e) {
+      debugPrint('[Zarwinto] cancelOrder failed: $e');
+      rethrow;
+    }
   }
 
   Future<void> loadOrders() async {

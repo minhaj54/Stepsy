@@ -43,7 +43,11 @@ export async function checkSupabaseConnectivity(): Promise<boolean> {
   const timeoutId = setTimeout(() => controller.abort(), 5000);
 
   try {
-    const response = await fetch(`${url}/rest/v1/`, {
+    // Query a real, anon-readable endpoint. The bare `/rest/v1/` root only
+    // accepts the service_role key (returns 401), which made reachability
+    // detection unreliable and skipped the order sync. `stores` is publicly
+    // selectable, so a 2xx response confirms the project is reachable.
+    const response = await fetch(`${url}/rest/v1/stores?select=id&limit=1`, {
       method: 'GET',
       headers: {
         'apikey': process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || '',
@@ -52,7 +56,7 @@ export async function checkSupabaseConnectivity(): Promise<boolean> {
       signal: controller.signal,
     });
 
-    return response.ok || response.status === 404 || response.status === 401;
+    return response.ok;
   } catch (error) {
     // An aborted request (timeout or component unmount/navigation) is an
     // expected condition, not a failure worth surfacing. Only log genuine

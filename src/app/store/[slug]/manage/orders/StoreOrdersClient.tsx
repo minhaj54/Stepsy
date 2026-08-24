@@ -25,6 +25,7 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
   const [searchQuery, setSearchQuery] = useState('');
   const [statusFilter, setStatusFilter] = useState<'all' | 'pending' | 'processing' | 'shipped' | 'delivered' | 'cancelled'>('all');
   const [expandedOrder, setExpandedOrder] = useState<string | null>(null);
+  const [imgErrors, setImgErrors] = useState<Record<string, boolean>>({});
   
   const configured = isSupabaseConfigured();
   const { addToast } = useToast();
@@ -201,8 +202,8 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
   <div class="section">
     <div class="section-title">Shipping Address</div>
     <div class="info-box">
-      <p>${order.shipping_address.fullName}</p>
-      <p>${order.shipping_address.addressLine1}</p>
+      <p>${order.shipping_address.full_name || order.shipping_address.fullName}</p>
+      <p>${order.shipping_address.address_line1 || order.shipping_address.addressLine1}</p>
       <p>${order.shipping_address.city}, ${order.shipping_address.state} - ${order.shipping_address.pincode}</p>
     </div>
   </div>` : ''}
@@ -354,22 +355,30 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
                      <div>
                        <h4 className="text-xs font-semibold text-muted-foreground uppercase tracking-wider mb-3">Items</h4>
                        <div className="space-y-2">
-                          {(order.order_items ?? []).map((item: any) => {
-                            const imageUrl = item.products?.product_images?.[0]?.image_url;
-                            const size = item.size || item.variant_size;
-                            const color = item.color || item.variant_color;
-                            return (
-                              <div key={item.id} className="flex items-center justify-between p-3 bg-secondary rounded-xl">
-                                <div className="flex items-center gap-3">
-                                  {imageUrl ? (
-                                    <img
-                                      src={imageUrl}
-                                      alt={item.products?.title || 'Product'}
-                                      className="w-10 h-10 rounded-lg object-cover"
-                                    />
-                                  ) : (
-                                    <Package className="h-4 w-4 text-muted-foreground" />
-                                  )}
+                           {(order.order_items ?? []).map((item: any) => {
+                             const imgKey = `${order.id}-${item.id}`;
+                             const imageUrl =
+                               item.product_image ||
+                               item.products?.product_images?.[0]?.image_url ||
+                               '';
+                             const size = item.size || item.variant_size;
+                             const color = item.color || item.variant_color;
+                             const showImage = imageUrl && !imgErrors[imgKey];
+                             return (
+                               <div key={item.id} className="flex items-center justify-between p-3 bg-secondary rounded-xl">
+                                 <div className="flex items-center gap-3">
+                                   {showImage ? (
+                                     <img
+                                       src={imageUrl}
+                                       alt={item.products?.title || 'Product'}
+                                       loading="lazy"
+                                       referrerPolicy="no-referrer"
+                                       onError={() => setImgErrors(prev => ({ ...prev, [imgKey]: true }))}
+                                       className="w-10 h-10 rounded-lg object-cover bg-zinc-900"
+                                     />
+                                   ) : (
+                                     <Package className="h-4 w-4 text-muted-foreground" />
+                                   )}
                                   <div>
                                     <p className="text-sm text-foreground">{item.products?.title || 'Product'}</p>
                                     <p className="text-xs text-muted-foreground">
@@ -395,8 +404,8 @@ export default function StoreOrdersClient({ initialOrders, storeSlug }: StoreOrd
                         <div className="p-3 bg-secondary rounded-xl flex items-start gap-2">
                           <MapPin className="h-4 w-4 text-muted-foreground mt-0.5" />
                           <p className="text-xs text-muted-foreground">
-                            {order.shipping_address.fullName}<br />
-                            {order.shipping_address.addressLine1}<br />
+                            {order.shipping_address.full_name || order.shipping_address.fullName}<br />
+                            {order.shipping_address.address_line1 || order.shipping_address.addressLine1}<br />
                             {order.shipping_address.city}, {order.shipping_address.state} - {order.shipping_address.pincode}
                           </p>
                         </div>

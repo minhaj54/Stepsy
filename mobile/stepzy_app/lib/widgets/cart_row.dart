@@ -96,13 +96,32 @@ class CartRow extends StatelessWidget {
                           ),
                         ),
                       const SizedBox(height: 8),
-                      Text(
-                        inrFormat.format(item.lineTotal),
-                        style: const TextStyle(
-                          fontWeight: FontWeight.w900,
-                          fontSize: 15,
+                      if (item.product.currentPrice < item.product.price) ...[
+                        Text(
+                          'MRP ${inrFormat.format(item.product.price * item.quantity)}',
+                          style: TextStyle(
+                            fontSize: 11,
+                            color: ZarwintoColors.muted,
+                            decoration: TextDecoration.lineThrough,
+                            decorationThickness: 1.2,
+                          ),
                         ),
-                      ),
+                        Text(
+                          'Sale Price ${inrFormat.format(item.lineTotal)}',
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w800,
+                            fontSize: 14,
+                            color: ZarwintoColors.success,
+                          ),
+                        ),
+                      ] else
+                        Text(
+                          inrFormat.format(item.lineTotal),
+                          style: const TextStyle(
+                            fontWeight: FontWeight.w900,
+                            fontSize: 15,
+                          ),
+                        ),
                     ],
                   ),
                 ),

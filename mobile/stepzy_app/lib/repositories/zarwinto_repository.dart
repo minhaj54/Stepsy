@@ -559,6 +559,7 @@ class ZarwintoRepository {
     await client!.from('orders').update(updates).eq('id', orderId);
   }
 
+  /* Shiprocket integration disabled
   Future<void> updateOrderShiprocketIds(
     String orderId,
     int shiprocketOrderId,
@@ -573,6 +574,7 @@ class ZarwintoRepository {
         })
         .eq('id', orderId);
   }
+  */
 
   Future<void> cancelOrder(String orderId, String reason) async {
     if (client == null) return;

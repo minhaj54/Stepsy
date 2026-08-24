@@ -370,26 +370,59 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
           total_amount: orderTotal,
           shipping_address: address,
           coupon_code: appliedCoupon?.code ?? null,
-          discount_amount: discountAmount
+          discount_amount: discountAmount,
+          store_id: items[0]?.product?.store_id ?? null
         })
         .select();
 
       if (!orderError) {
         dbOrderCreated = true;
 
-        const itemsToInsert = items.map(item => ({
+        // Core columns exist in every schema version (migration 001).
+        // The snapshot columns (product_title, product_image, size, color) and
+        // store_id were added later; if a deployment is missing them we fall
+        // back to the core columns. The admin panel re-derives title/image/
+        // size/color/store from the joined product/variant, so nothing breaks.
+        const baseItem = (item: typeof items[number]) => ({
           order_id: orderId,
           product_id: item.product.id,
           variant_id: item.variant.id,
           quantity: item.quantity,
           price: item.product.sale_price || item.product.price,
-          color: item.color ?? item.variant.color,
-          size: item.variant.size
-        }));
+        });
 
-        const { error: itemsError } = await supabase.from('order_items').insert(itemsToInsert);
+        const fullItem = (item: typeof items[number]) => ({
+          ...baseItem(item),
+          product_title: item.product.title,
+          product_image: item.product.images?.[0] ?? '',
+          color: item.color ?? item.variant.color,
+          size: item.variant.size,
+          store_id: item.product.store_id ?? null,
+        });
+
+        let { error: itemsError, data: insertedItems } = await supabase
+          .from('order_items')
+          .insert(items.map(fullItem))
+          .select();
+
         if (itemsError) {
-          console.error('Error creating order items in database:', itemsError);
+          // Retry with only the guaranteed core columns.
+          const retried = await supabase
+            .from('order_items')
+            .insert(items.map(baseItem))
+            .select();
+          itemsError = retried.error;
+          insertedItems = retried.data;
+        }
+
+        if (itemsError) {
+          console.error('Error creating order items in database:', JSON.stringify(itemsError, null, 2));
+          addToast(
+            'Failed to save order items: ' + (itemsError.message || itemsError.details || 'unknown database error'),
+            'error'
+          );
+        } else if (insertedItems) {
+          (newOrder as any).order_items = insertedItems;
         }
 
         // Update variant stocks

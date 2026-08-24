@@ -547,11 +547,11 @@ export async function getAdminOrders(page = 1, limit = 50) {
     const from = (page - 1) * limit;
     const to = from + limit - 1;
 
-    const { data } = await supabase
+const { data } = await supabase
       .from('orders')
-       .select('*, users(full_name, email, phone), order_items(*, products(title, price, sale_price, product_images(image_url)))')
-       .order('created_at', { ascending: false })
-       .range(from, to);
+      .select('*, users(full_name, email, phone), stores(name, slug, logo_url), order_items(*, stores(name, slug, logo_url), products(title, price, sale_price, stores(name, slug, logo_url), product_images(image_url, sort_order)))')
+      .order('created_at', { ascending: false })
+      .range(from, to);
 
     if (!data) return [];
 
@@ -911,10 +911,11 @@ export async function getStoreOrders(storeId: string) {
        });
      }
 
-     return data ?? [];
-  } catch {
-    return [];
-  }
+      return data ?? [];
+   } catch (err) {
+     console.error('[getStoreOrders] Error fetching store orders:', err);
+     return [];
+   }
 }
 
 export async function getStoreReviews(storeId: string) {

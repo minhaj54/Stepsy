@@ -23,7 +23,7 @@ class PrivacyScreen extends StatelessWidget {
     },
     {
       'title': '5. Sharing with Sellers & Partners',
-      'body': 'To fulfill your order, we share the minimum necessary details (name, address, items ordered) with the partner store and logistics partners (Shiprocket). These parties are bound to use the data solely for order fulfillment.',
+      'body': 'To fulfill your order, we share the minimum necessary details (name, address, items ordered) with the partner store and logistics partners. These parties are bound to use the data solely for order fulfillment.',
     },
     {
       'title': '6. Your Rights',

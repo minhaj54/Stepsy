@@ -1,5 +1,4 @@
 import 'dart:convert';
-import 'dart:math';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:http/http.dart' as http;
@@ -8,7 +7,6 @@ import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import '../core/theme.dart';
 import '../core/constants.dart';
-import '../models/cart_item.dart';
 
 enum PaymentResult { success, failure, cancelled }
 
@@ -227,6 +225,7 @@ class PaymentService {
     }
   }
 
+  /* Shiprocket integration disabled
   Future<Map<String, dynamic>?> syncOrderWithShiprocket({
     required String orderId,
     required List<CartItem> cartItems,
@@ -342,6 +341,7 @@ class PaymentService {
       return null;
     }
   }
+  */
 
   String get _cashfreeBaseUrl {
     return cashfreeIsProduction

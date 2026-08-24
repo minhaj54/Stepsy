@@ -179,6 +179,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
           return;
         }
 
+        /* Shiprocket integration disabled
         try {
           final paymentService = PaymentService(store.prefs);
           final shiprocketResult = await paymentService.syncOrderWithShiprocket(
@@ -203,6 +204,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
         } catch (e) {
           debugPrint('[CheckoutPage] Shiprocket sync error: $e');
         }
+        */
 
         final order = await store.fetchOrder(orderId);
         if (!mounted) return;
@@ -263,6 +265,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
             final isPaid = verification != null && (paymentStatus == 'paid' || paymentStatus == 'success');
 
             if (isPaid) {
+              /* Shiprocket integration disabled
               try {
                 final shiprocketResult = await paymentService.syncOrderWithShiprocket(
                   orderId: order.id,
@@ -286,6 +289,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
               } catch (e) {
                 debugPrint('[CheckoutPage] Shiprocket sync error: $e');
               }
+              */
 
               await store.repository.updateOrderPaymentStatus(order.id, 'paid');
               await store.loadOrders();
@@ -392,6 +396,16 @@ class _CheckoutPageState extends State<CheckoutPage> {
     final money = inrFormat;
     const shippingCost = 0.0;
     final grandTotal = store.total + shippingCost;
+
+    // Total MRP vs the (sale) price actually charged, so we can surface savings.
+    final mrpTotal = store.cart.fold<double>(
+      0,
+      (sum, item) => sum + item.product.price * item.quantity,
+    );
+    final productSavings = mrpTotal - store.subtotal;
+    final totalSavings = productSavings + store.discount;
+    final discountPercent = mrpTotal > 0 ? (totalSavings / mrpTotal * 100) : 0.0;
+    final showDiscount = totalSavings > 0;
 
     if (store.profile == null) {
       return Scaffold(
@@ -646,10 +660,10 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       child: Column(
                         children: [
                           PriceLine(
-                            label: 'Subtotal',
-                            value: money.format(store.subtotal),
+                            label: showDiscount ? 'MRP' : 'Subtotal',
+                            value: money.format(showDiscount ? mrpTotal : store.subtotal),
                           ),
-                          if (store.discount > 0) ...[
+                          if (showDiscount) ...[
                             const SizedBox(height: ZarwintoSpacing.xs),
                             Row(
                               mainAxisAlignment: MainAxisAlignment.spaceBetween,
@@ -662,13 +676,18 @@ class _CheckoutPageState extends State<CheckoutPage> {
                                   ),
                                 ),
                                 Text(
-                                  '-${money.format(store.discount)}',
+                                  '-${money.format(totalSavings)} (${discountPercent.toStringAsFixed(0)}% off)',
                                   style: ZarwintoTypography.caption.copyWith(
                                     fontWeight: FontWeight.w600,
                                     color: colors.success,
                                   ),
                                 ),
                               ],
+                            ),
+                            const SizedBox(height: ZarwintoSpacing.xs),
+                            PriceLine(
+                              label: 'Sale Price',
+                              value: money.format(store.subtotal),
                             ),
                           ],
                           const SizedBox(height: ZarwintoSpacing.xs),

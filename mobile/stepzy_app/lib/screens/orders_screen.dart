@@ -749,6 +749,7 @@ class OrderCard extends StatelessWidget {
     ];
 
     String? selectedReason;
+    final rootContext = context;
 
     await showDialog(
       context: context,
@@ -847,15 +848,26 @@ class OrderCard extends StatelessWidget {
                     ? null
                     : () async {
                         Navigator.pop(ctx);
-                        final store = ZarwintoScope.of(context, listen: false);
-                        await store.cancelOrder(order.id, selectedReason!);
-                        if (context.mounted) {
-                          ScaffoldMessenger.of(context).showSnackBar(
-                            SnackBar(
-                              content: Text('Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id} cancelled'),
-                              backgroundColor: ZarwintoColors.error,
-                            ),
-                          );
+                        final store = ZarwintoScope.of(rootContext, listen: false);
+                        try {
+                          await store.cancelOrder(order.id, selectedReason!);
+                          if (rootContext.mounted) {
+                            ScaffoldMessenger.of(rootContext).showSnackBar(
+                              SnackBar(
+                                content: Text('Order #${order.id.length > 8 ? order.id.substring(0, 8) : order.id} cancelled'),
+                                backgroundColor: ZarwintoColors.error,
+                              ),
+                            );
+                          }
+                        } catch (e) {
+                          if (rootContext.mounted) {
+                            ScaffoldMessenger.of(rootContext).showSnackBar(
+                              SnackBar(
+                                content: Text('Failed to cancel order: $e'),
+                                backgroundColor: ZarwintoColors.error,
+                              ),
+                            );
+                          }
                         }
                       },
                 style: FilledButton.styleFrom(

@@ -150,6 +150,22 @@ export default function AdminProductsClient({
     { size: '10', color: 'Default', stock: 10 },
   ]);
 
+  // Store association (super-admins can pick a store; vendors are scoped to their own).
+  const [selectedStoreId, setSelectedStoreId] = useState<string>(storeId || '');
+  const [allStores, setAllStores] = useState<{ id: string; name: string }[]>([]);
+
+  useEffect(() => {
+    if (storeId || !configured) return;
+    const supabase = createClient();
+    supabase
+      .from('stores')
+      .select('id, name')
+      .order('name')
+      .then(({ data }: { data: { id: string; name: string }[] | null }) => {
+        if (data) setAllStores(data);
+      });
+  }, [configured, storeId]);
+
   const filteredProducts = products.filter(product => {
     const matchesSearch = product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
                          product.sku.toLowerCase().includes(searchQuery.toLowerCase());
@@ -176,6 +192,7 @@ export default function AdminProductsClient({
     setStock('50');
     setColors([]);
     setCustomColorName('');
+    setSelectedStoreId('');
     setVariants([
       { size: '6', color: 'Default', stock: 10 },
       { size: '7', color: 'Default', stock: 10 },
@@ -208,6 +225,7 @@ export default function AdminProductsClient({
       hex: PRESET_COLORS.find(c => c.name.toLowerCase() === name.toLowerCase())?.hex || '#6366f1',
     })));
     setCustomColorName('');
+    setSelectedStoreId(product.store_id || storeId || '');
     setVariants(product.variants || [
       { size: '6', color: 'Default', stock: 10 },
       { size: '7', color: 'Default', stock: 10 },
@@ -333,8 +351,8 @@ export default function AdminProductsClient({
       reviews_count: 0,
     };
 
-    // Associate new products with the vendor's store (admins leave it null).
-    if (storeId) pData.store_id = storeId;
+    // Associate the product with a store: vendor's own store, or the one picked by an admin.
+    pData.store_id = selectedStoreId || storeId || null;
 
     console.log('Saving product với data:', pData);
     console.log('Supabase configured:', configured);
@@ -869,6 +887,25 @@ export default function AdminProductsClient({
                         <option value="archived">Archived</option>
                       </select>
                     </div>
+                    {!storeId && (
+                      <div className="space-y-1">
+                        <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                          Store <span className="text-red-400">*</span>
+                        </label>
+                        <select
+                          value={selectedStoreId}
+                          onChange={e => setSelectedStoreId(e.target.value)}
+                          className="w-full bg-card text-foreground border border-border rounded-xl px-3 py-3 text-sm outline-none focus:border-primary"
+                        >
+                          <option value="">Select a store…</option>
+                          {allStores.map(s => (
+                            <option key={s.id} value={s.id}>
+                              {s.name}
+                            </option>
+                          ))}
+                        </select>
+                      </div>
+                    )}
                   </div>
                 </div>
 
