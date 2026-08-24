@@ -1,6 +1,6 @@
 import { NextResponse } from 'next/server';
 import { verifyCashfreeWebhook, mapCashfreeStatus } from '@/lib/cashfree';
-import { createClient } from '@/lib/supabase/server';
+import { createClient, createServiceClient } from '@/lib/supabase/server';
 
 export const runtime = 'edge';
 
@@ -37,12 +37,13 @@ export async function POST(request: Request) {
     // Map Cashfree status to our internal status
     const { paymentStatus: mappedPaymentStatus, orderStatus: mappedOrderStatus } = mapCashfreeStatus(paymentStatus);
 
-    // Update order in Supabase
+    // Update order in Supabase (prefer service-role to bypass RLS; fall back to anon)
+    const serviceKey = process.env.SUPABASE_SERVICE_ROLE_KEY;
     const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
     const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-    
-    if (supabaseUrl && supabaseKey) {
-      const supabase = await createClient();
+
+    if (supabaseUrl && (serviceKey || supabaseKey)) {
+      const supabase = serviceKey ? createServiceClient()! : await createClient();
 
       // Update the order
       const { error: orderError } = await supabase
