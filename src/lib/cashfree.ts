@@ -11,13 +11,13 @@
  * For production: Use production credentials
  */
 
-const CASHFREE_BASE_URL = process.env.CASHFREE_ENV === 'production'
+const CASHFREE_BASE_URL = process.env.NODE_ENV === 'production'
   ? 'https://api.cashfree.com/pg'
   : 'https://sandbox.cashfree.com/pg';
 
 const APP_ID = process.env.CASHFREE_APP_ID;
 const SECRET_KEY = process.env.CASHFREE_SECRET_KEY;
-const IS_PRODUCTION = process.env.CASHFREE_ENV === 'production';
+const IS_PRODUCTION = process.env.NODE_ENV === 'production';
 
 if (!APP_ID || !SECRET_KEY) {
   console.warn('[Cashfree] Missing CASHFREE_APP_ID or CASHFREE_SECRET_KEY. Payment features will not work.');
