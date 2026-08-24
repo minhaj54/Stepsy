@@ -120,7 +120,7 @@ export default function PaymentProcessingPage() {
       const { load } = await import('@cashfreepayments/cashfree-js');
       
       const cashfree = await load({
-        mode: process.env.CASHFREE_ENV === 'production' ? 'production' : 'sandbox',
+        mode: process.env.NODE_ENV === 'production' ? 'production' : 'sandbox',
       });
 
       if (!cashfree) {
