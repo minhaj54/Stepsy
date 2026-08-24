@@ -5,10 +5,11 @@ import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../lib/supabase/client';
-import { ArrowLeft, CheckCircle, CreditCard, ShieldCheck, ShoppingBag, MapPin, Truck, Loader2, Smartphone, XCircle, Plus, Edit3 } from 'lucide-react';
+import { ArrowLeft, CheckCircle, CreditCard, ShieldCheck, ShoppingBag, MapPin, Truck, Loader2, Smartphone, XCircle, Plus, Edit3, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useToast } from '../../components/Toast';
 import ShimmerImage from '../../components/ShimmerImage';
+import { getPaymentMethodDisplay } from '../../lib/cashfree';
 
 interface ShippingRate {
   courier_company_id: number;
@@ -24,7 +25,7 @@ interface ShippingRate {
 }
 
 export default function CheckoutPage() {
-  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, redirectToCashfreePayment } = useCart();
+  const { cart, cartTotal, discountedTotal, discountAmount, placeOrder, redirectToCashfreePayment, clearCart } = useCart();
   const { user } = useAuth();
   const { addToast } = useToast();
 
@@ -485,23 +486,24 @@ export default function CheckoutPage() {
      const address = { fullName, phone, addressLine1, city, state, pincode };
 
      if (paymentMethod === 'cod') {
-       // COD flow - direct order placement
-       setProcessStep('Preparing your Cash on Delivery order...');
-       setTimeout(async () => {
-         const order = await placeOrder(address, 'cod', effectiveCart);
-         
-         if (order) {
-           try {
-             setProcessStep('Syncing with Shiprocket...');
-             // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
-           } catch (error) {
-             console.error('Failed to sync with Shiprocket:', error);
-           }
+        // COD flow - direct order placement
+        setProcessStep('Preparing your Cash on Delivery order...');
+        setTimeout(async () => {
+          const order = await placeOrder(address, 'cod', effectiveCart);
+          
+          if (order) {
+            try {
+              setProcessStep('Syncing with Shiprocket...');
+              // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
+            } catch (error) {
+              console.error('Failed to sync with Shiprocket:', error);
+            }
 
-            setCompletedOrder(order);
-            setIsProcessing(false);
-            triggerConfetti();
-            clearBuyNow();
+             setCompletedOrder(order);
+             clearCart();
+             setIsProcessing(false);
+             triggerConfetti();
+             clearBuyNow();
           } else {
             setIsProcessing(false);
             addToast('Failed to place order. Please try again.', 'error');
@@ -531,10 +533,11 @@ export default function CheckoutPage() {
               console.error('Failed to sync with Shiprocket:', error);
             }
 
-            setCompletedOrder(order);
-            setIsProcessing(false);
-            triggerConfetti();
-            clearBuyNow();
+             setCompletedOrder(order);
+             clearCart();
+             setIsProcessing(false);
+             triggerConfetti();
+             clearBuyNow();
           } else {
             setIsProcessing(false);
             addToast('Failed to place order. Please try again.', 'error');
@@ -664,7 +667,77 @@ export default function CheckoutPage() {
     );
   }
 
-  return (
+    // Order placed successfully (COD / prepaid) — show confirmation instead of the form.
+    if (completedOrder) {
+      return (
+        <div className="max-w-lg mx-auto px-4 py-16 text-center space-y-8 flex-grow">
+          <div className="relative">
+            <div className="h-24 w-24 bg-green-500/10 border border-green-500/20 rounded-full flex items-center justify-center mx-auto relative">
+              <CheckCircle className="h-14 w-14 text-green-500" />
+              <div className="absolute inset-0 rounded-full border-2 border-green-500/30 animate-ping opacity-25" />
+            </div>
+          </div>
+
+          <div className="space-y-2">
+            <span className="text-xs font-bold text-primary uppercase tracking-widest flex items-center justify-center gap-1">
+              <Sparkles className="h-4 w-4 text-accent" /> Order Confirmed
+            </span>
+            <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Order Placed Successfully!</h1>
+            <p className="text-muted-foreground text-sm max-w-sm mx-auto">
+              {completedOrder.payment_method === 'cod'
+                ? 'Your Cash on Delivery order has been placed. Please keep the amount ready.'
+                : 'Your order has been placed and we’ll start processing it soon.'}
+            </p>
+          </div>
+
+          <div className="glass-card p-6 rounded-2xl border border-border space-y-4 text-left">
+            <div className="flex items-center justify-between border-b border-border pb-3">
+              <span className="text-xs font-bold text-muted-foreground uppercase tracking-wider">Order Details</span>
+              <span className="text-xs font-mono text-muted-foreground/60">{completedOrder.id}</span>
+            </div>
+
+            <div className="space-y-3">
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Payment Method</span>
+                <span className="font-bold">{getPaymentMethodDisplay(completedOrder.payment_method)}</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-muted-foreground">Order Date</span>
+                <span className="text-foreground">{new Date(completedOrder.created_at).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}</span>
+              </div>
+
+              <div className="border-t border-border pt-3 space-y-2">
+                {completedOrder.items.map((item: any, idx: number) => (
+                  <div key={idx} className="flex justify-between items-center gap-3 text-sm">
+                    <div className="flex items-center gap-3 min-w-0">
+                      <ShimmerImage src={item.product_image} alt="" className="h-9 w-9" />
+                      <span className="font-medium text-foreground line-clamp-1">{item.product_title}</span>
+                    </div>
+                    <span className="text-muted-foreground text-xs flex-shrink-0">×{item.quantity}</span>
+                  </div>
+                ))}
+              </div>
+
+              <div className="border-t border-border pt-3 flex justify-between text-base font-bold">
+                <span className="text-foreground">Total Amount</span>
+                <span className="text-primary">₹{Number(completedOrder.total_amount).toFixed(2)}</span>
+              </div>
+            </div>
+          </div>
+
+          <div className="flex flex-col sm:flex-row gap-3 justify-center">
+            <Link href="/account?tab=orders" className="bg-zinc-900 border border-border hover:border-muted-foreground/50 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-colors">
+              View My Orders
+            </Link>
+            <Link href="/shop" className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-wider transition-all glow-btn">
+              Continue Shopping
+            </Link>
+          </div>
+        </div>
+      );
+    }
+
+    return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-10 flex-grow relative space-y-6 sm:space-y-8">
       {/* Loading Overlay */}
       {isProcessing && (
