@@ -504,15 +504,17 @@ class OrderCard extends StatelessWidget {
                           const SizedBox(width: 12),
                         ],
                         Expanded(
-                          child: OutlinedButton.icon(
-                            onPressed: () => _downloadInvoice(context, order),
-                            icon: HugeIcon(icon: HugeIcons.strokeRoundedDownload01, size: 18, color: ZarwintoColors.primary),
-                            label: const Text('Download Invoice', style: TextStyle(color: ZarwintoColors.primary)),
-                            style: OutlinedButton.styleFrom(
-                              side: BorderSide(color: ZarwintoColors.primary.withValues(alpha: 0.3)),
-                              shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-                            ),
-                          ),
+                          child: _isDelivered(order.status)
+                              ? OutlinedButton.icon(
+                                  onPressed: () => _downloadInvoice(context, order),
+                                  icon: HugeIcon(icon: HugeIcons.strokeRoundedDownload01, size: 18, color: ZarwintoColors.primary),
+                                  label: const Text('Download Invoice', style: TextStyle(color: ZarwintoColors.primary)),
+                                  style: OutlinedButton.styleFrom(
+                                    side: BorderSide(color: ZarwintoColors.primary.withValues(alpha: 0.3)),
+                                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                                  ),
+                                )
+                              : const SizedBox.shrink(),
                         ),
                       ],
                     ),
@@ -557,6 +559,11 @@ class OrderCard extends StatelessWidget {
   bool _isCancellable(String status) {
     final lower = status.toLowerCase();
     return lower == 'pending' || lower == 'processing';
+  }
+
+  bool _isDelivered(String status) {
+    final lower = status.toLowerCase();
+    return lower == 'delivered';
   }
 
   pw.Document _buildInvoicePdf(Order order) {

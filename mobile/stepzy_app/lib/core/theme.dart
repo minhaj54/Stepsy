@@ -242,6 +242,12 @@ class ZarwintoTheme {
           textStyle: ZarwintoTypography.button,
         ),
       ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentTextStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        actionTextColor: ZarwintoColors.primary,
+      ),
       chipTheme: ChipThemeData(
         backgroundColor: ZarwintoColors.white,
         selectedColor: ZarwintoColors.primary,
@@ -295,6 +301,12 @@ class ZarwintoTheme {
           borderSide: const BorderSide(color: ZarwintoColors.primary, width: 1.5),
         ),
         contentPadding: const EdgeInsets.symmetric(horizontal: 16, vertical: 14),
+      ),
+      snackBarTheme: const SnackBarThemeData(
+        behavior: SnackBarBehavior.floating,
+        insetPadding: EdgeInsets.symmetric(horizontal: 16, vertical: 8),
+        contentTextStyle: TextStyle(fontSize: 14, fontWeight: FontWeight.w500),
+        actionTextColor: ZarwintoColors.primary,
       ),
     );
   }

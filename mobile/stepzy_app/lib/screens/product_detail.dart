@@ -148,19 +148,23 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
       return;
     }
     store.addToCart(widget.product, variant, quantity: quantity, selectedColor: selectedColor);
-    ScaffoldMessenger.of(context).showSnackBar(
-      SnackBar(
-        content: Text('${widget.product.title} added to bag!'),
-        action: SnackBarAction(
-          label: 'VIEW BAG',
-          textColor: Colors.white,
-          onPressed: () {
-            Navigator.of(context).pop();
-            store.setActiveTab(2);
-          },
-        ),
+    final messenger = ScaffoldMessenger.of(context);
+    messenger.clearSnackBars();
+    final snackBar = SnackBar(
+      content: Text('${widget.product.title} added to bag!'),
+      duration: const Duration(seconds: 2),
+      action: SnackBarAction(
+        label: 'VIEW BAG',
+        textColor: Colors.white,
+        onPressed: () {
+          messenger.hideCurrentSnackBar();
+          Navigator.of(context).pop();
+          store.setActiveTab(2);
+        },
       ),
     );
+    messenger.showSnackBar(snackBar);
+    Future.delayed(const Duration(seconds: 2), messenger.hideCurrentSnackBar);
   }
 
   void _onBuyNow() {

@@ -35,12 +35,14 @@ class CartRow extends StatelessWidget {
         final removed = item.product.title;
         store.updateCartQuantity(item.variant.id, 0);
         if (!context.mounted) return true;
-        ScaffoldMessenger.of(context).showSnackBar(
-          SnackBar(
-            content: Text('Removed $removed from your bag'),
-            duration: const Duration(seconds: 2),
-          ),
+        final messenger = ScaffoldMessenger.of(context);
+        messenger.clearSnackBars();
+        final snackBar = SnackBar(
+          content: Text('Removed $removed from your bag'),
+          duration: const Duration(seconds: 2),
         );
+        messenger.showSnackBar(snackBar);
+        Future.delayed(const Duration(seconds: 2), messenger.hideCurrentSnackBar);
         return true;
       },
       child: Card(
@@ -132,12 +134,14 @@ class CartRow extends StatelessWidget {
                       onPressed: () {
                         final removed = item.product.title;
                         store.updateCartQuantity(item.variant.id, 0);
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(
-                            content: Text('Removed $removed from your bag'),
-                            duration: const Duration(seconds: 2),
-                          ),
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.clearSnackBars();
+                        final snackBar = SnackBar(
+                          content: Text('Removed $removed from your bag'),
+                          duration: const Duration(seconds: 2),
                         );
+                        messenger.showSnackBar(snackBar);
+                        Future.delayed(const Duration(seconds: 2), messenger.hideCurrentSnackBar);
                       },
                       icon: HugeIcon(
                         icon: HugeIcons.strokeRoundedDelete01,

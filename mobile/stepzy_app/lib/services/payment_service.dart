@@ -1,9 +1,15 @@
+import 'dart:async';
 import 'dart:convert';
 import 'package:flutter/material.dart';
 import 'package:http/http.dart' as http;
-import 'package:webview_flutter/webview_flutter.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
+import 'package:flutter_cashfree_pg_sdk/api/cfpaymentgateway/cfpaymentgatewayservice.dart';
+import 'package:flutter_cashfree_pg_sdk/api/cfsession/cfsession.dart';
+import 'package:flutter_cashfree_pg_sdk/api/cfpayment/cfwebcheckoutpayment.dart';
+import 'package:flutter_cashfree_pg_sdk/utils/cfenums.dart';
+import 'package:flutter_cashfree_pg_sdk/utils/cfexceptions.dart';
+import 'package:flutter_cashfree_pg_sdk/api/cferrorresponse/cferrorresponse.dart';
 import '../core/constants.dart';
 
 enum PaymentResult { success, failure, cancelled }
@@ -12,6 +18,7 @@ class PaymentService {
   PaymentService(this.prefs);
 
   final SharedPreferences prefs;
+  final cfPaymentGatewayService = CFPaymentGatewayService();
 
   String get _apiBaseUrl {
     final url = const String.fromEnvironment('ZARWINTO_API_BASE_URL');
@@ -223,124 +230,6 @@ class PaymentService {
     }
   }
 
-  /* Shiprocket integration disabled
-  Future<Map<String, dynamic>?> syncOrderWithShiprocket({
-    required String orderId,
-    required List<CartItem> cartItems,
-    required Map<String, dynamic> shippingAddress,
-    required String paymentMethod,
-    required double subtotal,
-    required double discount,
-    required double shippingCost,
-    required String fullName,
-    required String phone,
-    required String email,
-  }) async {
-    try {
-      const defaultLength = 20.0;
-      const defaultBreadth = 12.0;
-      const defaultHeight = 8.0;
-      const defaultWeight = 0.5;
-      const maxLength = 60.0;
-      const maxBreadth = 45.0;
-      const maxHeight = 45.0;
-
-      double totalQuantity = 0;
-      double maxLengthVal = defaultLength;
-      double maxBreadthVal = defaultBreadth;
-      double maxHeightVal = defaultHeight;
-      double totalWeight = 0;
-
-      for (final item in cartItems) {
-        final qty = item.quantity;
-        totalQuantity += qty;
-
-        final pLength = (item.product.lengthCm ?? defaultLength).toDouble();
-        final pBreadth = (item.product.breadthCm ?? defaultBreadth).toDouble();
-        final pHeight = (item.product.heightCm ?? defaultHeight).toDouble();
-        final pWeight = item.product.weightKg ?? defaultWeight;
-
-        maxLengthVal = max(maxLengthVal, pLength);
-        maxBreadthVal = max(maxBreadthVal, pBreadth);
-        maxHeightVal = max(maxHeightVal, pHeight);
-
-        totalWeight += pWeight * qty;
-      }
-
-      final length = min(maxLengthVal * totalQuantity, maxLength);
-      final breadth = min(maxBreadthVal, maxBreadth);
-      final height = min(maxHeightVal, maxHeight);
-      final weight = max(totalWeight, 0.1);
-
-      final sanitized = phone.replaceAll(RegExp(r'\D'), '');
-      final sanitizedPhone = sanitized.length > 10 ? sanitized.substring(sanitized.length - 10) : sanitized;
-
-      final nameParts = fullName.trim().split(' ');
-      final billingCustomerName = nameParts.isNotEmpty ? nameParts.first : fullName.trim();
-      final billingLastName = nameParts.length > 1 ? nameParts.sublist(1).join(' ') : '';
-
-      final orderItems = cartItems.map((item) {
-        return {
-          'name': item.product.title,
-          'sku': item.variant.id,
-          'units': item.quantity,
-          'selling_price': item.product.currentPrice,
-          'discount': 0,
-          'tax': 0,
-        };
-      }).toList();
-
-      final shiprocketOrder = {
-        'order_id': orderId,
-        'order_date': DateTime.now().toIso8601String().split('T')[0],
-        'pickup_location': shiprocketPickupLocation,
-        'channel_id': '',
-        'comment': '',
-        'billing_customer_name': billingCustomerName,
-        'billing_last_name': billingLastName,
-        'billing_address': shippingAddress['addressLine1'] ?? '',
-        'billing_address_2': '',
-        'billing_city': shippingAddress['city'] ?? '',
-        'billing_pincode': '${shippingAddress['pincode'] ?? ''}',
-        'billing_state': shippingAddress['state'] ?? '',
-        'billing_country': 'India',
-        'billing_email': email.isNotEmpty ? email : 'customer@example.com',
-        'billing_phone': sanitizedPhone,
-        'shipping_is_billing': 1,
-        'order_items': orderItems,
-        'payment_method': paymentMethod == 'cod' ? 'COD' : 'Prepaid',
-        'shipping_charges': shippingCost,
-        'giftwrap_charges': 0,
-        'transaction_charges': 0,
-        'total_discount': discount,
-        'sub_total': max(0, subtotal - discount),
-        'length': length,
-        'breadth': breadth,
-        'height': height,
-        'weight': weight,
-      };
-
-      final response = await http.post(
-        Uri.parse('$_apiBaseUrl/api/shiprocket/orders'),
-        headers: {'Content-Type': 'application/json'},
-        body: jsonEncode({'order': shiprocketOrder}),
-      );
-
-      final data = jsonDecode(response.body) as Map<String, dynamic>;
-      if (response.statusCode == 200 && data['status'] == 1) {
-        debugPrint('[PaymentService] Shiprocket order synced: $orderId');
-        return data['data'] as Map<String, dynamic>;
-      }
-
-      debugPrint('[PaymentService] Shiprocket sync failed: ${data['error'] ?? response.statusCode}');
-      return null;
-    } catch (e) {
-      debugPrint('[PaymentService] Shiprocket sync error: $e');
-      return null;
-    }
-  }
-  */
-
   String get _cashfreeBaseUrl {
     return cashfreeIsProduction
         ? 'https://api.cashfree.com/pg'
@@ -361,256 +250,95 @@ class PaymentService {
       return PaymentResult.failure;
     }
 
-    final result = await Navigator.of(context).push<PaymentResult>(
-      MaterialPageRoute(
-        builder: (_) => CashfreeWebViewScreen(
-          paymentSessionId: paymentSessionId,
-          orderId: orderId,
-        ),
-        fullscreenDialog: true,
-      ),
-    );
+    final completer = Completer<PaymentResult>();
 
-    if (result != null) return result;
+    void verifyPayment(String cfOrderId) {
+      if (!completer.isCompleted) {
+        completer.complete(PaymentResult.success);
+      }
+    }
 
-    return PaymentResult.cancelled;
+    void onError(CFErrorResponse errorResponse, String cfOrderId) {
+      debugPrint(
+        '[PaymentService] Native checkout error: ${errorResponse.getMessage()} (code: ${errorResponse.getCode()})',
+      );
+      if (!completer.isCompleted) {
+        completer.complete(PaymentResult.failure);
+      }
+    }
+
+    cfPaymentGatewayService.setCallback(verifyPayment, onError);
+
+    try {
+      final environment = cashfreeIsProduction ? CFEnvironment.PRODUCTION : CFEnvironment.SANDBOX;
+      final session = CFSessionBuilder()
+          .setEnvironment(environment)
+          .setOrderId(orderId)
+          .setPaymentSessionId(paymentSessionId)
+          .build();
+
+      final webCheckout = CFWebCheckoutPaymentBuilder()
+          .setSession(session)
+          .build();
+
+      cfPaymentGatewayService.doPayment(webCheckout);
+    } on CFException catch (e) {
+      debugPrint('[PaymentService] Cashfree native exception: ${e.message}');
+      if (!completer.isCompleted) {
+        completer.complete(PaymentResult.failure);
+      }
+    } catch (e) {
+      debugPrint('[PaymentService] Cashfree native error: $e');
+      if (!completer.isCompleted) {
+        completer.complete(PaymentResult.failure);
+      }
+    }
+
+    try {
+      return await completer.future.timeout(
+        const Duration(minutes: 10),
+        onTimeout: () => PaymentResult.cancelled,
+      );
+    } on TimeoutException {
+      return PaymentResult.cancelled;
+    }
   }
 
   Future<bool> verifyPaymentStatus(String orderId) async {
     try {
       final result = await verifyCashfreePayment(orderId);
       if (result == null) return false;
-      
-      // Check mappedPaymentStatus - this is the reliable indicator
+
       final mappedStatus = (result['mappedPaymentStatus'] ?? '').toString().toLowerCase();
-      
-      if (mappedStatus != 'paid') {
-        debugPrint('[PaymentService] Payment not completed. Status: $mappedStatus');
+      if (mappedStatus.isNotEmpty) {
+        if (mappedStatus == 'paid') {
+          debugPrint('[PaymentService] Payment verified via backend. Status: $mappedStatus');
+          return true;
+        }
+        debugPrint('[PaymentService] Payment not completed via backend. Status: $mappedStatus');
         return false;
       }
-      
-      debugPrint('[PaymentService] Payment verified. Status: $mappedStatus');
-      return true;
+
+      final orderStatus = (result['order_status'] ?? '').toString().toUpperCase();
+      if (orderStatus == 'PAID' || orderStatus == 'SUCCESS') {
+        debugPrint('[PaymentService] Payment verified via direct API order_status. Status: $orderStatus');
+        return true;
+      }
+
+      final payments = result['payments'] as List<dynamic>?;
+      if (payments != null && payments.isNotEmpty) {
+        final paymentStatus = (payments[0]['payment_status'] ?? '').toString().toUpperCase();
+        if (paymentStatus == 'PAID' || paymentStatus == 'SUCCESS') {
+          debugPrint('[PaymentService] Payment verified via direct API payments. Status: $paymentStatus');
+          return true;
+        }
+      }
+
+      debugPrint('[PaymentService] Payment not completed. Order status: $orderStatus');
+      return false;
     } catch (e) {
       debugPrint('[PaymentService] Verify payment status error: $e');
       return false;
     }
-  }
-}
-
-class CashfreeWebViewScreen extends StatefulWidget {
-  const CashfreeWebViewScreen({
-    super.key,
-    required this.paymentSessionId,
-    required this.orderId,
-  });
-
-  final String paymentSessionId;
-  final String orderId;
-
-  @override
-  State<CashfreeWebViewScreen> createState() => _CashfreeWebViewScreenState();
-}
-
-class _CashfreeWebViewScreenState extends State<CashfreeWebViewScreen> {
-  late final WebViewController _controller;
-  bool _checkoutCompleted = false;
-
-  @override
-  void initState() {
-    super.initState();
-    _controller = WebViewController()
-      ..setJavaScriptMode(JavaScriptMode.unrestricted)
-      ..setNavigationDelegate(
-        NavigationDelegate(
-          onNavigationRequest: (request) {
-            final url = request.url;
-            
-            if (_checkoutCompleted) {
-              return NavigationDecision.prevent;
-            }
-
-            // Only match Cashfree's actual return URLs with order_id parameter
-            // This ensures we only mark as success when Cashfree redirects back
-            final isCashfreeReturn = url.contains('zarwinto.com') || 
-                                     url.contains('status=') ||
-                                     url.contains('/checkout');
-            
-            if (isCashfreeReturn && 
-                (url.contains('status=success') || url.contains('status=SUCCESS'))) {
-              _checkoutCompleted = true;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  Navigator.of(context).pop(PaymentResult.success);
-                }
-              });
-              return NavigationDecision.prevent;
-            }
-
-            if (url.contains('status=failure') || 
-                url.contains('status=FAILURE') ||
-                url.contains('payment-failure') ||
-                url.contains('payment_failure') ||
-                url.contains('status=cancelled') ||
-                url.contains('status=CANCELLED')) {
-              _checkoutCompleted = true;
-              WidgetsBinding.instance.addPostFrameCallback((_) {
-                if (mounted) {
-                  Navigator.of(context).pop(PaymentResult.failure);
-                }
-              });
-              return NavigationDecision.prevent;
-            }
-
-            return NavigationDecision.navigate;
-          },
-        ),
-      )
-      ..loadHtmlString(_buildCheckoutHtml());
-  }
-
-  String _buildCheckoutHtml() {
-    final mode = cashfreeIsProduction ? 'production' : 'sandbox';
-    return '''
-<!DOCTYPE html>
-<html>
-<head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
-  <script src="https://sdk.cashfree.com/js/v3/cashfree.js"></script>
-  <style>
-    * { margin: 0; padding: 0; box-sizing: border-box; }
-    body { 
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; 
-      background: #fff;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      min-height: 100vh;
-    }
-    .loader {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      gap: 20px;
-    }
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid #f3f3f3;
-      border-top: 3px solid #6366f1;
-      border-radius: 50%;
-      animation: spin 1s linear infinite;
-    }
-    @keyframes spin {
-      0% { transform: rotate(0deg); }
-      100% { transform: rotate(360deg); }
-    }
-    #status { 
-      text-align: center; 
-      color: #666; 
-      font-size: 14px;
-    }
-    #pay-btn { 
-      display: none; 
-    }
-  </style>
-</head>
-<body>
-  <div class="loader">
-    <div class="spinner"></div>
-    <div id="status">Loading secure payment...</div>
-  </div>
-  <button id="pay-btn">Pay Now</button>
-  
-  <script>
-    document.addEventListener('DOMContentLoaded', function() {
-      const payBtn = document.getElementById('pay-btn');
-      const status = document.getElementById('status');
-      
-      function initCashfree() {
-        if (typeof Cashfree === 'undefined') {
-          status.textContent = 'Failed to load payment gateway. Please try again.';
-          return;
-        }
-        
-        try {
-          const cashfree = new Cashfree({
-            mode: '$mode'
-          });
-          
-          payBtn.disabled = false;
-          status.textContent = '';
-          
-          payBtn.addEventListener('click', function() {
-            status.textContent = 'Redirecting to payment...';
-            payBtn.disabled = true;
-            
-            cashfree.checkout({
-              paymentSessionId: '${widget.paymentSessionId}',
-              redirectTarget: '_self'
-            });
-          });
-          
-          payBtn.click();
-        } catch (e) {
-          status.textContent = 'Error initializing payment: ' + e.message;
-        }
-      }
-      
-      if (typeof Cashfree !== 'undefined') {
-        initCashfree();
-      } else {
-        window.addEventListener('load', function() {
-          setTimeout(initCashfree, 500);
-        });
-      }
-    });
-  </script>
-</body>
-</html>
-  ''';
-  }
-
-  Future<void> _handleBackPressed() async {
-    if (_checkoutCompleted) {
-      Navigator.of(context).pop(PaymentResult.cancelled);
-      return;
-    }
-    
-    _checkoutCompleted = true;
-    
-    if (mounted) {
-      Navigator.of(context).pop(PaymentResult.cancelled);
-    }
-  }
-
-  @override
-  Widget build(BuildContext context) {
-    return PopScope(
-      canPop: false,
-      onPopInvokedWithResult: (didPop, result) {
-        if (!didPop) {
-          _handleBackPressed();
-        }
-      },
-      child: Scaffold(
-        backgroundColor: Colors.white,
-        appBar: AppBar(
-          title: const Text('Secure Payment'),
-          backgroundColor: Colors.white,
-          foregroundColor: Colors.black,
-          elevation: 0,
-          leading: IconButton(
-            onPressed: _handleBackPressed,
-            icon: const Icon(Icons.close),
-          ),
-        ),
-        body: SafeArea(
-          child: WebViewWidget(controller: _controller),
-        ),
-      ),
-    );
   }
 }

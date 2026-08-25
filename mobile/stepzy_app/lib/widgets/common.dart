@@ -256,22 +256,27 @@ Future<void> toggleWishlistWithFeedback(
   await store.toggleWishlist(productId);
   if (!context.mounted) return;
 
+  final messenger = ScaffoldMessenger.of(context);
+  messenger.clearSnackBars();
+
   final added = store.wishlist.contains(productId);
-  ScaffoldMessenger.of(context).showSnackBar(
-    SnackBar(
-      content: Text(
-        added ? 'Added to wishlist' : 'Removed from wishlist',
-      ),
-      behavior: SnackBarBehavior.floating,
-      duration: const Duration(seconds: 2),
-      action: SnackBarAction(
-        label: 'Go to wishlist',
-        onPressed: () {
-          ScaffoldMessenger.of(context).hideCurrentSnackBar();
-          onGoToWishlist();
-        },
-      ),
+  final snackBar = SnackBar(
+    content: Text(
+      added ? 'Added to wishlist' : 'Removed from wishlist',
+    ),
+    behavior: SnackBarBehavior.floating,
+    duration: const Duration(seconds: 2),
+    action: SnackBarAction(
+      label: 'Go to wishlist',
+      onPressed: () {
+        messenger.hideCurrentSnackBar();
+        onGoToWishlist();
+      },
     ),
   );
+
+  messenger.showSnackBar(snackBar);
+
+  Future.delayed(const Duration(seconds: 2), messenger.hideCurrentSnackBar);
 }
 

@@ -148,16 +148,24 @@ class _CheckoutSheetState extends State<CheckoutSheet> {
                       if (!context.mounted) return;
                       Navigator.pop(context);
                       if (message == null) {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          const SnackBar(
-                            content: Text('Order placed successfully!'),
-                            backgroundColor: ZarwintoColors.success,
-                          ),
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.clearSnackBars();
+                        final snackBar = const SnackBar(
+                          content: Text('Order placed successfully!'),
+                          backgroundColor: ZarwintoColors.success,
+                          duration: Duration(seconds: 2),
                         );
+                        messenger.showSnackBar(snackBar);
+                        Future.delayed(const Duration(seconds: 2), messenger.hideCurrentSnackBar);
                       } else {
-                        ScaffoldMessenger.of(context).showSnackBar(
-                          SnackBar(content: Text(message)),
+                        final messenger = ScaffoldMessenger.of(context);
+                        messenger.clearSnackBars();
+                        final snackBar = SnackBar(
+                          content: Text(message),
+                          duration: const Duration(seconds: 2),
                         );
+                        messenger.showSnackBar(snackBar);
+                        Future.delayed(const Duration(seconds: 2), messenger.hideCurrentSnackBar);
                       }
                     },
               child: busy

@@ -242,28 +242,17 @@ class _CheckoutPageState extends State<CheckoutPage> {
         if (cashfreeResult != null && mounted) {
           final sessionId = cashfreeResult['paymentSessionId'] as String;
           
-          // Open Cashfree checkout - WebView has its own loading indicator
-          final paymentResult = await paymentService.showCashfreeCheckout(
+          setState(() => busy = true);
+          
+          // Open Cashfree checkout - native SDK
+          final PaymentResult paymentResult = await paymentService.showCashfreeCheckout(
             context: context,
             paymentSessionId: sessionId,
             orderId: tempOrderId,
           );
 
           if (paymentResult == PaymentResult.success && mounted) {
-            // Verify payment with polling
-            _showVerifyingDialog(context);
-            
-            bool isPaid = false;
-            for (int i = 0; i < 3; i++) {
-              await Future.delayed(const Duration(seconds: 2));
-              isPaid = await paymentService.verifyPaymentStatus(tempOrderId);
-              if (isPaid) break;
-            }
-            
-            // Dismiss verifying dialog
-            if (mounted && Navigator.of(context).canPop()) {
-              Navigator.of(context).pop();
-            }
+            bool isPaid = await _verifyPaymentWithRetry(context, paymentService, tempOrderId);
 
             if (isPaid) {
               // PAYMENT VERIFIED - NOW create the order in Supabase
@@ -369,6 +358,32 @@ class _CheckoutPageState extends State<CheckoutPage> {
         ),
       ),
     );
+  }
+
+  Future<bool> _verifyPaymentWithRetry(
+    BuildContext context,
+    PaymentService paymentService,
+    String orderId,
+  ) async {
+    _showVerifyingDialog(context);
+    final navigator = Navigator.of(context);
+
+    try {
+      await Future.delayed(const Duration(seconds: 5));
+
+      bool isPaid = false;
+      for (int i = 0; i < 8; i++) {
+        await Future.delayed(const Duration(seconds: 4));
+        isPaid = await paymentService.verifyPaymentStatus(orderId);
+        if (isPaid) break;
+      }
+
+      return isPaid;
+    } finally {
+      if (mounted && navigator.canPop()) {
+        navigator.pop();
+      }
+    }
   }
 
   Order _buildFallbackOrder(String orderId, ShippingAddress address, String paymentMethod, ZarwintoStore store) {

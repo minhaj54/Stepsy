@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_dotenv/flutter_dotenv.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 import 'package:supabase_flutter/supabase_flutter.dart';
@@ -11,12 +12,12 @@ import 'screens/login_screen.dart';
 import 'screens/signup_screen.dart';
 import 'screens/shell.dart';
 import 'screens/product_detail.dart';
-import 'services/connectivity_gate.dart';
 
 final GlobalKey<NavigatorState> navigatorKey = GlobalKey<NavigatorState>();
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
+  await SystemChrome.setPreferredOrientations([DeviceOrientation.portraitUp]);
 
   try {
     await dotenv.load(fileName: '.env');
@@ -138,7 +139,7 @@ class _ZarwintoAppState extends State<ZarwintoApp> {
         theme: ZarwintoTheme.light,
         initialRoute: '/',
         routes: {
-          '/': (context) => const ConnectivityGate(child: SplashScreen()),
+          '/': (context) => const SplashScreen(),
           '/login': (context) => const LoginScreen(),
           '/signup': (context) => const SignupScreen(),
           '/shell': (context) => const ZarwintoShell(),
