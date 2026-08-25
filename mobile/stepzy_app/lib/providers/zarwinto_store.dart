@@ -127,6 +127,7 @@ class ZarwintoStore extends ChangeNotifier {
       debugPrint('[Zarwinto] _loadEssentialData() — loading catalog (first page)...');
       final data = await repository.loadCatalog();
       products = data.products;
+      _shopProducts = products.toList()..shuffle();
       categories = data.categories;
       brands = data.brands;
       _productOffset = products.length;
@@ -231,13 +232,22 @@ class ZarwintoStore extends ChangeNotifier {
   }
 
   List<Product> featuredProducts() =>
-      products.where((product) => product.featured).take(6).toList();
+      products.where((product) => product.featured).take(5).toList()..shuffle();
 
   List<Product> newArrivals() =>
-      products.where((product) => product.newArrival).take(6).toList();
+      products.where((product) => product.newArrival).take(5).toList()..shuffle();
 
   List<Product> bestSellers() =>
-      products.where((product) => product.bestSeller).take(6).toList();
+      products.where((product) => product.bestSeller).take(5).toList()..shuffle();
+
+  List<Product> _shopProducts = [];
+  
+  List<Product> get shopProducts => _shopProducts;
+  
+  void shuffleShopProducts() {
+    _shopProducts = products.toList()..shuffle();
+    notifyListeners();
+  }
 
   void addToCart(Product product, ProductVariant variant, {int quantity = 1, String? selectedColor}) {
     final index = cart.indexWhere((item) => item.variant.id == variant.id);

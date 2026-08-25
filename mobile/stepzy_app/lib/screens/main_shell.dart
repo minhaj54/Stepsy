@@ -25,6 +25,9 @@ class _MainShellState extends State<MainShell> {
   ];
 
   void _onTabTapped(int value) {
+    if (value == 1) {
+      ZarwintoScope.of(context).shuffleShopProducts();
+    }
     setState(() => index = value);
   }
 

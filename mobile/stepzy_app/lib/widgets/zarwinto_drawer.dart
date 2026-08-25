@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:share_plus/share_plus.dart';
 import '../core/theme.dart';
+import '../core/constants.dart';
 
 class ZarwintoDrawer extends StatelessWidget {
   const ZarwintoDrawer({super.key});
@@ -56,7 +57,8 @@ class ZarwintoDrawer extends StatelessWidget {
             leading: HugeIcon(icon: HugeIcons.strokeRoundedShare01, color: ZarwintoColors.foreground),
             title: const Text('Share App'),
             onTap: () {
-              Share.share('Check out Zarwinto - World of shoes! Download now: https://play.google.com/store/apps/details?id=com.example.zarwinto_app');
+              final playStoreUrl = 'https://play.google.com/store/apps/details?id=$playStoreAppId';
+              Share.share('Check out Zarwinto - World of shoes! Download now: $playStoreUrl');
               Navigator.pop(context);
             },
           ),

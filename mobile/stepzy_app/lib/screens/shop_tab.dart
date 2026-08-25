@@ -53,7 +53,7 @@ class _ShopTabState extends State<ShopTab> {
     if (priceRange.start < bounds.min) priceRange = RangeValues(bounds.min, priceRange.end);
     if (priceRange.end > bounds.max) priceRange = RangeValues(priceRange.start, bounds.max);
 
-    final filtered = store.products.where((product) {
+    final filtered = store.shopProducts.where((product) {
       final matchesQuery =
           query.isEmpty ||
           product.title.toLowerCase().contains(query.toLowerCase()) ||

@@ -34,6 +34,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   bool _descExpanded = false;
   int _selectedInfoTab = 0;
   final TransformationController _zoomController = TransformationController();
+  final PageController _imagePageController = PageController();
 
   @override
   void initState() {
@@ -52,6 +53,7 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   @override
   void dispose() {
     _zoomController.dispose();
+    _imagePageController.dispose();
     super.dispose();
   }
 
@@ -512,53 +514,62 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   children: [
                     GestureDetector(
                       onTap: _openImageViewer,
-                      child: InteractiveViewer(
-                        transformationController: _zoomController,
-                        minScale: 1,
-                        maxScale: 4,
-                        child: Hero(
-                        tag: 'product_img_${widget.product.id}',
-                        child: Padding(
-                          padding: const EdgeInsets.all(8),
-                          child: ClipRRect(
-                            borderRadius: BorderRadius.circular(18),
-                            child: Image.network(
-                              images.isNotEmpty ? images[selectedImageIndex % images.length] : '',
-                              fit: BoxFit.cover,
-                              width: double.infinity,
-                              height: double.infinity,
-                            loadingBuilder: (context, child, progress) {
-                              if (progress == null) return child;
-                              return Shimmer.fromColors(
-                                baseColor: ZarwintoColors.border,
-                                highlightColor: Colors.white,
-                                period: const Duration(milliseconds: 1200),
-                                child: Container(
-                                  width: double.infinity,
-                                  height: double.infinity,
-                                  decoration: BoxDecoration(
-                                    color: ZarwintoColors.border,
-                                    borderRadius: BorderRadius.circular(18),
+                      child: PageView.builder(
+                        controller: _imagePageController,
+                        itemCount: images.length,
+                        onPageChanged: (index) {
+                          setState(() => selectedImageIndex = index);
+                        },
+                        itemBuilder: (context, index) {
+                          return InteractiveViewer(
+                            transformationController: _zoomController,
+                            minScale: 1,
+                            maxScale: 4,
+                            child: Hero(
+                              tag: 'product_img_${widget.product.id}_$index',
+                              child: Padding(
+                                padding: const EdgeInsets.all(8),
+                                child: ClipRRect(
+                                  borderRadius: BorderRadius.circular(18),
+                                  child: Image.network(
+                                    images[index],
+                                    fit: BoxFit.cover,
+                                    width: double.infinity,
+                                    height: double.infinity,
+                                    loadingBuilder: (context, child, progress) {
+                                      if (progress == null) return child;
+                                      return Shimmer.fromColors(
+                                        baseColor: ZarwintoColors.border,
+                                        highlightColor: Colors.white,
+                                        period: const Duration(milliseconds: 1200),
+                                        child: Container(
+                                          width: double.infinity,
+                                          height: double.infinity,
+                                          decoration: BoxDecoration(
+                                            color: ZarwintoColors.border,
+                                            borderRadius: BorderRadius.circular(18),
+                                          ),
+                                        ),
+                                      );
+                                    },
+                                    errorBuilder: (context, error, stackTrace) => const Icon(
+                                      Icons.image_not_supported_outlined,
+                                      size: 80,
+                                      color: ZarwintoColors.muted,
+                                    ),
                                   ),
                                 ),
-                              );
-                            },
-                            errorBuilder: (context, error, stackTrace) => const Icon(
-                              Icons.image_not_supported_outlined,
-                              size: 80,
-                              color: ZarwintoColors.muted,
+                              ),
                             ),
-                          ),
-                        ),
+                          );
+                        },
                       ),
                     ),
-                  ),
-                    ),
-                ],
+                  ],
+                ),
               ),
             ),
           ),
-        ),
         ),
         if (hasMultiple)
           SizedBox(
@@ -573,7 +584,14 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                   children: List.generate(images.length, (index) {
                     final isSelected = selectedImageIndex == index;
                     return GestureDetector(
-                      onTap: () => setState(() => selectedImageIndex = index),
+                      onTap: () {
+                        setState(() => selectedImageIndex = index);
+                        _imagePageController.animateToPage(
+                          index,
+                          duration: const Duration(milliseconds: 300),
+                          curve: Curves.easeInOut,
+                        );
+                      },
                       child: AnimatedContainer(
                         duration: const Duration(milliseconds: 150),
                         width: 46,

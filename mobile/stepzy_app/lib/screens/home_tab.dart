@@ -91,34 +91,31 @@ class _HomeTabState extends State<HomeTab> {
                       const SizedBox(height: 28),
                       if (featured.isEmpty && allProducts.isEmpty)
                         _ProductSectionShimmer(title: 'Featured')
-                      else
+                      else if (featured.isNotEmpty)
                         _ProductSection(
                           title: 'Featured',
                           subtitle: 'Editor\'s picks',
                           products: featured,
-                          fallbackProducts: allProducts,
                           onSeeAll: () => store.setActiveTab(1),
                         ),
                       const SizedBox(height: 28),
                       if (newArrivals.isEmpty && allProducts.isEmpty)
                         _ProductSectionShimmer(title: 'New Arrivals')
-                      else
+                      else if (newArrivals.isNotEmpty)
                         _ProductSection(
                           title: 'New Arrivals',
                           subtitle: 'Fresh drops just landed..',
                           products: newArrivals,
-                          fallbackProducts: allProducts,
                           onSeeAll: () => store.setActiveTab(1),
                         ),
                       const SizedBox(height: 28),
                       if (bestSellers.isEmpty && allProducts.isEmpty)
                         _ProductSectionShimmer(title: 'Best Sellers', isGrid: true)
-                      else
+                      else if (bestSellers.isNotEmpty)
                         _ProductSection(
                           title: 'Best Sellers',
                           subtitle: 'Most loved by shoppers..',
                           products: bestSellers,
-                          fallbackProducts: allProducts,
                           isGrid: true,
                           onSeeAll: () => store.setActiveTab(1),
                         ),
@@ -489,7 +486,6 @@ class _ProductSection extends StatelessWidget {
     required this.subtitle,
     required this.products,
     required this.onSeeAll,
-    this.fallbackProducts = const [],
     this.isGrid = false,
   });
 
@@ -497,18 +493,11 @@ class _ProductSection extends StatelessWidget {
   final String subtitle;
   final List<Product> products;
   final VoidCallback onSeeAll;
-  final List<Product> fallbackProducts;
   final bool isGrid;
-
-  List<Product> get _displayProducts {
-    if (products.isNotEmpty) return products;
-    if (fallbackProducts.isNotEmpty) return fallbackProducts;
-    return products;
-  }
 
   @override
   Widget build(BuildContext context) {
-    final displayProducts = _displayProducts;
+    final displayProducts = products;
     if (displayProducts.isEmpty) return const SizedBox.shrink();
 
     return Column(

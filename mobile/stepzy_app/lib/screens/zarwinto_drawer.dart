@@ -11,18 +11,54 @@ class ZarwintoDrawer extends StatelessWidget {
   static const String _appVersion = '1.0.0';
 
   Future<void> _shareApp() async {
+    final playStoreUrl = 'https://play.google.com/store/apps/details?id=$playStoreAppId';
     await Share.share(
       'Check out $appName - your one-stop shop for premium footwear! '
-      'Download now: https://play.google.com/store/apps/details?id=com.zarwinto.app',
+      'Download now: $playStoreUrl',
     );
   }
 
   Future<void> _rateApp() async {
-    final uri = Uri.parse(
-      'https://play.google.com/store/apps/details?id=com.zarwinto.app',
-    );
-    if (await canLaunchUrl(uri)) {
-      await launchUrl(uri, mode: LaunchMode.externalApplication);
+    final appId = playStoreAppId;
+    if (appId.isEmpty) {
+      debugPrint('[Drawer] playStoreAppId is empty, cannot open Play Store');
+      return;
+    }
+    
+    // Try opening Play Store app directly first
+    final marketUri = Uri.parse('market://details?id=$appId');
+    // Fallback to web URL
+    final webUri = Uri.parse('https://play.google.com/store/apps/details?id=$appId');
+    
+    debugPrint('[Drawer] Trying to open Play Store for app: $appId');
+    
+    try {
+      // Try market:// scheme first (opens Play Store app directly)
+      if (await canLaunchUrl(marketUri)) {
+        await launchUrl(marketUri, mode: LaunchMode.externalApplication);
+        debugPrint('[Drawer] Opened via market:// scheme');
+        return;
+      }
+    } catch (e) {
+      debugPrint('[Drawer] market:// scheme failed: $e');
+    }
+    
+    try {
+      // Fallback to https:// URL
+      if (await canLaunchUrl(webUri)) {
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
+        debugPrint('[Drawer] Opened via https:// URL');
+        return;
+      }
+    } catch (e) {
+      debugPrint('[Drawer] https:// URL failed: $e');
+    }
+    
+    // Last resort: try launching anyway
+    try {
+      await launchUrl(webUri, mode: LaunchMode.externalApplication);
+    } catch (e) {
+      debugPrint('[Drawer] All methods failed to open Play Store: $e');
     }
   }
 
