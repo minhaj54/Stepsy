@@ -108,6 +108,13 @@ export default function ProductDetailClient({ product, store, initialReviews, re
   const [isHovering, setIsHovering] = useState(false);
   const [mousePos, setMousePos] = useState({ x: 0, y: 0 });
 
+  // Full-screen image viewer state
+  const [isImageViewerOpen, setIsImageViewerOpen] = useState(false);
+  const [viewerZoom, setViewerZoom] = useState(1);
+  const [viewerPan, setViewerPan] = useState({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = useState(false);
+  const dragStart = useRef({ x: 0, y: 0 });
+
   // Tab State
   const [activeTab, setActiveTab] = useState<'description' | 'shipping'>('description');
 
@@ -305,43 +312,42 @@ export default function ProductDetailClient({ product, store, initialReviews, re
              </div>
            )}
            
-             {/* Main Image with Hover Zoom (desktop only) */}
-             <div className="w-full lg:flex-1">
-                <div
-                className="aspect-[3/4] sm:aspect-[4/5] bg-background/40 rounded-2xl sm:rounded-3xl overflow-hidden border border-border relative"
-                {...(isDesktop ? {
-                  onMouseEnter: () => setIsHovering(true),
-                  onMouseLeave: () => setIsHovering(false),
-                  onMouseMove: (e) => {
-                    const rect = e.currentTarget.getBoundingClientRect();
-                    const x = ((e.clientX - rect.left) / rect.width) * 100;
-                    const y = ((e.clientY - rect.top) / rect.height) * 100;
-                    setMousePos({ x, y });
-                  },
-                } : {})}
-              >
-                <div
-                  className="w-full h-full transition-transform duration-200 ease-out"
-                  style={{
-                    transform: isDesktop && isHovering ? 'scale(1.8)' : 'scale(1)',
-                    transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
-                  }}
+               {/* Main Image */}
+               <div className="w-full lg:flex-1">
+                  <div
+                  className="aspect-square bg-gradient-to-b from-background/60 to-background/20 rounded-2xl sm:rounded-3xl overflow-hidden border border-border relative shadow-sm cursor-pointer group"
+                  onClick={() => { setIsImageViewerOpen(true); setViewerZoom(1); setViewerPan({ x: 0, y: 0 }); }}
+                  {...(isDesktop ? {
+                    onMouseEnter: () => setIsHovering(true),
+                    onMouseLeave: () => setIsHovering(false),
+                    onMouseMove: (e) => {
+                      const rect = e.currentTarget.getBoundingClientRect();
+                      const x = ((e.clientX - rect.left) / rect.width) * 100;
+                      const y = ((e.clientY - rect.top) / rect.height) * 100;
+                      setMousePos({ x, y });
+                    },
+                  } : {})}
                 >
-                  <ShimmerImage
-                    src={product.images[activeImageIndex]}
-                    alt={product.title}
-                    className="w-full h-full object-cover"
-                  />
-                </div>
-                {isDesktop && !isHovering && (
-                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
-                    <div className="bg-black/30 backdrop-blur-sm rounded-full px-3 py-1.5 text-white text-xs font-medium flex items-center gap-1.5">
-                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
-                      Hover to zoom
+                  <div
+                    className="w-full h-full transition-transform duration-300 ease-out"
+                    style={{
+                      transform: isDesktop && isHovering ? 'scale(1.4)' : 'scale(1)',
+                      transformOrigin: `${mousePos.x}% ${mousePos.y}%`,
+                    }}
+                  >
+                    <ShimmerImage
+                      src={product.images[activeImageIndex]}
+                      alt={product.title}
+                      className="w-full h-full object-cover"
+                    />
+                  </div>
+                  <div className="absolute inset-0 flex items-center justify-center pointer-events-none opacity-0 group-hover:opacity-100 transition-opacity">
+                    <div className="bg-black/40 backdrop-blur-sm rounded-full px-3 py-1.5 text-white text-xs font-medium flex items-center gap-1.5">
+                      <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M15 3h6v6M9 21H3v-6M21 3l-7 7M3 21l7-7"/></svg>
+                      Click to expand
                     </div>
                   </div>
-                )}
-              </div>
+                </div>
             
             {/* Mobile thumbnails */}
             {product.images.length > 1 && (
@@ -1044,6 +1050,88 @@ export default function ProductDetailClient({ product, store, initialReviews, re
           </div>
         </div>
       )}
+      {/* Full-Screen Image Viewer */}
+      {isImageViewerOpen && (
+        <div
+          className="fixed inset-0 z-50 bg-black/95 flex flex-col"
+          onWheel={(e) => {
+            e.preventDefault();
+            const delta = e.deltaY > 0 ? -0.25 : 0.25;
+            setViewerZoom((z) => Math.min(5, Math.max(1, z + delta)));
+          }}
+        >
+          {/* Header */}
+          <div className="flex items-center justify-between p-4 shrink-0">
+            <span className="text-white/70 text-sm font-medium">{activeImageIndex + 1} / {product.images.length}</span>
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setViewerZoom((z) => Math.min(5, z + 0.5))}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer text-white"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M11 8v6"/><path d="M8 11h6"/></svg>
+              </button>
+              <span className="text-white/70 text-sm font-mono w-12 text-center">{Math.round(viewerZoom * 100)}%</span>
+              <button
+                onClick={() => setViewerZoom((z) => Math.max(1, z - 0.5))}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer text-white"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/><path d="M8 11h6"/></svg>
+              </button>
+              <button
+                onClick={() => { setIsImageViewerOpen(false); setViewerZoom(1); setViewerPan({ x: 0, y: 0 }); }}
+                className="p-2 rounded-full bg-white/10 hover:bg-white/20 transition-colors cursor-pointer text-white ml-2"
+              >
+                <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+              </button>
+            </div>
+          </div>
+
+          {/* Image */}
+          <div
+            className="flex-1 overflow-hidden flex items-center justify-center select-none"
+            onMouseDown={(e) => {
+              if (viewerZoom <= 1) return;
+              setIsDragging(true);
+              dragStart.current = { x: e.clientX - viewerPan.x, y: e.clientY - viewerPan.y };
+            }}
+            onMouseMove={(e) => {
+              if (!isDragging) return;
+              setViewerPan({ x: e.clientX - dragStart.current.x, y: e.clientY - dragStart.current.y });
+            }}
+            onMouseUp={() => setIsDragging(false)}
+            onMouseLeave={() => setIsDragging(false)}
+            style={{ cursor: viewerZoom > 1 ? (isDragging ? 'grabbing' : 'grab') : 'default' }}
+          >
+            <img
+              src={product.images[activeImageIndex]}
+              alt={product.title}
+              className="max-w-[90vw] max-h-[80vh] object-contain transition-transform duration-150"
+              style={{
+                transform: `translate(${viewerPan.x}px, ${viewerPan.y}px) scale(${viewerZoom})`,
+              }}
+              draggable={false}
+            />
+          </div>
+
+          {/* Thumbnail strip */}
+          {product.images.length > 1 && (
+            <div className="flex items-center justify-center gap-2 p-4 overflow-x-auto shrink-0">
+              {product.images.map((img, idx) => (
+                <button
+                  key={idx}
+                  onClick={() => { setActiveImageIndex(idx); setViewerZoom(1); setViewerPan({ x: 0, y: 0 }); }}
+                  className={`flex-shrink-0 w-16 h-16 rounded-xl overflow-hidden border-2 transition-all cursor-pointer ${
+                    activeImageIndex === idx ? 'border-white scale-105' : 'border-transparent opacity-60 hover:opacity-100'
+                  }`}
+                >
+                  <img src={img} alt="" className="w-full h-full object-cover" draggable={false} />
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
     </div>
   );
 }

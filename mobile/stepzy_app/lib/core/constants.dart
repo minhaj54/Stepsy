@@ -24,4 +24,4 @@ String get cashfreeAppId => _getEnv('CASHFREE_APP_ID', defaultValue: const Strin
 String get cashfreeSecretKey => _getEnv('CASHFREE_SECRET_KEY', defaultValue: const String.fromEnvironment('CASHFREE_SECRET_KEY'));
 bool get cashfreeIsProduction => _getEnv('CASHFREE_ENV', defaultValue: const String.fromEnvironment('CASHFREE_ENV', defaultValue: 'sandbox')) == 'production';
 String get zarwintoDomain => _getEnv('ZARWINTO_DOMAIN', defaultValue: const String.fromEnvironment('ZARWINTO_DOMAIN', defaultValue: 'https://zarwinto.com'));
-String get playStoreAppId => _getEnv('PLAY_STORE_APP_ID', defaultValue: const String.fromEnvironment('PLAY_STORE_APP_ID', defaultValue: 'com.zarwinto.app'));
+String get playStoreAppId => _getEnv('PLAY_STORE_APP_ID', defaultValue: const String.fromEnvironment('PLAY_STORE_APP_ID', defaultValue: 'com.zarwinto.zarwinto'));

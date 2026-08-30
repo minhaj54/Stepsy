@@ -30,12 +30,11 @@ export default function ShopContent({ products, brands, categories }: ShopConten
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
 
   // Derive the real price ceiling from the catalog so premium products are
-  // never hidden behind a hard-coded ₹3000 default on the shop page. This keeps
-  // the shop in sync with the home/featured sections.
+  // never hidden behind a hard-coded ₹10000 default on the shop page.
   const catalogPrices = products.map(p => p.sale_price || p.price);
   const priceCeiling = catalogPrices.length
-    ? Math.max(3000, Math.ceil(Math.max(...catalogPrices) / 50) * 50)
-    : 3000;
+    ? Math.max(10000, Math.ceil(Math.max(...catalogPrices) / 50) * 50)
+    : 10000;
 
   const [maxPrice, setMaxPrice] = useState(priceCeiling);
   const [sortBy, setSortBy] = useState('newest');
@@ -199,12 +198,12 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
           {/* Category Filter */}
           <div className="space-y-3">
-            <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Category</h4>
+            <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Category</h4>
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => setSelectedCategory('')}
                 className={`text-left text-sm py-1.5 px-3 rounded-lg transition-colors font-medium ${
-                  selectedCategory === '' ? 'bg-primary/20 text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
+                  selectedCategory === '' ? 'bg-primary/20 text-primary font-bold' : 'text-foreground/70 hover:text-foreground'
                 }`}
               >
                 All Categories
@@ -214,7 +213,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                   key={cat.id}
                   onClick={() => setSelectedCategory(cat.slug)}
                   className={`text-left text-sm py-1.5 px-3 rounded-lg transition-colors font-medium flex justify-between items-center ${
-                    selectedCategory === cat.slug ? 'bg-primary/20 text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
+                    selectedCategory === cat.slug ? 'bg-primary/20 text-primary font-bold' : 'text-foreground/70 hover:text-foreground'
                   }`}
                 >
                   {cat.name}
@@ -226,12 +225,12 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
           {/* Brand Filter */}
           <div className="space-y-3 pt-4 border-t border-border">
-            <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Brand</h4>
+            <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Brand</h4>
             <div className="flex flex-col gap-2">
               <button
                 onClick={() => setSelectedBrand('')}
                 className={`text-left text-sm py-1.5 px-3 rounded-lg transition-colors font-medium ${
-                  selectedBrand === '' ? 'bg-primary/20 text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
+                  selectedBrand === '' ? 'bg-primary/20 text-primary font-bold' : 'text-foreground/70 hover:text-foreground'
                 }`}
               >
                 All Brands
@@ -241,7 +240,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                   key={brand.id}
                   onClick={() => setSelectedBrand(brand.slug)}
                   className={`text-left text-sm py-1.5 px-3 rounded-lg transition-colors font-medium flex justify-between items-center ${
-                    selectedBrand === brand.slug ? 'bg-primary/20 text-primary font-bold' : 'text-muted-foreground hover:text-foreground'
+                    selectedBrand === brand.slug ? 'bg-primary/20 text-primary font-bold' : 'text-foreground/70 hover:text-foreground'
                   }`}
                 >
                   {brand.name}
@@ -254,19 +253,19 @@ export default function ShopContent({ products, brands, categories }: ShopConten
           {/* Price Range Filter */}
           <div className="space-y-3 pt-4 border-t border-border">
             <div className="flex justify-between items-center">
-              <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Max Price</h4>
+              <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Max Price</h4>
               <span className="text-sm font-bold text-foreground">₹{maxPrice}</span>
             </div>
             <input
               type="range"
               min="0"
               max={priceCeiling}
-              step="10"
+              step="50"
               value={maxPrice}
               onChange={(e) => setMaxPrice(Number(e.target.value))}
-              className="w-full accent-primary h-1 bg-muted rounded-lg appearance-none cursor-pointer"
+              className="w-full accent-primary h-1.5 bg-border rounded-lg appearance-none cursor-pointer"
             />
-            <div className="flex justify-between text-[10px] text-muted-foreground font-semibold">
+            <div className="flex justify-between text-[10px] text-foreground/50 font-semibold">
               <span>₹0</span>
               <span>₹{priceCeiling}</span>
             </div>
@@ -274,7 +273,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
           {/* Size Filter */}
           <div className="space-y-3 pt-4 border-t border-border">
-            <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Sizes (US)</h4>
+            <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Sizes (US)</h4>
             <div className="grid grid-cols-4 gap-2">
               {sizes.map((size) => {
                 const isSelected = selectedSizes.includes(size);
@@ -285,7 +284,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                     className={`h-10 rounded-xl font-bold text-xs flex items-center justify-center border transition-all cursor-pointer ${
                       isSelected
                         ? 'bg-primary text-white border-primary shadow-[0_0_10px_rgba(99,102,241,0.3)]'
-                        : 'bg-card border-border hover:border-muted-foreground/50 text-muted-foreground'
+                        : 'bg-card border-border hover:border-muted-foreground/50 text-foreground/80'
                     }`}
                   >
                     {size}
@@ -297,7 +296,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
           {/* Color Filter */}
           <div className="space-y-3 pt-4 border-t border-border">
-            <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Colors</h4>
+            <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Colors</h4>
             <div className="flex flex-wrap gap-2.5">
               {colors.map((color) => {
                 const isSelected = selectedColors.includes(color.name);
@@ -329,7 +328,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
             <div className="glass-card p-12 rounded-3xl text-center space-y-4">
               <p className="text-3xl">👟🚫</p>
               <h3 className="text-xl font-extrabold text-foreground">No footwear matches your filters</h3>
-              <p className="text-muted-foreground text-sm max-w-md mx-auto">
+              <p className="text-foreground/70 text-sm max-w-md mx-auto">
                 We couldn't find any shoes matching your configuration. Try relaxing your filters or resetting the catalog.
               </p>
               <button
@@ -482,19 +481,19 @@ export default function ShopContent({ products, brands, categories }: ShopConten
               <h3 className="font-bold text-foreground text-base">Filters</h3>
               <button 
                 onClick={() => setIsFilterDrawerOpen(false)}
-                className="p-1 text-muted-foreground hover:text-foreground rounded-lg hover:bg-secondary"
+                className="p-1 text-foreground/60 hover:text-foreground rounded-lg hover:bg-secondary"
               >
                 <X className="h-6 w-6" />
               </button>
             </div>
 
-            {/* Mobile Category */}
+             {/* Mobile Category */}
             <div className="space-y-3 mb-6">
-              <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Category</h4>
+              <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Category</h4>
               <div className="flex flex-col gap-1.5">
                 <button
                   onClick={() => { setSelectedCategory(''); setIsFilterDrawerOpen(false); }}
-                  className={`text-left text-sm py-2 px-3 rounded-lg font-semibold ${selectedCategory === '' ? 'bg-primary/20 text-primary' : 'text-muted-foreground'}`}
+                  className={`text-left text-sm py-2 px-3 rounded-lg font-semibold ${selectedCategory === '' ? 'bg-primary/20 text-primary' : 'text-foreground/70'}`}
                 >
                   All Categories
                 </button>
@@ -502,7 +501,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                   <button
                     key={cat.id}
                     onClick={() => { setSelectedCategory(cat.slug); setIsFilterDrawerOpen(false); }}
-                    className={`text-left text-sm py-2 px-3 rounded-lg font-semibold flex justify-between items-center ${selectedCategory === cat.slug ? 'bg-primary/20 text-primary' : 'text-muted-foreground'}`}
+                    className={`text-left text-sm py-2 px-3 rounded-lg font-semibold flex justify-between items-center ${selectedCategory === cat.slug ? 'bg-primary/20 text-primary' : 'text-foreground/70'}`}
                   >
                     {cat.name}
                     {selectedCategory === cat.slug && <Check className="h-4 w-4" />}
@@ -513,11 +512,11 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
             {/* Mobile Brand */}
             <div className="space-y-3 mb-6 pt-4 border-t border-border">
-              <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Brand</h4>
+              <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Brand</h4>
               <div className="flex flex-col gap-1.5">
                 <button
                   onClick={() => { setSelectedBrand(''); setIsFilterDrawerOpen(false); }}
-                  className={`text-left text-sm py-2 px-3 rounded-lg font-semibold ${selectedBrand === '' ? 'bg-primary/20 text-primary' : 'text-muted-foreground'}`}
+                  className={`text-left text-sm py-2 px-3 rounded-lg font-semibold ${selectedBrand === '' ? 'bg-primary/20 text-primary' : 'text-foreground/70'}`}
                 >
                   All Brands
                 </button>
@@ -525,7 +524,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                   <button
                     key={brand.id}
                     onClick={() => { setSelectedBrand(brand.slug); setIsFilterDrawerOpen(false); }}
-                    className={`text-left text-sm py-2 px-3 rounded-lg font-semibold flex justify-between items-center ${selectedBrand === brand.slug ? 'bg-primary/20 text-primary' : 'text-muted-foreground'}`}
+                    className={`text-left text-sm py-2 px-3 rounded-lg font-semibold flex justify-between items-center ${selectedBrand === brand.slug ? 'bg-primary/20 text-primary' : 'text-foreground/70'}`}
                   >
                     {brand.name}
                     {selectedBrand === brand.slug && <Check className="h-4 w-4" />}
@@ -537,23 +536,27 @@ export default function ShopContent({ products, brands, categories }: ShopConten
             {/* Mobile Price */}
             <div className="space-y-3 mb-6 pt-4 border-t border-border">
               <div className="flex justify-between items-center">
-                <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Max Price</h4>
+                <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Max Price</h4>
                 <span className="text-sm font-bold text-foreground">₹{maxPrice}</span>
               </div>
               <input
                 type="range"
                 min="0"
                 max={priceCeiling}
-                step="10"
+                step="50"
                 value={maxPrice}
                 onChange={(e) => setMaxPrice(Number(e.target.value))}
-                className="w-full accent-primary h-1 bg-muted rounded-lg appearance-none cursor-pointer"
+                className="w-full accent-primary h-1.5 bg-border rounded-lg appearance-none cursor-pointer"
               />
+              <div className="flex justify-between text-[10px] text-foreground/50 font-semibold">
+                <span>₹0</span>
+                <span>₹{priceCeiling}</span>
+              </div>
             </div>
 
             {/* Mobile Size */}
             <div className="space-y-3 mb-6 pt-4 border-t border-border">
-              <h4 className="text-xs uppercase font-extrabold tracking-widest text-muted-foreground">Sizes</h4>
+              <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Sizes</h4>
               <div className="grid grid-cols-4 gap-2">
                 {sizes.map((size) => {
                   const isSelected = selectedSizes.includes(size);
@@ -561,7 +564,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                     <button
                       key={size}
                       onClick={() => handleSizeToggle(size)}
-                      className={`h-10 rounded-xl font-bold text-xs flex items-center justify-center border ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-border text-muted-foreground'}`}
+                      className={`h-10 rounded-xl font-bold text-xs flex items-center justify-center border ${isSelected ? 'bg-primary text-primary-foreground border-primary' : 'bg-muted border-border text-foreground/80'}`}
                     >
                       {size}
                     </button>

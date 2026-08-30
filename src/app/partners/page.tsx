@@ -49,7 +49,7 @@ export default async function PartnersPage() {
             Our <span className="gradient-text">Partner Stores</span>
           </h1>
           
-          <p className="text-sm sm:text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+          <p className="text-sm sm:text-lg text-foreground/70 max-w-2xl mx-auto leading-relaxed">
             Discover premium footwear from our curated network of trusted sellers and brands. 
             Each partner brings unique styles, quality craftsmanship, and exceptional service.
           </p>
@@ -62,12 +62,12 @@ export default async function PartnersPage() {
           <div className="flex flex-wrap items-center justify-center gap-6 sm:gap-8 lg:gap-16">
             <div className="text-center">
               <p className="text-xl sm:text-2xl lg:text-3xl font-black text-foreground">{stores.length}</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mt-0.5 sm:mt-1">Partner Stores</p>
+              <p className="text-[10px] sm:text-xs text-foreground/50 uppercase tracking-wider mt-0.5 sm:mt-1">Partner Stores</p>
             </div>
-            <div className="w-px h-6 sm:h-8 bg-white/[0.08] hidden sm:block" />
+            <div className="w-px h-6 sm:h-8 bg-border hidden sm:block" />
             <div className="text-center">
               <p className="text-xl sm:text-2xl lg:text-3xl font-black text-foreground">100%</p>
-              <p className="text-[10px] sm:text-xs text-muted-foreground uppercase tracking-wider mt-0.5 sm:mt-1">Verified Sellers</p>
+              <p className="text-[10px] sm:text-xs text-foreground/50 uppercase tracking-wider mt-0.5 sm:mt-1">Verified Sellers</p>
             </div>
           </div>
         </div>
@@ -79,7 +79,7 @@ export default async function PartnersPage() {
           <div className="text-center py-20">
             <StoreIcon className="h-16 w-16 text-muted-foreground mx-auto mb-4" />
             <h3 className="text-xl font-bold text-foreground mb-2">No Partners Yet</h3>
-            <p className="text-muted-foreground max-w-md mx-auto">
+            <p className="text-foreground/70 max-w-md mx-auto">
               We're currently onboarding new partner stores. Check back soon to discover amazing footwear brands.
             </p>
           </div>
@@ -89,10 +89,10 @@ export default async function PartnersPage() {
               <Link
                 key={store.id}
                 href={`/store/${store.slug}`}
-                className="glass-card rounded-2xl overflow-hidden flex flex-col h-full group"
+                className="glass-card rounded-2xl flex flex-col h-full group"
               >
                 {/* Store Banner */}
-                <div className="h-32 sm:h-40 w-full bg-zinc-900 relative overflow-hidden">
+                <div className="h-32 sm:h-40 w-full bg-gradient-to-br from-primary/5 to-accent/5 relative overflow-hidden rounded-t-2xl">
                   {store.banner_url ? (
                     <img 
                       src={store.banner_url} 
@@ -100,50 +100,50 @@ export default async function PartnersPage() {
                       className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" 
                     />
                   ) : (
-                    <div className="w-full h-full bg-gradient-to-br from-primary/20 via-zinc-900 to-accent/20" />
+                    <div className="w-full h-full bg-gradient-to-br from-primary/10 via-muted to-accent/10" />
                   )}
-                  <div className="absolute inset-0 bg-gradient-to-t from-zinc-950/80 to-transparent" />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/40 to-transparent" />
+                </div>
+
+                {/* Store Logo - overlapping banner */}
+                <div className="px-5 -mt-10 sm:-mt-12 relative z-10">
+                  <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden border-4 border-background bg-muted shadow-xl">
+                    {store.logo_url ? (
+                      <img 
+                        src={store.logo_url} 
+                        alt={`${store.name} logo`} 
+                        className="w-full h-full object-cover" 
+                      />
+                    ) : (
+                      <div className="w-full h-full flex items-center justify-center">
+                        <StoreIcon className="h-8 w-8 text-foreground/40" />
+                      </div>
+                    )}
+                  </div>
                 </div>
 
                 {/* Store Info */}
-                <div className="p-5 flex flex-col flex-grow">
-                  <div className="flex items-start gap-4 -mt-12 sm:-mt-14 mb-4">
-                    {/* Store Logo */}
-                    <div className="h-16 w-16 sm:h-20 sm:w-20 rounded-xl overflow-hidden border-4 border-zinc-950 bg-zinc-800 shrink-0 shadow-xl">
-                      {store.logo_url ? (
-                        <img 
-                          src={store.logo_url} 
-                          alt={`${store.name} logo`} 
-                          className="w-full h-full object-cover" 
-                        />
-                      ) : (
-                        <div className="w-full h-full flex items-center justify-center">
-                          <StoreIcon className="h-8 w-8 text-muted-foreground" />
-                        </div>
-                      )}
-                    </div>
-                    
-                    <div className="flex-1 min-w-0 pt-8 sm:pt-10">
-                       <h3 className="text-lg font-bold text-foreground tracking-tight truncate group-hover:text-primary transition-colors">
+                <div className="p-5 pt-3 flex flex-col flex-grow">
+                  <div className="mb-3">
+                       <h3 className="text-lg font-bold text-foreground tracking-tight group-hover:text-primary transition-colors">
                          {store.name}
                          <VerifiedBadge className="ml-1" />
                        </h3>
                       {store.social_handle && (
-                        <p className="text-xs text-muted-foreground mt-0.5">@{store.social_handle}</p>
+                        <p className="text-xs text-foreground/60 mt-0.5">@{store.social_handle}</p>
                       )}
-                    </div>
                   </div>
 
                   {/* Description */}
                   {store.description && (
-                    <p className="text-sm text-muted-foreground leading-relaxed line-clamp-2 mb-4 flex-grow">
+                    <p className="text-sm text-foreground/70 leading-relaxed line-clamp-2 mb-4 flex-grow">
                       {store.description}
                     </p>
                   )}
 
                   {/* Footer */}
                   <div className="flex items-center justify-between pt-4 border-t border-border">
-                    <span className="text-xs text-muted-foreground">
+                    <span className="text-xs text-foreground/60">
                       {store.productCount} {store.productCount === 1 ? 'product' : 'products'}
                     </span>
                     <span className="inline-flex items-center gap-1.5 text-sm font-semibold text-primary group-hover:text-primary-hover transition-colors">
@@ -167,7 +167,7 @@ export default async function PartnersPage() {
             <h2 className="text-xl sm:text-2xl lg:text-3xl font-bold text-foreground mb-2 sm:mb-3">
               Want to become a partner?
             </h2>
-            <p className="text-muted-foreground max-w-lg mx-auto mb-4 sm:mb-6">
+            <p className="text-foreground/70 max-w-lg mx-auto mb-4 sm:mb-6">
               Join our growing community of sellers and reach thousands of customers looking for premium footwear.
             </p>
             <Link

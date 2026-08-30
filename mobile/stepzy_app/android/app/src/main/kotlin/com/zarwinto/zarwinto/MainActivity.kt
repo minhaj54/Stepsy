@@ -1,4 +1,4 @@
-package com.example.zarwinto_app
+package com.zarwinto.zarwinto
 
 import io.flutter.embedding.android.FlutterActivity
 
