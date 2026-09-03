@@ -1,7 +1,7 @@
 import React from 'react';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
-import { Store as StoreIcon, AtSign, Package, ArrowRight, Settings, Star, TrendingUp, Phone } from 'lucide-react';
+import { Store as StoreIcon, AtSign, Package, ArrowRight, Settings, Star, TrendingUp } from 'lucide-react';
 import { getStoreBySlug, getProductsByStorePaginated } from '../../../lib/data/stores';
 import { getCurrentUser } from '../../../lib/supabase/server';
 import ShimmerImage from '../../../components/ShimmerImage';
@@ -132,12 +132,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
                     <TrendingUp className="h-4 w-4 text-green-400" />
                     <span className="font-semibold text-white">Active</span>
                   </div>
-                  {store.customer_support_phone && (
-                    <div className="flex items-center gap-1.5 text-sm text-white/70">
-                      <Phone className="h-4 w-4 text-blue-400" />
-                      <span className="font-semibold text-white">{store.customer_support_phone}</span>
-                    </div>
-                  )}
+
                 </div>
               </div>
 
@@ -181,7 +176,7 @@ export default async function StorePage({ params }: { params: Promise<{ slug: st
            </div>
          </div>
 
-         <StoreProductGrid initialProducts={products} storeId={store.id} isOwner={isOwner} />
+          <StoreProductGrid initialProducts={products} storeId={store.id} storeSlug={store.slug} isOwner={isOwner} />
       </div>
     </div>
   );

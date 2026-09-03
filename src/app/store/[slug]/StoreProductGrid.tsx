@@ -81,10 +81,11 @@ function mapDbProduct(row: DbProduct): Product {
 interface StoreProductGridProps {
   initialProducts: Product[];
   storeId: string;
+  storeSlug: string;
   isOwner?: boolean;
 }
 
-export default function StoreProductGrid({ initialProducts, storeId, isOwner }: StoreProductGridProps) {
+export default function StoreProductGrid({ initialProducts, storeId, storeSlug, isOwner }: StoreProductGridProps) {
   const [products, setProducts] = useState<Product[]>(initialProducts);
   const [page, setPage] = useState(1);
   const [hasMore, setHasMore] = useState(true);
@@ -153,7 +154,7 @@ export default function StoreProductGrid({ initialProducts, storeId, isOwner }: 
         <p className="text-muted-foreground text-sm">No products listed yet.</p>
         {isOwner && (
           <Link
-            href="/admin/products"
+            href={`/store/${storeSlug}/manage/products`}
             className="mt-4 inline-flex items-center gap-2 text-primary hover:text-primary-hover font-semibold text-sm"
           >
             Add your first product <ArrowRight className="h-4 w-4" />
