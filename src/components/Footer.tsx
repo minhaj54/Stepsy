@@ -158,8 +158,16 @@ export const Footer: React.FC = () => {
                 <a href="mailto:zarwinto12@gmail.com" className="hover:text-foreground transition-colors">zarwinto12@gmail.com</a>
               </li>
               <li className="flex gap-2.5 items-center">
+                <Mail className="h-5 w-5 text-primary flex-shrink-0" />
+                <a href="mailto:minhajraza51694@gmail.com" className="hover:text-foreground transition-colors">minhajraza51694@gmail.com</a>
+              </li>
+              <li className="flex gap-2.5 items-center">
                 <MessageCircle className="h-5 w-5 text-primary flex-shrink-0" />
                 <a href="https://wa.me/917982369183" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">+91 79823 69183 (WhatsApp)</a>
+              </li>
+              <li className="flex gap-2.5 items-center">
+                <Phone className="h-5 w-5 text-primary flex-shrink-0" />
+                <a href="tel:+916207752766" className="hover:text-foreground transition-colors">+91 62077 52766</a>
               </li>
             </ul>
           </div>
