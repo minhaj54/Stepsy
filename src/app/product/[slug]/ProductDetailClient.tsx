@@ -295,22 +295,22 @@ export default function ProductDetailClient({ product, store, initialReviews, re
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6 lg:gap-10 items-start">
         {/* Left: Images */}
          <div className="lg:col-span-5 flex lg:flex-row flex-col gap-3 sm:gap-4">
-           {/* Thumbnails - vertical on desktop, hidden on mobile */}
-           {product.images.length > 1 && (
-             <div className="hidden lg:flex flex-col gap-2 sm:gap-3">
-               {product.images.map((img, idx) => (
-                 <button
-                   key={idx}
-                   onClick={() => setActiveImageIndex(idx)}
-                   className={`aspect-square w-14 sm:w-16 bg-background/40 border rounded-2xl p-1.5 sm:p-2 flex items-center justify-center transition-all cursor-pointer ${
-                     activeImageIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-muted-foreground/50'
-                   }}`}
-                 >
-                   <ShimmerImage src={img} alt="" className="max-h-[30px] sm:max-h-[40px] w-auto" />
-                 </button>
-               ))}
-             </div>
-           )}
+            {/* Thumbnails - vertical on desktop, hidden on mobile */}
+            {product.images.length > 1 && (
+              <div className="hidden lg:flex flex-col gap-2 sm:gap-3">
+                {product.images.map((img, idx) => (
+                  <button
+                    key={idx}
+                    onClick={() => setActiveImageIndex(idx)}
+                    className={`aspect-square w-14 sm:w-16 bg-background/40 border rounded-2xl transition-all cursor-pointer overflow-hidden ${
+                      activeImageIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-muted-foreground/50'
+                    }}`}
+                  >
+                    <ShimmerImage src={img} alt="" className="w-full h-full" objectFit="cover" />
+                  </button>
+                ))}
+              </div>
+            )}
            
                {/* Main Image */}
                <div className="w-full lg:flex-1">
@@ -356,11 +356,11 @@ export default function ProductDetailClient({ product, store, initialReviews, re
                   <button
                     key={idx}
                     onClick={() => setActiveImageIndex(idx)}
-                    className={`flex-shrink-0 aspect-square w-16 sm:w-20 bg-background/40 border rounded-xl sm:rounded-2xl p-1.5 sm:p-2 flex items-center justify-center transition-all cursor-pointer ${
+                    className={`flex-shrink-0 aspect-square w-16 sm:w-20 bg-background/40 border rounded-xl sm:rounded-2xl transition-all cursor-pointer overflow-hidden ${
                       activeImageIndex === idx ? 'border-primary ring-2 ring-primary/20' : 'border-border hover:border-muted-foreground/50'
                     }`}
                   >
-                    <ShimmerImage src={img} alt="" className="max-h-[40px] sm:max-h-[50px] w-auto" />
+                    <ShimmerImage src={img} alt="" className="w-full h-full" objectFit="cover" />
                   </button>
                 ))}
               </div>

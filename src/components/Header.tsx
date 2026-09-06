@@ -148,9 +148,8 @@ export const Header: React.FC = () => {
 
   const navLinks = [
     { label: 'Shop All', href: '/shop' },
-    { label: 'Sneakers', href: '/shop?category=sneakers' },
-    { label: 'Boots', href: '/shop?category=boots' },
-    { label: 'Formal', href: '/shop?category=formal' },
+    { label: 'Male', href: '/shop?gender=male' },
+    { label: 'Female', href: '/shop?gender=female' },
     { label: 'Partners', href: '/partners' },
     { label: 'Blog', href: '/blog' }
   ];
@@ -271,10 +270,9 @@ export const Header: React.FC = () => {
                   );
                 } else {
                   // For links without query params (e.g., /shop, /partners, /blog)
-                  // Active only if there are no conflicting query params
-                  // Specifically, "Shop All" should NOT be active when a category is selected
-                  const hasCategoryFilter = searchParams.has('category');
-                  isActive = !hasCategoryFilter;
+                  // Active only if there are no conflicting filter query params
+                  const hasFilter = searchParams.has('category') || searchParams.has('brand') || searchParams.has('gender');
+                  isActive = !hasFilter;
                 }
               }
 

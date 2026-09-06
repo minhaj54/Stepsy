@@ -63,7 +63,7 @@ export default function AdminProductsClient({
     const supabase = createClient();
     const query = supabase
       .from('products')
-      .select('id, title, slug, price, sale_price, status, sku, description, featured, new_arrival, best_seller, brand_id, category_id, product_images(image_url, sort_order), product_variants(id, size, color, stock_quantity)')
+      .select('id, title, slug, price, sale_price, status, sku, description, featured, new_arrival, best_seller, brand_id, category_id, gender, product_images(image_url, sort_order), product_variants(id, size, color, stock_quantity)')
       .order('created_at', { ascending: false })
       .range(from, to);
     if (storeId) query.eq('store_id', storeId);
@@ -83,6 +83,7 @@ export default function AdminProductsClient({
         featured: p.featured,
         new_arrival: p.new_arrival,
         best_seller: p.best_seller,
+        gender: p.gender || '',
         brand_id: p.brand_id,
         category_id: p.category_id,
         images: (p.product_images ?? [])
@@ -138,6 +139,7 @@ export default function AdminProductsClient({
   const [featured, setFeatured] = useState(false);
   const [newArrival, setNewArrival] = useState(false);
   const [bestSeller, setBestSeller] = useState(false);
+  const [gender, setGender] = useState<'male' | 'female' | 'unisex' | ''>('');
   const [stock, setStock] = useState('25');
   const [colors, setColors] = useState<{ name: string; hex: string }[]>([]);
   const [customColorHex, setCustomColorHex] = useState('#6366f1');
@@ -189,6 +191,7 @@ export default function AdminProductsClient({
     setFeatured(false);
     setNewArrival(true);
     setBestSeller(false);
+    setGender('');
     setStock('50');
     setColors([]);
     setCustomColorName('');
@@ -219,6 +222,7 @@ export default function AdminProductsClient({
     setFeatured(product.featured || false);
     setNewArrival(product.new_arrival || false);
     setBestSeller(product.best_seller || false);
+    setGender(product.gender || '');
     setStock(product.stock.toString());
     setColors((product.colors || []).map((name: string) => ({
       name,
@@ -346,6 +350,7 @@ export default function AdminProductsClient({
       featured,
       new_arrival: newArrival,
       best_seller: bestSeller,
+      gender: gender || null,
       colors: colors.map(c => c.name),
       rating: 0,
       reviews_count: 0,
@@ -1203,6 +1208,26 @@ export default function AdminProductsClient({
                       />
                       Best Seller
                     </label>
+                  </div>
+                </div>
+
+                {/* Gender */}
+                <div className="space-y-2">
+                  <label className="block text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+                    Gender
+                  </label>
+                  <div className="flex flex-wrap gap-3 p-4 bg-secondary border border-border rounded-xl">
+                    {(['male', 'female', 'unisex'] as const).map((g) => (
+                      <label key={g} className="flex items-center gap-2 text-sm font-bold text-muted-foreground cursor-pointer capitalize">
+                        <input
+                          type="checkbox"
+                          checked={gender === g}
+                          onChange={() => setGender(gender === g ? '' : g)}
+                          className="rounded border-zinc-700 bg-zinc-900 text-primary focus:ring-primary h-4 w-4"
+                        />
+                        {g}
+                      </label>
+                    ))}
                   </div>
                 </div>
               </div>

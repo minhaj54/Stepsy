@@ -22,10 +22,12 @@ export default function ShopContent({ products, brands, categories }: ShopConten
   // URL parameters
   const initialCategory = searchParams.get('category') || '';
   const initialBrand = searchParams.get('brand') || '';
+  const initialGender = searchParams.get('gender') || '';
 
   // Filter States
   const [selectedCategory, setSelectedCategory] = useState(initialCategory);
   const [selectedBrand, setSelectedBrand] = useState(initialBrand);
+  const [selectedGender, setSelectedGender] = useState(initialGender);
   const [selectedSizes, setSelectedSizes] = useState<string[]>([]);
   const [selectedColors, setSelectedColors] = useState<string[]>([]);
 
@@ -48,6 +50,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
   useEffect(() => {
     setSelectedCategory(searchParams.get('category') || '');
     setSelectedBrand(searchParams.get('brand') || '');
+    setSelectedGender(searchParams.get('gender') || '');
     setCurrentPage(1);
   }, [searchParams]);
 
@@ -82,6 +85,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
   const resetFilters = () => {
     setSelectedCategory('');
     setSelectedBrand('');
+    setSelectedGender('');
     setSelectedSizes([]);
     setSelectedColors([]);
     setMaxPrice(priceCeiling);
@@ -97,6 +101,9 @@ export default function ShopContent({ products, brands, categories }: ShopConten
 
     // Brand match
     if (selectedBrand && product.brand_id !== selectedBrand && brands.find(b => b.slug === selectedBrand)?.id !== product.brand_id) return false;
+
+    // Gender match
+    if (selectedGender && (!product.gender || product.gender !== selectedGender)) return false;
 
     // Price match
     const currentPrice = product.sale_price || product.price;
@@ -143,7 +150,7 @@ export default function ShopContent({ products, brands, categories }: ShopConten
   // Reset to page 1 when filters change
   useEffect(() => {
     setCurrentPage(1);
-  }, [selectedCategory, selectedBrand, selectedSizes, selectedColors, maxPrice, sortBy]);
+  }, [selectedCategory, selectedBrand, selectedGender, selectedSizes, selectedColors, maxPrice, sortBy]);
 
   return (
     <div className="px-4 sm:px-6 lg:px-8 py-6 sm:py-8 flex-grow">
@@ -245,6 +252,33 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                 >
                   {brand.name}
                   {selectedBrand === brand.slug && <Check className="h-4 w-4" />}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* Gender Filter */}
+          <div className="space-y-3 pt-4 border-t border-border">
+            <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Gender</h4>
+            <div className="flex flex-col gap-2">
+              <button
+                onClick={() => setSelectedGender('')}
+                className={`text-left text-sm py-1.5 px-3 rounded-lg transition-colors font-medium ${
+                  selectedGender === '' ? 'bg-primary/20 text-primary font-bold' : 'text-foreground/70 hover:text-foreground'
+                }`}
+              >
+                All Genders
+              </button>
+              {(['male', 'female', 'unisex'] as const).map((g) => (
+                <button
+                  key={g}
+                  onClick={() => setSelectedGender(g)}
+                  className={`text-left text-sm py-1.5 px-3 rounded-lg transition-colors font-medium flex justify-between items-center capitalize ${
+                    selectedGender === g ? 'bg-primary/20 text-primary font-bold' : 'text-foreground/70 hover:text-foreground'
+                  }`}
+                >
+                  {g}
+                  {selectedGender === g && <Check className="h-4 w-4" />}
                 </button>
               ))}
             </div>
@@ -528,6 +562,29 @@ export default function ShopContent({ products, brands, categories }: ShopConten
                   >
                     {brand.name}
                     {selectedBrand === brand.slug && <Check className="h-4 w-4" />}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Mobile Gender */}
+            <div className="space-y-3 mb-6 pt-4 border-t border-border">
+              <h4 className="text-xs uppercase font-extrabold tracking-widest text-foreground/60">Gender</h4>
+              <div className="flex flex-col gap-1.5">
+                <button
+                  onClick={() => { setSelectedGender(''); setIsFilterDrawerOpen(false); }}
+                  className={`text-left text-sm py-2 px-3 rounded-lg font-semibold ${selectedGender === '' ? 'bg-primary/20 text-primary' : 'text-foreground/70'}`}
+                >
+                  All Genders
+                </button>
+                {(['male', 'female', 'unisex'] as const).map((g) => (
+                  <button
+                    key={g}
+                    onClick={() => { setSelectedGender(g); setIsFilterDrawerOpen(false); }}
+                    className={`text-left text-sm py-2 px-3 rounded-lg font-semibold flex justify-between items-center capitalize ${selectedGender === g ? 'bg-primary/20 text-primary' : 'text-foreground/70'}`}
+                  >
+                    {g}
+                    {selectedGender === g && <Check className="h-4 w-4" />}
                   </button>
                 ))}
               </div>

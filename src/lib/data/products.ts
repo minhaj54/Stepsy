@@ -51,6 +51,7 @@ interface DbProduct {
   length_cm: number | null;
   breadth_cm: number | null;
   height_cm: number | null;
+  gender: string | null;
 }
 
 export function mapDbProduct(row: DbProduct): Product {
@@ -86,6 +87,7 @@ export function mapDbProduct(row: DbProduct): Product {
     bestSeller: row.best_seller,
     specifications: row.specifications ?? undefined,
     colors: row.colors ?? [],
+    gender: row.gender as Product['gender'] | undefined,
     weight_kg: row.weight_kg ?? undefined,
     length_cm: row.length_cm ?? undefined,
     breadth_cm: row.breadth_cm ?? undefined,
@@ -604,6 +606,7 @@ export async function getAdminProducts(storeId?: string) {
       featured: p.featured,
       new_arrival: p.newArrival,
       best_seller: p.bestSeller,
+      gender: p.gender,
       brand_id: p.brand_id,
       category_id: p.category_id,
       images: p.images,
@@ -618,7 +621,7 @@ export async function getAdminProducts(storeId?: string) {
 
     const query = supabase
       .from('products')
-      .select('id, title, slug, price, sale_price, status, sku, description, featured, new_arrival, best_seller, brand_id, category_id, product_images(image_url, sort_order), product_variants(id, size, color, stock_quantity)')
+      .select('id, title, slug, price, sale_price, status, sku, description, featured, new_arrival, best_seller, gender, brand_id, category_id, product_images(image_url, sort_order), product_variants(id, size, color, stock_quantity)')
       .order('created_at', { ascending: false });
     if (storeId) query.eq('store_id', storeId);
 
@@ -636,6 +639,7 @@ export async function getAdminProducts(storeId?: string) {
       featured: boolean;
       new_arrival: boolean;
       best_seller: boolean;
+      gender?: string;
       brand_id: string;
       category_id: string;
       product_images: { image_url: string; sort_order: number }[] | null;
@@ -652,6 +656,7 @@ export async function getAdminProducts(storeId?: string) {
       featured: p.featured,
       new_arrival: p.new_arrival,
       best_seller: p.best_seller,
+      gender: p.gender || '',
       brand_id: p.brand_id,
       category_id: p.category_id,
       images: (p.product_images ?? [])
@@ -678,6 +683,7 @@ export async function getAdminProducts(storeId?: string) {
       featured: p.featured,
       new_arrival: p.newArrival,
       best_seller: p.bestSeller,
+      gender: p.gender,
       brand_id: p.brand_id,
       category_id: p.category_id,
       images: p.images,

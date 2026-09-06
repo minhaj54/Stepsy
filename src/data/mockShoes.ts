@@ -94,6 +94,7 @@ export const mockProducts: Product[] = [
     featured: true,
     newArrival: true,
     bestSeller: false,
+    gender: 'unisex',
     specifications: {
       'Weight': '8.2 oz / 232g (Size 9)',
       'Midsole': 'NitroFoam Elite with Carbon Plate',
@@ -138,6 +139,7 @@ export const mockProducts: Product[] = [
     featured: true,
     newArrival: false,
     bestSeller: true,
+    gender: 'male',
     specifications: {
       'Material': 'Full-grain Italian Calfskin Leather',
       'Lining': 'Breathable Sheepskin Leather',
@@ -182,6 +184,7 @@ export const mockProducts: Product[] = [
     featured: true,
     newArrival: true,
     bestSeller: true,
+    gender: 'male',
     specifications: {
       'Material': 'Genuine Leather and Suede Panel overlays',
       'Ankle': 'Padded High-Top Collar for Support',
@@ -223,6 +226,7 @@ export const mockProducts: Product[] = [
     featured: false,
     newArrival: false,
     bestSeller: false,
+    gender: 'male',
     specifications: {
       'Waterproofing': 'Seam-sealed Hydrophobic Treatment',
       'Leather': 'Water-Resistant Premium Nubuck',
@@ -264,6 +268,7 @@ export const mockProducts: Product[] = [
     featured: true,
     newArrival: true,
     bestSeller: false,
+    gender: 'male',
     specifications: {
       'Construction': 'Goodyear Welted (360 Degree)',
       'Upper Leather': 'French Calfskin Sourced from Annonay',
@@ -305,6 +310,7 @@ export const mockProducts: Product[] = [
     featured: false,
     newArrival: false,
     bestSeller: true,
+    gender: 'unisex',
     specifications: {
       'Material': 'Dual-Density Lightweight EVA Foam',
       'Waterproof': '100% Water-Resistant & Floatability',
@@ -346,6 +352,7 @@ export const mockProducts: Product[] = [
     featured: false,
     newArrival: true,
     bestSeller: false,
+    gender: 'unisex',
     specifications: {
       'Upper': 'Seamless CloudKnit Fabric',
       'Heel Stability': 'Molded TPU Counter Clip',
@@ -387,6 +394,7 @@ export const mockProducts: Product[] = [
     featured: true,
     newArrival: false,
     bestSeller: false,
+    gender: 'male',
     specifications: {
       'Leather Type': 'Oil-Tanned Harness Leather',
       'Outsole': 'Vibram Commando Lugged Rubber',

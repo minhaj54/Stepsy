@@ -8,9 +8,10 @@ interface ShimmerImageProps {
   className?: string;
   shimmerClassName?: string;
   onClick?: (e: React.MouseEvent<HTMLImageElement>) => void;
+  objectFit?: 'cover' | 'contain' | 'fill' | 'none' | 'scale-down';
 }
 
-export default function ShimmerImage({ src, alt, className = '', shimmerClassName = '', onClick }: ShimmerImageProps) {
+export default function ShimmerImage({ src, alt, className = '', shimmerClassName = '', onClick, objectFit = 'cover' }: ShimmerImageProps) {
   const [loaded, setLoaded] = useState(false);
   const imgRef = useRef<HTMLImageElement>(null);
 
@@ -55,7 +56,7 @@ export default function ShimmerImage({ src, alt, className = '', shimmerClassNam
         alt={alt}
         onLoad={() => setLoaded(true)}
         onClick={onClick}
-        className={`w-full h-full object-cover transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
+        className={`w-full h-full object-${objectFit} transition-opacity duration-500 ${loaded ? 'opacity-100' : 'opacity-0'}`}
       />
       <style jsx global>{`
         @keyframes shimmer {

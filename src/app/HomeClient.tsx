@@ -3,6 +3,7 @@
 import ShimmerImage from '../components/ShimmerImage';
 import FashionBanner from '../components/FashionBanner';
 import ModelPoster from '../components/ModelPoster';
+import FeaturedProductsSection from '../components/FeaturedProductsSection';
 
 import React, { useState, useRef } from 'react';
 import Link from 'next/link';
@@ -234,6 +235,9 @@ export default function HomeClient({ products, categories, brands, testimonials 
 
       {/* Model Poster Section */}
       <ModelPoster />
+
+      {/* Premium Product Showcase */}
+      <FeaturedProductsSection products={products} />
 
       {/* Brand Partners Bar */}
       <section className="px-4 sm:px-6 lg:px-8 py-12 text-center">

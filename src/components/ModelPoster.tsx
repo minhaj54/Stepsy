@@ -12,7 +12,7 @@ const posters = [
     description: 'Step up your game with our men\'s footwear range. From sleek sneakers to rugged boots, find your perfect match.',
     image: 'https://images.unsplash.com/photo-1556906781-9a412961c28c?auto=format&fit=crop&q=80&w=800',
     ctaText: 'Shop Men\'s',
-    ctaLink: '/shop?gender=men',
+    ctaLink: '/shop?gender=male',
     align: 'left',
   },
   {
@@ -22,7 +22,7 @@ const posters = [
     description: 'Express your style with our women\'s footwear. Trendy sneakers, elegant heels, and comfortable casuals.',
     image: 'https://images.unsplash.com/photo-1515886657613-9f3515b0c78f?auto=format&fit=crop&q=80&w=800',
     ctaText: 'Shop Women\'s',
-    ctaLink: '/shop?gender=women',
+    ctaLink: '/shop?gender=female',
     align: 'right',
   },
 ];

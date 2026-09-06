@@ -30,6 +30,7 @@ export interface Product {
   bestSeller?: boolean;
   specifications?: Record<string, string>;
   colors?: string[];
+  gender?: 'male' | 'female' | 'unisex';
   // Shipping dimensions (cm) and weight (kg) for rate calculation
   weight_kg?: number;
   length_cm?: number;

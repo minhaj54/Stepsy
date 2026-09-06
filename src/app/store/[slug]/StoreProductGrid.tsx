@@ -40,6 +40,7 @@ interface DbProduct {
   colors: string[] | null;
   product_images: { image_url: string; sort_order: number }[];
   product_variants: { id: string; product_id: string; size: string; color: string; stock_quantity: number }[];
+  gender: string | null;
 }
 
 function mapDbProduct(row: DbProduct): Product {
@@ -75,6 +76,7 @@ function mapDbProduct(row: DbProduct): Product {
     bestSeller: row.best_seller,
     specifications: row.specifications ?? undefined,
     colors: row.colors ?? [],
+    gender: row.gender as Product['gender'] | undefined,
   };
 }
 
