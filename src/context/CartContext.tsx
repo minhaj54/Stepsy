@@ -28,7 +28,7 @@ interface CartContextType {
   wishlist: string[];
   toggleWishlist: (productId: string) => void;
   orders: Order[];
-  placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree', cartItems?: CartItem[]) => Promise<Order | null>;
+  placeOrder: (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree', cartItems?: CartItem[], codFee?: number) => Promise<Order | null>;
   initiateCashfreePayment: (address: ShippingAddress, cartItems?: CartItem[], grandTotal?: number) => Promise<{ order: Order; paymentSessionId: string } | null>;
   redirectToCashfreePayment: (address: ShippingAddress, cartItems?: CartItem[], grandTotal?: number) => Promise<boolean>;
   updateOrderStatus: (orderId: string, status: Order['status']) => Promise<void>;
@@ -80,12 +80,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     const syncWithSupabase = async () => {
       const supabase = createClient();
 
-      // If we already know Supabase is unreachable, skip the sync
-      if (!supabaseReachable) {
-        console.warn('[CartContext] Skipping Supabase sync - project appears unreachable');
-        return;
-      }
-      
       // Sync Wishlist
       const { data: wlData, error: wlError } = await supabase
         .from('wishlist')
@@ -292,19 +286,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
    // Place order (for COD or direct prepaid without Cashfree)
-   const placeOrder = async (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree' = 'prepaid', cartItems?: CartItem[]): Promise<Order | null> => {
-    const items = cartItems || cart;
-    if (items.length === 0 || !user) return null;
+   const placeOrder = async (address: ShippingAddress, paymentMethod: 'prepaid' | 'cod' | 'cashfree' = 'prepaid', cartItems?: CartItem[], codFee: number = 0): Promise<Order | null> => {
+     const items = cartItems || cart;
+     if (items.length === 0 || !user) return null;
 
-   const orderId = `ord_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
+    const orderId = `ord_${Math.random().toString(36).substr(2, 9).toUpperCase()}`;
 
-   const isCashfree = paymentMethod === 'cashfree';
-   const internalPaymentMethod = isCashfree ? 'cashfree_upi' : paymentMethod;
+    const isCashfree = paymentMethod === 'cashfree';
+    const internalPaymentMethod = isCashfree ? 'cashfree_upi' : paymentMethod;
 
-   // Compute total from the actual items being ordered (handles Buy Now where cart may be empty)
-   const orderTotal = items.reduce((total, item) => {
-     return total + (item.product.sale_price || item.product.price) * item.quantity;
-   }, 0);
+    // Compute total from the actual items being ordered (handles Buy Now where cart may be empty)
+    const orderTotal = Number((items.reduce((total, item) => {
+      return total + (item.product.sale_price || item.product.price) * item.quantity;
+    }, 0) + codFee).toFixed(2));
 
     const newOrder: Order = {
       id: orderId,

@@ -3,7 +3,7 @@
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import Link from 'next/link';
 import { usePathname, useRouter, useSearchParams } from 'next/navigation';
-import { ShoppingBag, Heart, Search, User, Menu, X, ChevronRight, Sun, Moon } from 'lucide-react';
+import { ShoppingCart, Heart, Search, User, Menu, X, ChevronRight, Sun, Moon } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
@@ -35,12 +35,11 @@ export const Header: React.FC = () => {
   const searchParams = useSearchParams();
   const router = useRouter();
 
-  // Guard against hydration mismatch: auth state, wishlist and cart counts are
-  // resolved on the client after mount, so they differ between server and
-  // client. Use `sessionUser` (null until mounted) for all auth-dependent UI.
+  // Guard against hydration mismatch and router initialization issues
   const [mounted, setMounted] = useState(false);
   useEffect(() => setMounted(true), []);
   const sessionUser = mounted ? user : null;
+  const safeSearchParams = mounted ? searchParams : null;
 
   // Load products once for client-side autocomplete suggestions.
   useEffect(() => {
@@ -258,23 +257,26 @@ export const Header: React.FC = () => {
 
               // Parse the link href to get base path and query params
               const [linkPath, linkQueryString] = link.href.split('?');
-              const linkParams = new URLSearchParams(linkQueryString || '');
+               const linkParams = new URLSearchParams(linkQueryString || '');
 
-              // Check if pathname matches the base path
-              if (pathname === linkPath || pathname.startsWith(linkPath + '/')) {
-                if (linkQueryString) {
-                  // For links with query params (e.g., /shop?category=sneakers)
-                  // Active only if ALL query params match current search params
-                  isActive = Array.from(linkParams.entries()).every(([key, value]) =>
-                    searchParams.get(key) === value
-                  );
-                } else {
-                  // For links without query params (e.g., /shop, /partners, /blog)
-                  // Active only if there are no conflicting filter query params
-                  const hasFilter = searchParams.has('category') || searchParams.has('brand') || searchParams.has('gender');
-                  isActive = !hasFilter;
-                }
-              }
+               // Check if pathname matches the base path
+               if (pathname === linkPath || pathname.startsWith(linkPath + '/')) {
+                 if (linkQueryString && safeSearchParams) {
+                   // For links with query params (e.g., /shop?category=sneakers)
+                   // Active only if ALL query params match current search params
+                   isActive = Array.from(linkParams.entries()).every(([key, value]) =>
+                     safeSearchParams.get(key) === value
+                   );
+                 } else if (!linkQueryString && safeSearchParams) {
+                   // For links without query params (e.g., /shop, /partners, /blog)
+                   // Active only if there are no conflicting filter query params
+                   const hasFilter = safeSearchParams.has('category') || safeSearchParams.has('brand') || safeSearchParams.has('gender');
+                   isActive = !hasFilter;
+                 } else if (!safeSearchParams) {
+                   // Before router is ready, don't mark filter links as active
+                   isActive = !linkQueryString;
+                 }
+               }
 
               return (
                 <Link
@@ -330,7 +332,7 @@ export const Header: React.FC = () => {
               className="p-1.5 sm:p-2 text-muted-foreground hover:text-foreground relative transition-colors rounded-full hover:bg-secondary"
               aria-label="Shopping Cart"
             >
-              <ShoppingBag className="h-4 w-4 sm:h-5 sm:w-5" />
+               <ShoppingCart className="h-4 w-4 sm:h-5 sm:w-5" />
               {mounted && cartCount > 0 && (
                 <span className="absolute -top-0.5 -right-0.5 bg-primary text-white text-[9px] sm:text-[10px] font-bold h-3.5 w-3.5 sm:h-4 sm:w-4 rounded-full flex items-center justify-center border border-background">
                   {cartCount}

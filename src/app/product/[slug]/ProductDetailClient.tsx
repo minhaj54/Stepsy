@@ -599,15 +599,26 @@ export default function ProductDetailClient({ product, store, initialReviews, re
              </button>
            </div>
 
-          {/* Delivery & Warranty */}
-          <div className="border-t border-border pt-6 space-y-4">
-            <div className="flex gap-3 items-start text-xs">
-              <Truck className="h-5 w-5 text-primary flex-shrink-0" />
-              <div>
-                <p className="font-bold text-foreground">Free Express Delivery</p>
-                <p className="text-muted-foreground mt-0.5">Arrives in 2-4 business days via our trusted delivery partners.</p>
-              </div>
-            </div>
+           {/* Delivery & Warranty */}
+           <div className="border-t border-border pt-6 space-y-4">
+             <div className="flex gap-3 items-start text-xs">
+               <Truck className="h-5 w-5 text-primary flex-shrink-0" />
+               <div>
+                 <p className="font-bold text-foreground">Free Express Delivery</p>
+                 <p className="text-muted-foreground mt-0.5">
+                   Estimated delivery by{' '}
+                   {(() => {
+                     const today = new Date();
+                     const minDate = new Date(today);
+                     minDate.setDate(today.getDate() + 5);
+                     const maxDate = new Date(today);
+                     maxDate.setDate(today.getDate() + 7);
+                     const fmt = (d: Date) => d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                     return `${fmt(minDate)} - ${fmt(maxDate)}`;
+                   })()}
+                 </p>
+               </div>
+             </div>
             <div className="flex gap-3 items-start text-xs">
               <RefreshCw className="h-5 w-5 text-primary flex-shrink-0" />
               <div>

@@ -1,8 +1,8 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { Trash2, ShoppingBag, ArrowRight, Tag, X, ShieldCheck, Truck } from 'lucide-react';
+import { Trash2, ArrowRight, ShieldCheck, Truck, ShoppingCart } from 'lucide-react';
 import { useCart } from '../../context/CartContext';
 
 export default function CartPage() {
@@ -18,31 +18,11 @@ export default function CartPage() {
     removeCoupon
   } = useCart();
 
-  const [couponInput, setCouponInput] = useState('');
-  const [couponError, setCouponError] = useState(false);
-  const [couponSuccess, setCouponSuccess] = useState(false);
-
-  const handleApplyCoupon = (e: React.FormEvent) => {
-    e.preventDefault();
-    setCouponError(false);
-    setCouponSuccess(false);
-
-    if (!couponInput.trim()) return;
-
-    const success = applyCouponCode(couponInput);
-    if (success) {
-      setCouponSuccess(true);
-      setCouponInput('');
-    } else {
-      setCouponError(true);
-    }
-  };
-
   if (cart.length === 0) {
     return (
       <div className="px-4 sm:px-6 lg:px-8 py-16 flex-grow flex flex-col items-center justify-center text-center space-y-6">
-        <div className="h-24 w-24 bg-card border border-border rounded-full flex items-center justify-center text-4xl">
-          🛒
+        <div className="h-24 w-24 bg-card border border-border rounded-full flex items-center justify-center">
+          <ShoppingCart className="h-10 w-10 text-muted-foreground" />
         </div>
         <div className="space-y-2">
           <h1 className="text-3xl font-extrabold text-foreground tracking-tight">Your Cart is Empty</h1>
@@ -166,47 +146,7 @@ export default function CartPage() {
               </p>
             </div>
 
-            {/* Coupon Promo Block */}
-            <div className="border-t border-border pt-5 space-y-3">
-              <label htmlFor="coupon-input" className="block text-xs font-bold uppercase tracking-wider text-muted-foreground">Apply Promo Code</label>
-              
-              {appliedCoupon ? (
-                <div className="flex items-center justify-between bg-primary/10 border border-primary/20 text-primary px-3 py-2 rounded-xl text-xs font-semibold">
-                  <span className="flex items-center gap-1.5">
-                    <Tag className="h-3.5 w-3.5" /> {appliedCoupon.code} Applied
-                  </span>
-                  <button onClick={removeCoupon} className="p-0.5 hover:bg-primary/20 rounded-full cursor-pointer">
-                    <X className="h-3.5 w-3.5" />
-                  </button>
-                </div>
-              ) : (
-                <form onSubmit={handleApplyCoupon} className="flex gap-2">
-                  <input
-                    id="coupon-input"
-                    type="text"
-                    placeholder="e.g. STEPZY20"
-                    value={couponInput}
-                    onChange={(e) => setCouponInput(e.target.value)}
-                    className="flex-grow bg-background text-foreground placeholder:text-muted-foreground border border-border rounded-xl px-3 py-2 text-xs outline-none focus:border-primary"
-                  />
-                  <button
-                    type="submit"
-                    className="bg-muted hover:bg-muted-foreground/20 text-foreground px-4 rounded-xl text-xs font-bold transition-colors cursor-pointer"
-                  >
-                    Apply
-                  </button>
-                </form>
-              )}
-              {couponError && (
-                <p className="text-[10px] text-destructive font-medium animate-pulse">Invalid coupon code. Try STEPZY20 or WELCOME10.</p>
-              )}
-              {couponSuccess && (
-                <p className="text-[10px] text-green-500 font-medium animate-pulse">Coupon code applied successfully!</p>
-              )}
-              <p className="text-[10px] text-muted-foreground">Try coupon <strong>STEPZY20</strong> (20% off) or <strong>SHOEHEAVEN</strong> (₹300 off).</p>
-            </div>
-
-            {/* Checkout CTA */}
+             {/* Checkout CTA */}
             <Link
               href="/checkout"
               className="w-full bg-primary hover:bg-primary-hover text-white py-3 rounded-xl font-bold text-xs uppercase tracking-wider flex items-center justify-center gap-2 transition-all duration-300 transform active:scale-95 glow-btn text-center"

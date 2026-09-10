@@ -5,7 +5,7 @@ import Link from 'next/link';
 import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../lib/supabase/client';
-import { ArrowLeft, CheckCircle, CreditCard, ShieldCheck, ShoppingBag, MapPin, Truck, Loader2, Smartphone, XCircle, Plus, Edit3, Sparkles } from 'lucide-react';
+import { ArrowLeft, CheckCircle, ShieldCheck, MapPin, Truck, Loader2, XCircle, Plus, Edit3, Sparkles } from 'lucide-react';
 import confetti from 'canvas-confetti';
 import { useToast } from '../../components/Toast';
 import ShimmerImage from '../../components/ShimmerImage';
@@ -90,7 +90,7 @@ export default function CheckoutPage() {
   const [editingAddress, setEditingAddress] = useState<any>(null);
 
   // Payment Options
-  const [paymentMethod, setPaymentMethod] = useState<'cashfree_upi' | 'card' | 'netbanking' | 'cod'>('cashfree_upi');
+  const [paymentMethod] = useState<'cod'>('cod');
 
   // Shipping Options
   const [shippingRates, setShippingRates] = useState<ShippingRate[]>([]);
@@ -137,9 +137,9 @@ export default function CheckoutPage() {
    // Per Shiprocket API: chargeable weight = max(actual weight, volumetric weight)
    // Volumetric weight = (L × B × H) / 5000
    // We keep volumetric weight below actual weight so actual weight is always the chargeable weight
-   const FREE_SHIPPING_THRESHOLD = 999; // Free shipping for orders above ₹999
+    const FREE_SHIPPING_THRESHOLD = 999; // Free shipping for orders above ₹999
 
-   // Fallback dimensions when product doesn't have shipping data
+    // Fallback dimensions when product doesn't have shipping data
    const DEFAULT_LENGTH = 20;
    const DEFAULT_BREADTH = 12;
    const DEFAULT_HEIGHT = 8;
@@ -471,80 +471,41 @@ export default function CheckoutPage() {
    const shippingCost = isFreeShipping ? 0 : (selectedShipping ? Number(selectedShipping.total_charges.toFixed(2)) : 0);
    const finalTotal = Number((effectiveDiscountedTotal + shippingCost).toFixed(2));
 
-   const handleSubmit = async (e: React.FormEvent) => {
-     e.preventDefault();
-     if (effectiveCart.length === 0) return;
+    const handleSubmit = async (e: React.FormEvent) => {
+      e.preventDefault();
+      if (effectiveCart.length === 0) return;
 
-     if (!isFreeShipping && !selectedShipping && shippingRates.length > 0) {
-       addToast('Please select a shipping method', 'warning');
-       return;
-     }
-
-     setIsProcessing(true);
-     setProcessStep('Verifying stock levels...');
-
-     const address = { fullName, phone, addressLine1, city, state, pincode };
-
-     if (paymentMethod === 'cod') {
-        // COD flow - direct order placement
-        setProcessStep('Preparing your Cash on Delivery order...');
-        setTimeout(async () => {
-          const order = await placeOrder(address, 'cod', effectiveCart);
-          
-          if (order) {
-            try {
-              setProcessStep('Syncing with Shiprocket...');
-              // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
-            } catch (error) {
-              console.error('Failed to sync with Shiprocket:', error);
-            }
-
-             setCompletedOrder(order);
-             clearCart();
-             setIsProcessing(false);
-             triggerConfetti();
-             clearBuyNow();
-          } else {
-            setIsProcessing(false);
-            addToast('Failed to place order. Please try again.', 'error');
-          }
-        }, 1500);
-      } else if (paymentMethod === 'cashfree_upi') {
-        // Cashfree UPI flow - redirect to payment processing page
-        setProcessStep('Initializing secure payment gateway...');
-        
-        const success = await redirectToCashfreePayment(address, effectiveCart, finalTotal);
-        
-        if (!success) {
-          setIsProcessing(false);
-          addToast('Failed to initialize payment. Please try again.', 'error');
-        }
-        // On success, page will redirect - no need to set isProcessing to false
-      } else {
-        // Card/Netbanking - simulated for now
-        setTimeout(async () => {
-          const order = await placeOrder(address, 'prepaid', effectiveCart);
-          
-          if (order) {
-            try {
-              setProcessStep('Syncing with Shiprocket...');
-              // await syncOrderWithShiprocket(order); // Shiprocket sync disabled
-            } catch (error) {
-              console.error('Failed to sync with Shiprocket:', error);
-            }
-
-             setCompletedOrder(order);
-             clearCart();
-             setIsProcessing(false);
-             triggerConfetti();
-             clearBuyNow();
-          } else {
-            setIsProcessing(false);
-            addToast('Failed to place order. Please try again.', 'error');
-          }
-        }, 2000);
+      if (!isFreeShipping && !selectedShipping && shippingRates.length > 0) {
+        addToast('Please select a shipping method', 'warning');
+        return;
       }
-   };
+
+      setIsProcessing(true);
+      setProcessStep('Preparing your Cash on Delivery order...');
+
+      const address = { fullName, phone, addressLine1, city, state, pincode };
+
+      setTimeout(async () => {
+        const order = await placeOrder(address, 'cod', effectiveCart);
+
+        if (order) {
+          try {
+            setProcessStep('Syncing with Shiprocket...');
+          } catch (error) {
+            console.error('Failed to sync with Shiprocket:', error);
+          }
+
+           setCompletedOrder(order);
+           clearCart();
+           setIsProcessing(false);
+           triggerConfetti();
+           clearBuyNow();
+        } else {
+          setIsProcessing(false);
+          addToast('Failed to place order. Please try again.', 'error');
+        }
+      }, 1500);
+    };
 
    // ===== Shiprocket order sync DISABLED (commented out) =====
   // The implementation is preserved below as a comment so it can be re-enabled later.
@@ -846,62 +807,12 @@ export default function CheckoutPage() {
           <div className="glass-card p-6 rounded-2xl border border-border space-y-4">
             <h2 className="font-extrabold text-foreground text-base tracking-tight mb-2 uppercase text-primary">2. Payment Method</h2>
 
-            <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-              {/* Cashfree UPI Option */}
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('cashfree_upi')}
-                className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
-                  paymentMethod === 'cashfree_upi'
-                    ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(99,102,241,0.2)]'
-                    : 'border-border hover:border-muted-foreground/50 text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <Smartphone className="h-5 w-5" />
-                <span className="text-xs font-bold">UPI Payment</span>
-              </button>
-
-              {/* Card Option */}
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('card')}
-                className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
-                  paymentMethod === 'card'
-                    ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(99,102,241,0.2)]'
-                    : 'border-border hover:border-muted-foreground/50 text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <CreditCard className="h-5 w-5" />
-                <span className="text-xs font-bold">Credit/Debit Card</span>
-              </button>
-
-              {/* Net Banking */}
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('netbanking')}
-                className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
-                  paymentMethod === 'netbanking'
-                    ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(99,102,241,0.2)]'
-                    : 'border-border hover:border-muted-foreground/50 text-muted-foreground hover:text-foreground'
-                }`}
-              >
-                <ShoppingBag className="h-5 w-5" />
-                <span className="text-xs font-bold">Net Banking</span>
-              </button>
-
+            <div className="grid grid-cols-1 sm:grid-cols-1 gap-3">
               {/* COD Option */}
-              <button
-                type="button"
-                onClick={() => setPaymentMethod('cod')}
-                className={`p-4 border rounded-xl flex flex-col items-center justify-center gap-2 cursor-pointer transition-all ${
-                  paymentMethod === 'cod'
-                    ? 'border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(99,102,241,0.2)]'
-                    : 'border-border hover:border-muted-foreground/50 text-muted-foreground hover:text-foreground'
-                }`}
-              >
+              <div className="p-4 border rounded-xl flex flex-col items-center justify-center gap-2 cursor-default border-primary bg-primary/10 text-primary shadow-[0_0_12px_rgba(99,102,241,0.2)]">
                 <Truck className="h-5 w-5" />
                 <span className="text-xs font-bold">Cash on Delivery</span>
-              </button>
+              </div>
             </div>
           </div>
         </div>
@@ -978,27 +889,27 @@ export default function CheckoutPage() {
               </div>
             */} {/* Shipping Options block disabled (Shiprocket off) */}
 
-            {/* Financial breakdown */}
-            <div className="border-t border-border pt-4 text-xs space-y-2">
-              <div className="flex justify-between text-muted-foreground font-semibold">
-                <span>MRP</span>
-                <span>₹{mrpTotal.toFixed(2)}</span>
-              </div>
-              {discountTotal > 0 && (
+             {/* Financial breakdown */}
+             <div className="border-t border-border pt-4 text-xs space-y-2">
+               <div className="flex justify-between text-muted-foreground font-semibold">
+                 <span>MRP</span>
+                 <span>₹{mrpTotal.toFixed(2)}</span>
+               </div>
+               {discountTotal > 0 && (
+                 <div className="flex justify-between text-muted-foreground font-semibold">
+                   <span>Discount ({discountPercent.toFixed(0)}%)</span>
+                   <span className="text-green-400">-₹{discountTotal.toFixed(2)}</span>
+                 </div>
+               )}
                 <div className="flex justify-between text-muted-foreground font-semibold">
-                  <span>Discount ({discountPercent.toFixed(0)}%)</span>
-                  <span className="text-green-400">-₹{discountTotal.toFixed(2)}</span>
+                  <span>Shipping</span>
+                  <span className="text-green-400">{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
                 </div>
-              )}
-              <div className="flex justify-between text-muted-foreground font-semibold">
-                <span>Shipping</span>
-                <span className="text-green-400">{shippingCost === 0 ? 'Free' : `₹${shippingCost.toFixed(2)}`}</span>
-              </div>
-              <div className="flex justify-between text-sm font-black text-foreground border-t border-border pt-3">
-                <span>Total</span>
-                <span className="text-primary font-black">₹{finalTotal.toFixed(2)}</span>
-              </div>
-            </div>
+                <div className="flex justify-between text-sm font-black text-foreground border-t border-border pt-3">
+                 <span>Total</span>
+                 <span className="text-primary font-black">₹{finalTotal.toFixed(2)}</span>
+               </div>
+             </div>
 
             {/* Place Order CTA */}
             <button

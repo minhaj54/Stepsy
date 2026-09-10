@@ -1,3 +1,4 @@
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:shimmer/shimmer.dart';
 import 'package:intl/intl.dart';
@@ -61,36 +62,52 @@ class ZarwintoRemoteImage extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final effectiveUrl =
-        (url.isEmpty || !url.startsWith('http'))
-            ? 'https://picsum.photos/seed/${seed ?? url.hashCode}/800'
-            : url;
+    final sourceUrl = _validatedHttpUrl(url);
+    final effectiveUrl = sourceUrl ?? _fallbackUrl(seed, url);
 
-    return Image.network(
-      effectiveUrl,
+    return CachedNetworkImage(
+      imageUrl: effectiveUrl,
+      cacheKey: 'zarwinto_remote_image:$effectiveUrl',
       fit: BoxFit.cover,
-      loadingBuilder: (context, child, loading) {
-        if (loading == null) return child;
-        return const _ImageShimmer();
-      },
-      frameBuilder: (context, child, frame, wasSynchronouslyLoaded) {
-        if (wasSynchronouslyLoaded || frame != null) {
-          return AnimatedOpacity(
-            opacity: 1,
-            duration: const Duration(milliseconds: 250),
-            child: child,
-          );
-        }
-        return const _ImageShimmer();
-      },
-      errorBuilder: (context, error, stackTrace) {
-        return Image.network(
-          'https://picsum.photos/seed/${seed ?? url.hashCode}/800',
-          fit: BoxFit.cover,
-        );
-      },
+      fadeInDuration: const Duration(milliseconds: 250),
+      fadeOutDuration: Duration.zero,
+      placeholder: (context, url) => const _ImageShimmer(),
+      errorWidget: (context, url, error) =>
+          _fallbackImage(seed, sourceUrl ?? url),
     );
   }
+
+  Widget _fallbackImage(String? seed, String sourceUrl) {
+    final fallbackUrl = _fallbackUrl(seed, sourceUrl);
+
+    return CachedNetworkImage(
+      imageUrl: fallbackUrl,
+      cacheKey: 'zarwinto_remote_image_fallback:$fallbackUrl',
+      fit: BoxFit.cover,
+      fadeInDuration: const Duration(milliseconds: 250),
+      fadeOutDuration: Duration.zero,
+      placeholder: (context, url) => const _ImageShimmer(),
+      errorWidget: (context, url, error) => Container(
+        decoration: const BoxDecoration(
+          gradient: LinearGradient(
+            colors: [Color(0xFF6366F1), Color(0xFF312E81)],
+          ),
+        ),
+      ),
+    );
+  }
+}
+
+String? _validatedHttpUrl(String value) {
+  final uri = Uri.tryParse(value);
+  if (uri == null || uri.host.isEmpty) return null;
+  if (uri.scheme != 'http' && uri.scheme != 'https') return null;
+  return value;
+}
+
+String _fallbackUrl(String? seed, String sourceUrl) {
+  final fallbackSeed = seed ?? sourceUrl;
+  return 'https://picsum.photos/seed/${Uri.encodeComponent(fallbackSeed)}/800';
 }
 
 class _ImageShimmer extends StatelessWidget {
@@ -102,9 +119,7 @@ class _ImageShimmer extends StatelessWidget {
       baseColor: ZarwintoColors.background,
       highlightColor: ZarwintoColors.surface,
       period: const Duration(milliseconds: 1200),
-      child: ColoredBox(
-        color: ZarwintoColors.background,
-      ),
+      child: ColoredBox(color: ZarwintoColors.background),
     );
   }
 }
@@ -232,11 +247,23 @@ class ShimmerProductCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
-                  Container(height: 10, width: 60, color: const Color(0xFFF4F4F5)),
+                  Container(
+                    height: 10,
+                    width: 60,
+                    color: const Color(0xFFF4F4F5),
+                  ),
                   const SizedBox(height: 6),
-                  Container(height: 14, width: double.infinity, color: const Color(0xFFF4F4F5)),
+                  Container(
+                    height: 14,
+                    width: double.infinity,
+                    color: const Color(0xFFF4F4F5),
+                  ),
                   const SizedBox(height: 8),
-                  Container(height: 14, width: 80, color: const Color(0xFFF4F4F5)),
+                  Container(
+                    height: 14,
+                    width: 80,
+                    color: const Color(0xFFF4F4F5),
+                  ),
                 ],
               ),
             ),
@@ -261,9 +288,7 @@ Future<void> toggleWishlistWithFeedback(
 
   final added = store.wishlist.contains(productId);
   final snackBar = SnackBar(
-    content: Text(
-      added ? 'Added to wishlist' : 'Removed from wishlist',
-    ),
+    content: Text(added ? 'Added to wishlist' : 'Removed from wishlist'),
     behavior: SnackBarBehavior.floating,
     duration: const Duration(seconds: 2),
     action: SnackBarAction(
@@ -279,4 +304,3 @@ Future<void> toggleWishlistWithFeedback(
 
   Future.delayed(const Duration(seconds: 2), messenger.hideCurrentSnackBar);
 }
-

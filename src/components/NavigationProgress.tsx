@@ -8,8 +8,14 @@ export default function NavigationProgress() {
   const searchParams = useSearchParams();
   const [isLoading, setIsLoading] = useState(false);
   const [progress, setProgress] = useState(0);
+  const [mounted, setMounted] = useState(false);
 
   useEffect(() => {
+    setMounted(true);
+  }, []);
+
+  useEffect(() => {
+    if (!mounted) return;
     setIsLoading(true);
     setProgress(30);
 
@@ -28,7 +34,7 @@ export default function NavigationProgress() {
       clearTimeout(timer2);
       clearTimeout(timer3);
     };
-  }, [pathname, searchParams]);
+  }, [mounted, pathname, searchParams]);
 
   if (!isLoading) return null;
 

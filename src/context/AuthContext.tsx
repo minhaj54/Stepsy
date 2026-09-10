@@ -144,7 +144,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [user, setUser] = useState<UserProfile | null>(null);
   const [session, setSession] = useState<Session | null>(null);
   const [loading, setLoading] = useState(true);
-  const [supabaseReachable, setSupabaseReachable] = useState(false);
+  const [supabaseReachable, setSupabaseReachable] = useState(true);
   const configured = isSupabaseConfigured();
 
   // Check Supabase connectivity on mount

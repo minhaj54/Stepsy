@@ -7,7 +7,7 @@ import { useCart } from '../../context/CartContext';
 import { useAuth } from '../../context/AuthContext';
 import { createClient, isSupabaseConfigured } from '../../lib/supabase/client';
 import { Product } from '../../types';
-import { User, ShoppingBag, Heart, MapPin, Check, Plus, Edit3, LogOut, ArrowRight, Star, Store, XCircle, RefreshCw } from 'lucide-react';
+import { User, ShoppingBag, Heart, MapPin, Check, Plus, Edit3, LogOut, ArrowRight, Star, Store, XCircle, RefreshCw, Truck } from 'lucide-react';
 import ShimmerImage from '../../components/ShimmerImage';
 import VerifiedBadge from '../../components/VerifiedBadge';
 
@@ -17,8 +17,13 @@ export default function AccountContent({ products }: { products: Product[] }) {
   const { wishlist, toggleWishlist, orders, updateOrderStatus } = useCart();
   const { user, signOut, updateProfile, supabaseReachable } = useAuth();
 
+  // Guard against router initialization issues
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => setMounted(true), []);
+  const safeSearchParams = mounted ? searchParams : null;
+
   // Selected tab (default is 'profile')
-  const initialTab = searchParams.get('tab') || 'profile';
+  const initialTab = safeSearchParams?.get('tab') || 'profile';
   const [activeTab, setActiveTab] = useState(initialTab);
 
   // Profile Form States
@@ -111,10 +116,12 @@ export default function AccountContent({ products }: { products: Product[] }) {
     fetchStores();
   }, [supabaseOk, user]);
 
-  // Sync tab with URL parameter changes
-  useEffect(() => {
-    setActiveTab(searchParams.get('tab') || 'profile');
-  }, [searchParams]);
+   // Sync tab with URL parameter changes
+   useEffect(() => {
+     if (safeSearchParams) {
+       setActiveTab(safeSearchParams.get('tab') || 'profile');
+     }
+   }, [safeSearchParams]);
 
   const handleTabChange = (tabName: string) => {
     setActiveTab(tabName);
@@ -450,6 +457,33 @@ export default function AccountContent({ products }: { products: Product[] }) {
                     }
                   };
 
+                  const getStatusDate = (status: string, orderDate: Date): string => {
+                    const d = new Date(orderDate);
+                    switch (status) {
+                      case 'pending':
+                      case 'processing':
+                        d.setDate(d.getDate() + 1);
+                        break;
+                      case 'shipped':
+                        d.setDate(d.getDate() + 4);
+                        break;
+                      case 'delivered':
+                        d.setDate(d.getDate() + 7);
+                        break;
+                      default:
+                        break;
+                    }
+                    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short' });
+                  };
+
+                  const getExpectedDeliveryDate = (orderDate: Date): string => {
+                    const d = new Date(orderDate);
+                    d.setDate(d.getDate() + 7);
+                    return d.toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' });
+                  };
+
+                  const orderDate = new Date(order.created_at);
+
                   const canCancel = order.status === 'pending' || order.status === 'processing';
 
                   const getPaymentStatusColor = (status: string) => {
@@ -517,6 +551,13 @@ export default function AccountContent({ products }: { products: Product[] }) {
                           </p>
                         </div>
                       </div>
+                      {order.status !== 'cancelled' && (
+                        <div className="px-4 sm:px-5 py-2 bg-background/30 border-b border-border flex items-center gap-2 text-[10px] text-muted-foreground">
+                          <Truck className="h-3.5 w-3.5 text-primary" />
+                          <span className="font-bold uppercase tracking-wider">Expected delivery by</span>
+                          <span className="text-foreground font-bold">{getExpectedDeliveryDate(orderDate)}</span>
+                        </div>
+                      )}
                       <div className="flex flex-col gap-1">
                         <span className={`px-3 py-1 rounded-lg text-xs font-bold uppercase tracking-wide ${getStatusColor(order.status)}`}>
                           {order.status}
@@ -580,11 +621,23 @@ export default function AccountContent({ products }: { products: Product[] }) {
 
                       {/* Progress tracking Bar */}
                       <div className="p-4 sm:p-5 bg-background/20">
-                        <div className="flex justify-between text-[9px] uppercase font-bold text-muted-foreground mb-2">
-                          <span className={order.status === 'cancelled' ? 'text-red-400' : 'text-primary'}>Ordered</span>
-                          <span className={['processing', 'shipped', 'delivered'].includes(order.status) ? 'text-primary' : ''}>Processing</span>
-                          <span className={['shipped', 'delivered'].includes(order.status) ? 'text-primary' : ''}>Shipped</span>
-                          <span className={order.status === 'delivered' ? 'text-primary' : ''}>Delivered</span>
+                        <div className="flex justify-between text-[9px] uppercase font-bold mb-2">
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={order.status === 'cancelled' ? 'text-red-400' : 'text-primary'}>Ordered</span>
+                            <span className="normal-case tracking-normal text-muted-foreground font-semibold">{getStatusDate('pending', orderDate)}</span>
+                          </div>
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={['processing', 'shipped', 'delivered'].includes(order.status) ? 'text-primary' : 'text-muted-foreground'}>Processing</span>
+                            <span className="normal-case tracking-normal text-muted-foreground font-semibold">{getStatusDate('processing', orderDate)}</span>
+                          </div>
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={['shipped', 'delivered'].includes(order.status) ? 'text-primary' : 'text-muted-foreground'}>Shipped</span>
+                            <span className="normal-case tracking-normal text-muted-foreground font-semibold">{getStatusDate('shipped', orderDate)}</span>
+                          </div>
+                          <div className="flex flex-col items-center gap-1">
+                            <span className={order.status === 'delivered' ? 'text-primary' : 'text-muted-foreground'}>Delivered</span>
+                            <span className="normal-case tracking-normal text-muted-foreground font-semibold">{getStatusDate('delivered', orderDate)}</span>
+                          </div>
                         </div>
                         <div className="w-full bg-zinc-900 h-1.5 rounded-full relative overflow-hidden">
                           <div

@@ -134,10 +134,16 @@ class ZarwintoStore extends ChangeNotifier {
       _hasMoreProducts = false;
       debugPrint('[Zarwinto] _loadEssentialData() — catalog loaded: ${products.length} products, ${categories.length} categories');
 
-      debugPrint('[Zarwinto] _loadEssentialData() — loading banners...');
-      banners = await repository.loadBanners();
-      _saveBannersToCache();
-      debugPrint('[Zarwinto] _loadEssentialData() — loaded ${banners.length} banners');
+      if (repository.client != null) {
+        debugPrint('[Zarwinto] _loadEssentialData() — loading banners...');
+        banners = await repository.loadBanners();
+        _saveBannersToCache();
+        debugPrint('[Zarwinto] _loadEssentialData() — loaded ${banners.length} banners');
+      } else {
+        debugPrint(
+          '[Zarwinto] _loadEssentialData() — Supabase unavailable; using ${banners.length} cached banners',
+        );
+      }
 
       if (repository.client?.auth.currentUser != null) {
         debugPrint('[Zarwinto] _loadEssentialData() — active session found, loading profile...');
@@ -249,7 +255,12 @@ class ZarwintoStore extends ChangeNotifier {
     notifyListeners();
   }
 
-  void addToCart(Product product, ProductVariant variant, {int quantity = 1, String? selectedColor}) {
+  void addToCart(
+    Product product,
+    ProductVariant variant, {
+    int quantity = 1,
+    String? selectedColor,
+  }) {
     final index = cart.indexWhere((item) => item.variant.id == variant.id);
     if (index >= 0) {
       cart[index] = cart[index].copyWith(
@@ -257,7 +268,12 @@ class ZarwintoStore extends ChangeNotifier {
       );
     } else {
       cart.add(
-        CartItem(product: product, variant: variant, quantity: quantity, color: selectedColor),
+        CartItem(
+          product: product,
+          variant: variant,
+          quantity: quantity,
+          color: selectedColor,
+        ),
       );
     }
     _saveCart();
@@ -484,10 +500,12 @@ class ZarwintoStore extends ChangeNotifier {
   }
 
   String? _myDisplayName() {
-    if (profile?.fullName.trim().isNotEmpty == true) return profile!.fullName.trim();
+    if (profile?.fullName.trim().isNotEmpty == true)
+      return profile!.fullName.trim();
     final me = repository.client?.auth.currentUser;
     final meta = me?.userMetadata;
-    final fromMeta = (meta?['full_name'] as String?) ?? (meta?['display_name'] as String?);
+    final fromMeta =
+        (meta?['full_name'] as String?) ?? (meta?['display_name'] as String?);
     if (fromMeta != null && fromMeta.trim().isNotEmpty) return fromMeta.trim();
     final phone = me?.phone;
     if (phone != null && phone.isNotEmpty) return phone;
@@ -519,18 +537,25 @@ class ZarwintoStore extends ChangeNotifier {
     return r;
   }
 
-  Future<void> addReview(String productId, int rating, String reviewText, {List<String> images = const []}) async {
+  Future<void> addReview(
+    String productId,
+    int rating,
+    String reviewText, {
+    List<String> images = const [],
+  }) async {
     final me = repository.client?.auth.currentUser;
-    await repository.addReview(Review(
-      id: '',
-      userId: me?.id ?? '',
-      productId: productId,
-      rating: rating,
-      reviewText: reviewText,
-      images: images,
-      createdAt: DateTime.now(),
-      userName: _myDisplayName(),
-    ));
+    await repository.addReview(
+      Review(
+        id: '',
+        userId: me?.id ?? '',
+        productId: productId,
+        rating: rating,
+        reviewText: reviewText,
+        images: images,
+        createdAt: DateTime.now(),
+        userName: _myDisplayName(),
+      ),
+    );
   }
 
   void _loadCart() {
@@ -590,14 +615,20 @@ class ZarwintoStore extends ChangeNotifier {
 
 SupabaseClient? _configuredSupabaseClient() {
   debugPrint('[Zarwinto] _configuredSupabaseClient() called');
-  debugPrint('[Zarwinto] supabaseUrl=$supabaseUrl, supabaseAnonKey=${supabaseAnonKey.isNotEmpty ? "present" : "missing"}');
+  debugPrint(
+    '[Zarwinto] supabaseUrl=$supabaseUrl, supabaseAnonKey=${supabaseAnonKey.isNotEmpty ? "present" : "missing"}',
+  );
   if (supabaseUrl.isEmpty || supabaseAnonKey.isEmpty) {
-    debugPrint('[Zarwinto] _configuredSupabaseClient() returning null: credentials empty');
+    debugPrint(
+      '[Zarwinto] _configuredSupabaseClient() returning null: credentials empty',
+    );
     return null;
   }
   try {
     final client = Supabase.instance.client;
-    debugPrint('[Zarwinto] _configuredSupabaseClient() returning Supabase.instance.client');
+    debugPrint(
+      '[Zarwinto] _configuredSupabaseClient() returning Supabase.instance.client',
+    );
     return client;
   } catch (e) {
     debugPrint('[Zarwinto] _configuredSupabaseClient() error: $e');
