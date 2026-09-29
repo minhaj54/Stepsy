@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import '../providers/zarwinto_store.dart';
@@ -15,6 +16,7 @@ class SearchScreen extends StatefulWidget {
 class _SearchScreenState extends State<SearchScreen> {
   final _searchController = TextEditingController();
   final FocusNode _focusNode = FocusNode();
+  Timer? _debounce;
   List<Product> _results = [];
   bool _isSearching = false;
   bool _hasFocus = false;
@@ -40,12 +42,15 @@ class _SearchScreenState extends State<SearchScreen> {
 
   @override
   void dispose() {
+    _debounce?.cancel();
     _focusNode.dispose();
     _searchController.dispose();
     super.dispose();
   }
 
   void _performSearch(String query) {
+    if (_debounce?.isActive ?? false) _debounce?.cancel();
+
     if (query.isEmpty) {
       setState(() {
         _results = [];
@@ -54,21 +59,24 @@ class _SearchScreenState extends State<SearchScreen> {
       return;
     }
 
-    setState(() => _isSearching = true);
+    _debounce = Timer(const Duration(milliseconds: 500), () async {
+      setState(() => _isSearching = true);
 
-    final store = ZarwintoScope.of(context);
-    final lowerQuery = query.toLowerCase();
-
-    final results = store.products.where((product) {
-      return product.title.toLowerCase().contains(lowerQuery) ||
-          product.brandName.toLowerCase().contains(lowerQuery) ||
-          product.description.toLowerCase().contains(lowerQuery) ||
-          product.categorySlug.toLowerCase().contains(lowerQuery);
-    }).toList();
-
-    setState(() {
-      _results = results;
-      _isSearching = false;
+      final store = ZarwintoScope.of(context, listen: false);
+      try {
+        final results = await store.searchProducts(query);
+        if (mounted) {
+          setState(() {
+            _results = results;
+            _isSearching = false;
+          });
+        }
+      } catch (e) {
+        debugPrint('[Search] Error: $e');
+        if (mounted) {
+          setState(() => _isSearching = false);
+        }
+      }
     });
   }
 

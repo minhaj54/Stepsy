@@ -1,4 +1,5 @@
 import 'package:carousel_slider/carousel_slider.dart';
+import 'package:cached_network_image/cached_network_image.dart';
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:shimmer/shimmer.dart';
@@ -264,18 +265,6 @@ class _HomeBannerCarouselState extends State<_HomeBannerCarousel> {
                           ),
                         ),
                       ),
-                    Container(
-                      decoration: BoxDecoration(
-                        gradient: LinearGradient(
-                          begin: Alignment.centerLeft,
-                          end: Alignment.centerRight,
-                          colors: [
-                            Colors.black.withValues(alpha: 0.65),
-                            Colors.black.withValues(alpha: 0.15),
-                          ],
-                        ),
-                      ),
-                    ),
                     Padding(
                       padding: const EdgeInsets.all(20),
                       child: Column(
@@ -299,15 +288,6 @@ class _HomeBannerCarouselState extends State<_HomeBannerCarousel> {
                               ),
                             ),
                           ],
-                          const SizedBox(height: 14),
-                          FilledButton(
-                            onPressed: () => widget.store.setActiveTab(1),
-                            style: FilledButton.styleFrom(
-                              minimumSize: const Size(0, 40),
-                              padding: const EdgeInsets.symmetric(horizontal: 18),
-                            ),
-                            child: const Text('Shop Now'),
-                          ),
                         ],
                       ),
                     ),
@@ -382,15 +362,6 @@ class _FallbackHeroBanner extends StatelessWidget {
                   'Premium footwear, delivered fast.',
                   style: ZarwintoTypography.caption.copyWith(color: Colors.white70),
                 ),
-                const SizedBox(height: 16),
-                FilledButton(
-                  onPressed: onShop,
-                  style: FilledButton.styleFrom(
-                    backgroundColor: ZarwintoColors.accent,
-                    minimumSize: const Size(0, 40),
-                  ),
-                  child: const Text('Explore Shop'),
-                ),
               ],
             ),
           ),
@@ -445,7 +416,7 @@ class _CategoryRow extends StatelessWidget {
                         border: Border.all(color: ZarwintoColors.border, width: 2),
                         image: category.image.isNotEmpty
                             ? DecorationImage(
-                                image: NetworkImage(category.image),
+                                image: CachedNetworkImageProvider(category.image),
                                 fit: BoxFit.cover,
                               )
                             : null,
@@ -704,7 +675,7 @@ class _ShimmerProductSection extends StatelessWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: 4,
+            itemCount: 6,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: 0.75,
@@ -880,7 +851,7 @@ class _ProductSectionShimmer extends StatelessWidget {
           GridView.builder(
             shrinkWrap: true,
             physics: const NeverScrollableScrollPhysics(),
-            itemCount: 4,
+            itemCount: 6,
             gridDelegate: const SliverGridDelegateWithFixedCrossAxisCount(
               crossAxisCount: 2,
               childAspectRatio: 0.75,

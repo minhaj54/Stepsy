@@ -1,11 +1,34 @@
 import 'package:flutter/material.dart';
 import 'package:hugeicons/hugeicons.dart';
 import 'package:share_plus/share_plus.dart';
+import 'package:url_launcher/url_launcher.dart';
 import '../core/theme.dart';
 import '../core/constants.dart';
 
 class ZarwintoDrawer extends StatelessWidget {
   const ZarwintoDrawer({super.key});
+
+  Future<void> _rateApp() async {
+    final appId = playStoreAppId;
+    if (appId.isEmpty) return;
+
+    final marketUri = Uri.parse('market://details?id=$appId');
+    final webUri = Uri.parse('https://play.google.com/store/apps/details?id=$appId');
+
+    try {
+      if (await canLaunchUrl(marketUri)) {
+        await launchUrl(marketUri, mode: LaunchMode.externalApplication);
+      } else {
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
+      }
+    } catch (e) {
+      debugPrint('[Drawer] Failed to launch Play Store: $e');
+      // Final attempt with web URI if market check crashed/failed
+      try {
+        await launchUrl(webUri, mode: LaunchMode.externalApplication);
+      } catch (_) {}
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -67,14 +90,7 @@ class ZarwintoDrawer extends StatelessWidget {
             title: const Text('Rate This App'),
             onTap: () {
               Navigator.pop(context);
-              showAboutDialog(
-                context: context,
-                applicationName: 'Zarwinto',
-                applicationVersion: '1.0.0',
-                children: [
-                  const Text('Please rate us on the Play Store!'),
-                ],
-              );
+              _rateApp();
             },
           ),
           ListTile(

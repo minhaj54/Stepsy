@@ -13,6 +13,8 @@ String _getEnv(String key, {String defaultValue = ''}) {
   return defaultValue;
 }
 
+
+
 String get supabaseUrl => _getEnv('SUPABASE_URL', defaultValue: const String.fromEnvironment('SUPABASE_URL'));
 String get supabaseAnonKey => _getEnv('SUPABASE_ANON_KEY', defaultValue: const String.fromEnvironment('SUPABASE_ANON_KEY'));
 String get zarwintoApiBaseUrl => _getEnv('ZARWINTO_API_BASE_URL', defaultValue: const String.fromEnvironment('ZARWINTO_API_BASE_URL'));

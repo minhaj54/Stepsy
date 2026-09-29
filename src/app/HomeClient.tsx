@@ -10,6 +10,7 @@ import Link from 'next/link';
 import { ArrowRight, Star, Heart, Zap, Truck, ShieldCheck, RefreshCw, ChevronLeft, ChevronRight } from 'lucide-react';
 import { Product, Brand, Category } from '../types';
 import { useCart } from '../context/CartContext';
+import { featuredBrands } from '../data/featuredBrands';
 import type { Testimonial } from '../lib/data/products';
 
 interface HomeClientProps {
@@ -243,14 +244,25 @@ export default function HomeClient({ products, categories, brands, testimonials 
       <section className="px-4 sm:px-6 lg:px-8 py-12 text-center">
         <h3 className="text-xs uppercase font-bold tracking-widest text-muted-foreground mb-8">Featured Footwear Brands</h3>
         <div className="mx-auto max-w-2xl grid grid-cols-2 md:grid-cols-4 gap-2 items-center justify-items-center">
-          {brands.map((brand) => (
+          {featuredBrands.map((brand) => (
             <Link
               key={brand.id}
-              href={`/shop?brand=${brand.slug}`}
-              className="w-full max-w-[200px] p-6 bg-secondary hover:bg-muted border border-border hover:border-muted-foreground/50 rounded-2xl flex flex-col items-center justify-center gap-2 transition-all duration-300 group cursor-pointer"
+              href={
+                brands.some((b) => b.slug === brand.slug)
+                  ? `/shop?brand=${brand.slug}`
+                  : '/shop'
+              }
+              aria-label={`Shop ${brand.name}`}
+              className="w-full max-w-[200px] aspect-square overflow-hidden bg-secondary hover:bg-muted border border-border hover:border-muted-foreground/50 rounded-2xl flex items-center justify-center transition-all duration-300 group cursor-pointer"
             >
-              <span className="text-3xl group-hover:scale-110 transition-transform">{brand.logo}</span>
-              <span className="text-sm font-extrabold text-foreground tracking-wide">{brand.name}</span>
+              <img
+                src={brand.logo}
+                alt={brand.name}
+                width={200}
+                height={200}
+                loading="lazy"
+                className="w-full h-full object-cover group-hover:scale-105 transition-transform"
+              />
             </Link>
           ))}
         </div>

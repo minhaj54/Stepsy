@@ -6,7 +6,6 @@ import '../providers/zarwinto_store.dart';
 import '../models/shipping_address.dart';
 import '../models/address.dart';
 import '../models/order.dart';
-import '../services/payment_service.dart';
 import '../services/location_resolver.dart';
 import '../screens/order_confirmation_screen.dart';
 import '../screens/checkout_failure_screen.dart';
@@ -167,142 +166,34 @@ class _CheckoutPageState extends State<CheckoutPage> {
               pincode: pincode.text.trim(),
             );
 
-      if (paymentMethod == 'cod') {
-        String? orderId;
-        try {
-          orderId = await store.placeOrder(addressData, paymentMethod: 'cod');
-        } catch (e) {
-          debugPrint('[CheckoutPage] COD placeOrder error: $e');
-        }
-        if (!mounted || orderId == null) {
-          if (!mounted) return;
-          setState(() => busy = false);
-          _navigateToFailure(context, 'Failed to place order. Please try again.');
-          return;
-        }
-
-        /* Shiprocket integration disabled
-        try {
-          final paymentService = PaymentService(store.prefs);
-          final shiprocketResult = await paymentService.syncOrderWithShiprocket(
-            orderId: orderId,
-            cartItems: store.cart,
-            shippingAddress: addressData.toJson(),
-            paymentMethod: 'cod',
-            subtotal: store.subtotal,
-            discount: store.discount,
-            shippingCost: shippingCost.toDouble(),
-            fullName: addressData.fullName,
-            phone: addressData.phone,
-            email: store.profile?.email ?? '',
-          );
-          if (shiprocketResult != null && mounted) {
-            await store.repository.updateOrderShiprocketIds(
-              orderId,
-              shiprocketResult['order_id'] as int,
-              shiprocketResult['shipment_id'] as int,
-            );
-          }
-        } catch (e) {
-          debugPrint('[CheckoutPage] Shiprocket sync error: $e');
-        }
-        */
-
-        final order = await store.fetchOrder(orderId);
-        if (!mounted) return;
-        final displayOrder = order ?? _buildFallbackOrder(orderId, addressData, paymentMethod, store);
-        Navigator.of(context).pushAndRemoveUntil(
-          MaterialPageRoute(
-            builder: (_) => OrderConfirmationScreen(
-              order: displayOrder,
-              onContinueShopping: () {
-                Navigator.popUntil(context, (route) => route.isFirst);
-              },
-            ),
-          ),
-          (route) => route.settings.name == '/shell',
-        );
-      } else {
-        // Online payment flow - DON'T create Supabase order yet
-        // Create Cashfree order first, then create Supabase order only after payment succeeds
-        
-        final paymentService = PaymentService(store.prefs);
-        
-        // Generate a temporary order ID for Cashfree
-        final tempOrderId = 'ord_${DateTime.now().millisecondsSinceEpoch}';
-        
-        final cashfreeResult = await paymentService.createCashfreeOrder(
-          orderId: tempOrderId,
-          amount: grandTotal,
-          name: addressData.fullName,
-          email: store.profile?.email ?? 'customer@example.com',
-          phone: addressData.phone,
-        );
-
-        if (cashfreeResult != null && mounted) {
-          final sessionId = cashfreeResult['paymentSessionId'] as String;
-          
-          setState(() => busy = true);
-          
-          // Open Cashfree checkout - native SDK
-          final PaymentResult paymentResult = await paymentService.showCashfreeCheckout(
-            context: context,
-            paymentSessionId: sessionId,
-            orderId: tempOrderId,
-          );
-
-          if (paymentResult == PaymentResult.success && mounted) {
-            bool isPaid = await _verifyPaymentWithRetry(context, paymentService, tempOrderId);
-
-            if (isPaid) {
-              // PAYMENT VERIFIED - NOW create the order in Supabase
-              final orderId = await store.createConfirmedOrder(
-                addressData,
-                paymentMethod: paymentMethod,
-              );
-              
-              if (!mounted || orderId == null) {
-                if (!mounted) return;
-                setState(() => busy = false);
-                _navigateToFailure(context, 'Payment successful but failed to create order. Please contact support.');
-                return;
-              }
-
-              await store.loadOrders();
-              final updatedOrder = store.orders.firstWhere(
-                (o) => o.id == orderId,
-                orElse: () => _buildFallbackOrder(orderId, addressData, paymentMethod, store),
-              );
-              
-              if (mounted) {
-                Navigator.of(context).pushAndRemoveUntil(
-                  MaterialPageRoute(
-                    builder: (_) => OrderConfirmationScreen(order: updatedOrder),
-                  ),
-                  (route) => route.settings.name == '/shell',
-                );
-              }
-            } else {
-              // Payment verification failed
-              if (mounted) {
-                _navigateToFailure(context, 'Payment verification failed. Please try again or contact support.');
-              }
-            }
-          } else if (paymentResult == PaymentResult.failure && mounted) {
-            _navigateToFailure(context, 'Payment failed. Please try again.');
-          } else if (mounted) {
-            // Payment was cancelled by user
-            _navigateToFailure(context, 'Payment was cancelled. Please try again or choose a different payment method.');
-          }
-        } else if (mounted) {
-          ScaffoldMessenger.of(context).showSnackBar(
-            SnackBar(
-              content: const Text('Payment gateway unavailable. Please try Cash on Delivery.'),
-              backgroundColor: colors.error,
-            ),
-          );
-        }
+      String? orderId;
+      try {
+        orderId = await store.placeOrder(addressData, paymentMethod: 'cod');
+      } catch (e) {
+        debugPrint('[CheckoutPage] COD placeOrder error: $e');
       }
+
+      if (!mounted || orderId == null) {
+        if (!mounted) return;
+        setState(() => busy = false);
+        _navigateToFailure(context, 'Failed to place order. Please try again.');
+        return;
+      }
+
+      final order = await store.fetchOrder(orderId);
+      if (!mounted) return;
+      final displayOrder = order ?? _buildFallbackOrder(orderId, addressData, 'cod', store);
+      Navigator.of(context).pushAndRemoveUntil(
+        MaterialPageRoute(
+          builder: (_) => OrderConfirmationScreen(
+            order: displayOrder,
+            onContinueShopping: () {
+              Navigator.popUntil(context, (route) => route.isFirst);
+            },
+          ),
+        ),
+        (route) => route.settings.name == '/shell',
+      );
     } catch (e) {
       debugPrint('[CheckoutPage] Unexpected error: $e');
       if (mounted) {
@@ -330,60 +221,6 @@ class _CheckoutPageState extends State<CheckoutPage> {
       ),
       (route) => route.settings.name == '/shell',
     );
-  }
-
-  void _showVerifyingDialog(BuildContext ctx) {
-    final colors = ZarwintoColors.of(ctx);
-    showDialog(
-      context: ctx,
-      barrierDismissible: false,
-      builder: (_) => PopScope(
-        canPop: false,
-        child: AlertDialog(
-          backgroundColor: colors.card,
-          content: const Column(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              CircularProgressIndicator(),
-              SizedBox(height: 16),
-              Text('Verifying payment...'),
-              SizedBox(height: 8),
-              Text(
-                'Please wait while we confirm your payment',
-                style: TextStyle(fontSize: 12, color: Colors.grey),
-                textAlign: TextAlign.center,
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-
-  Future<bool> _verifyPaymentWithRetry(
-    BuildContext context,
-    PaymentService paymentService,
-    String orderId,
-  ) async {
-    _showVerifyingDialog(context);
-    final navigator = Navigator.of(context);
-
-    try {
-      await Future.delayed(const Duration(seconds: 5));
-
-      bool isPaid = false;
-      for (int i = 0; i < 8; i++) {
-        await Future.delayed(const Duration(seconds: 4));
-        isPaid = await paymentService.verifyPaymentStatus(orderId);
-        if (isPaid) break;
-      }
-
-      return isPaid;
-    } finally {
-      if (mounted && navigator.canPop()) {
-        navigator.pop();
-      }
-    }
   }
 
   Order _buildFallbackOrder(String orderId, ShippingAddress address, String paymentMethod, ZarwintoStore store) {
@@ -636,44 +473,13 @@ class _CheckoutPageState extends State<CheckoutPage> {
                       style: ZarwintoTypography.title.copyWith(color: colors.foreground),
                     ),
                     const SizedBox(height: ZarwintoSpacing.md),
-                    Column(
-                      children: [
-                        _PaymentOption(
-                          label: 'UPI (GPay, PhonePe, Paytm)',
-                          subtitle: 'Pay instantly with any UPI app',
-                          icon: HugeIcons.strokeRoundedSmartPhone01,
-                          selected: paymentMethod == 'cashfree_upi',
-                          onTap: () => setState(() => paymentMethod = 'cashfree_upi'),
-                          colors: colors,
-                        ),
-                        const SizedBox(height: ZarwintoSpacing.sm),
-                        _PaymentOption(
-                          label: 'Credit / Debit Card',
-                          subtitle: 'Visa, Mastercard, RuPay',
-                          icon: HugeIcons.strokeRoundedCreditCard,
-                          selected: paymentMethod == 'card',
-                          onTap: () => setState(() => paymentMethod = 'card'),
-                          colors: colors,
-                        ),
-                        const SizedBox(height: ZarwintoSpacing.sm),
-                        _PaymentOption(
-                          label: 'Net Banking',
-                          subtitle: 'All major banks supported',
-                          icon: HugeIcons.strokeRoundedBuilding01,
-                          selected: paymentMethod == 'netbanking',
-                          onTap: () => setState(() => paymentMethod = 'netbanking'),
-                          colors: colors,
-                        ),
-                        const SizedBox(height: ZarwintoSpacing.sm),
-                        _PaymentOption(
-                          label: 'Cash on Delivery (COD)',
-                          subtitle: 'Pay when you receive',
-                          icon: HugeIcons.strokeRoundedPayment01,
-                          selected: paymentMethod == 'cod',
-                          onTap: () => setState(() => paymentMethod = 'cod'),
-                          colors: colors,
-                        ),
-                      ],
+                    _PaymentOption(
+                      label: 'Cash on Delivery (COD)',
+                      subtitle: 'Pay when you receive your order',
+                      icon: HugeIcons.strokeRoundedPayment01,
+                      selected: true,
+                      onTap: () {},
+                      colors: colors,
                     ),
 
                     const SizedBox(height: ZarwintoSpacing.lg),
@@ -735,7 +541,7 @@ class _CheckoutPageState extends State<CheckoutPage> {
                     const SizedBox(height: ZarwintoSpacing.lg),
                     ZButton.primary(
                       onPressed: busy ? null : _placeOrder,
-                      label: paymentMethod == 'cod' ? 'Place Order (COD)' : 'Pay ₹${grandTotal.toInt()}',
+                      label: 'Place Order (COD)',
                       isLoading: busy,
                     ),
                     const SizedBox(height: ZarwintoSpacing.lg),

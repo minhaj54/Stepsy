@@ -56,3 +56,6 @@ mobile/stepzy_app/.flutter-plugins-dependencies
 # temp files
 diag-temp.mjs
 supabase/.temp/
+
+# kilo tooling state
+.kilo/

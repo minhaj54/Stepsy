@@ -32,6 +32,182 @@ export const mockBrands: Brand[] = [
     logo: '☁️',
     description: 'Ultra-cushioned lifestyle slides, sandals, and casual slip-ons.',
     featured: false
+  },
+  {
+    id: 'b0000001-0000-4000-8000-000000000001',
+    name: 'Adidas',
+    slug: 'adidas',
+    logo: '',
+    description: 'Global sportswear icon known for athletic footwear, football boots and lifestyle sneakers.',
+    featured: true
+  },
+  {
+    id: 'b0000002-0000-4000-8000-000000000002',
+    name: 'Nike',
+    slug: 'nike',
+    logo: '',
+    description: 'World-leading sportswear brand offering performance running, training and lifestyle shoes.',
+    featured: true
+  },
+  {
+    id: 'b0000003-0000-4000-8000-000000000003',
+    name: 'Skechers',
+    slug: 'skechers',
+    logo: '',
+    description: 'Comfort-first footwear with cushioned walking, running and casual shoe collections.',
+    featured: true
+  },
+  {
+    id: 'b0000004-0000-4000-8000-000000000004',
+    name: 'Reebok',
+    slug: 'reebok',
+    logo: '',
+    description: 'Classic athletic heritage brand for training, running and retro court footwear.',
+    featured: true
+  },
+  {
+    id: 'b0000005-0000-4000-8000-000000000005',
+    name: 'Puma',
+    slug: 'puma',
+    logo: '',
+    description: 'Sportstyle label delivering football, motorsport-inspired and everyday sneakers.',
+    featured: true
+  },
+  {
+    id: 'b0000006-0000-4000-8000-000000000006',
+    name: 'Clarks',
+    slug: 'clarks',
+    logo: '',
+    description: 'Heritage British shoemaker renowned for comfortable casual, boot and formal footwear.',
+    featured: true
+  },
+  {
+    id: 'b0000007-0000-4000-8000-000000000007',
+    name: 'Bata',
+    slug: 'bata',
+    logo: '',
+    description: 'Everyday footwear brand offering affordable school, formal and casual shoes.',
+    featured: true
+  },
+  {
+    id: 'b0000008-0000-4000-8000-000000000008',
+    name: 'Red Tape',
+    slug: 'red-tape',
+    logo: '',
+    description: 'Contemporary lifestyle brand with sporty sneakers, sandals and everyday footwear.',
+    featured: true
+  },
+  {
+    id: 'b0000009-0000-4000-8000-000000000009',
+    name: 'Liberty',
+    slug: 'liberty',
+    logo: '',
+    description: 'Well-rounded footwear label for school shoes, sandals and value comfort styles.',
+    featured: true
+  },
+  {
+    id: 'b000000a-0000-4000-8000-00000000000a',
+    name: 'Paragon',
+    slug: 'paragon',
+    logo: '',
+    description: 'Indian comfort brand specialising in cushioned walking and casual footwear.',
+    featured: true
+  },
+  {
+    id: 'b000000b-0000-4000-8000-00000000000b',
+    name: 'Woodland',
+    slug: 'woodland',
+    logo: '',
+    description: 'Adventure outfitter producing rugged hiking boots, trekking and outdoor shoes.',
+    featured: true
+  },
+  {
+    id: 'b000000c-0000-4000-8000-00000000000c',
+    name: 'Campus',
+    slug: 'campus',
+    logo: '',
+    description: 'Sports shoe brand built for running, training and everyday campus-ready sneakers.',
+    featured: true
+  },
+  {
+    id: 'b000000d-0000-4000-8000-00000000000d',
+    name: 'Birkenstock',
+    slug: 'birkenstock',
+    logo: '',
+    description: 'Iconic German sandal maker famous for contoured footbeds and moulded footwear.',
+    featured: true
+  },
+  {
+    id: 'b000000e-0000-4000-8000-00000000000e',
+    name: 'Asian',
+    slug: 'asian',
+    logo: '',
+    description: 'Everyday comfort brand offering durable school, sports and casual footwear.',
+    featured: true
+  },
+  {
+    id: 'b000000f-0000-4000-8000-00000000000f',
+    name: 'Boldfit',
+    slug: 'boldfit',
+    logo: '',
+    description: 'Fitness and athleisure brand focused on training shoes and activewear footwear.',
+    featured: true
+  },
+  {
+    id: 'b0000010-0000-4000-8000-000000000010',
+    name: 'Relaxo',
+    slug: 'relaxo',
+    logo: '',
+    description: 'Comfort-led casual footwear with cushioned everyday styles for men and women.',
+    featured: true
+  },
+  {
+    id: 'b0000011-0000-4000-8000-000000000011',
+    name: 'Walkaroo',
+    slug: 'walkaroo',
+    logo: '',
+    description: 'Indian brand delivering lightweight, flexible walking and casual shoes.',
+    featured: true
+  },
+  {
+    id: 'b0000012-0000-4000-8000-000000000012',
+    name: 'Sparx',
+    slug: 'sparx',
+    logo: '',
+    description: 'Contemporary comfort footwear blending athletic styling with all-day cushioning.',
+    featured: true
+  },
+  {
+    id: 'b0000013-0000-4000-8000-000000000013',
+    name: 'Oofos',
+    slug: 'oofos',
+    logo: '',
+    description: 'Recovery footwear brand built around a cushioned, contoured footbed for all-day wear.',
+    featured: true
+  },
+  {
+    id: 'b0000014-0000-4000-8000-000000000014',
+    name: 'FitFlop',
+    slug: 'fitflop',
+    logo: '',
+    description: 'Wellness footwear known for ergonomic, weight-bearing comfortable shoe designs.',
+    featured: true
+  },
+  {
+    id: 'b0000015-0000-4000-8000-000000000015',
+    name: 'Flite',
+    slug: 'flite',
+    logo: '',
+    description: 'Lightweight casual and sports footwear engineered for everyday mobility.',
+    featured: true
+  },
+  {
+    id: 'b0000016-0000-4000-8000-000000000016',
+    name: 'Aqualite',
+    slug: 'aqualite',
+    logo: '',
+    description: 'Swim and water footwear specialist offering pool, beach and water sports shoes.',
+    featured: true
   }
 ];
 

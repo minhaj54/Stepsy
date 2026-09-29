@@ -1,21 +1,16 @@
 'use client';
 
-import React, { useState } from 'react';
+import React from 'react';
 import Link from 'next/link';
-import { Send, MapPin, Phone, Mail, Store, MessageCircle } from 'lucide-react';
+import { MapPin, Mail, Store, MessageCircle } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
 
 export const Footer: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [subscribed, setSubscribed] = useState(false);
+  const { user } = useAuth();
 
-  const handleSubscribe = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (email.trim()) {
-      setSubscribed(true);
-      setEmail('');
-      setTimeout(() => setSubscribed(false), 5000);
-    }
-  };
+  const trackOrderHref = user
+    ? '/account?tab=profile'
+    : `/auth/login?redirect=${encodeURIComponent('/account?tab=profile')}`;
 
   return (
     <footer className="w-full bg-background border-t border-border text-muted-foreground mt-auto">
@@ -28,32 +23,19 @@ export const Footer: React.FC = () => {
                 Join the Sneaker Club
               </h3>
               <p className="mt-2 text-sm text-muted-foreground">
-                Subscribe to get early access to exclusive drops, restocks, and weekly edits.
+                Join our WhatsApp group to get early access to exclusive drops, restocks, and weekly edits.
               </p>
             </div>
-            <div>
-              <form onSubmit={handleSubscribe} className="flex flex-col sm:flex-row gap-2 sm:gap-3">
-                <input
-                  type="email"
-                  required
-                  placeholder="Enter your email address"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="flex-grow bg-secondary text-foreground border border-border hover:border-muted-foreground/50 focus:border-primary focus:bg-muted rounded-xl px-4 py-3 text-sm outline-none transition-all duration-300"
-                />
-                <button
-                  type="submit"
-                  className="bg-primary hover:bg-primary-hover text-white px-6 py-3 rounded-xl font-semibold text-sm flex items-center justify-center gap-2 transition-all duration-300 active:scale-95 cursor-pointer"
-                >
-                  {subscribed ? 'Joined!' : 'Subscribe'}
-                  <Send className="h-4 w-4" />
-                </button>
-              </form>
-              {subscribed && (
-                <p className="mt-2 text-xs text-primary font-medium animate-pulse">
-                  Welcome to Zarwinto! Check your inbox for 10% off your first order.
-                </p>
-              )}
+            <div className="md:justify-self-end w-full sm:w-auto">
+              <a
+                href="https://chat.whatsapp.com/FxZgF6mKgO4E2g6ydFlrX3?s=sh&p=i&mlu=4&ilr=4"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full sm:w-auto inline-flex items-center justify-center gap-2.5 bg-[#25D366] hover:bg-[#1eb455] text-white px-6 py-3.5 rounded-xl font-semibold text-sm transition-all duration-300 active:scale-95"
+              >
+                <MessageCircle className="h-5 w-5" />
+                Join on WhatsApp
+              </a>
             </div>
           </div>
         </div>
@@ -93,6 +75,27 @@ export const Footer: React.FC = () => {
                 <line x1="17.5" y1="6.5" x2="17.51" y2="6.5" />
               </svg>
             </a>
+            <div>
+              <a
+                href="https://play.google.com/store/apps/details?id=com.zarwinto.zarwinto"
+                target="_blank"
+                rel="noopener noreferrer"
+                aria-label="Download the Zarwinto app on Google Play"
+                className="inline-flex items-center gap-2.5 bg-primary hover:bg-primary-hover text-white rounded-xl px-4 py-2.5 transition-all duration-300 active:scale-95"
+              >
+                <img
+                  src="/google-play-icon.png"
+                  alt=""
+                  width={24}
+                  height={24}
+                  className="h-6 w-6 flex-shrink-0"
+                />
+                <span className="flex flex-col leading-tight">
+                  <span className="text-[10px] uppercase tracking-wide opacity-80">Get it on</span>
+                  <span className="text-sm font-semibold">Google Play</span>
+                </span>
+              </a>
+            </div>
           </div>
 
           {/* Quick Links */}
@@ -126,7 +129,7 @@ export const Footer: React.FC = () => {
             </h4>
             <ul className="space-y-3 text-sm">
               <li>
-                <Link href="#" className="hover:text-foreground transition-colors">Track Your Order</Link>
+                <Link href={trackOrderHref} className="hover:text-foreground transition-colors">Track Your Order</Link>
               </li>
               <li>
                 <Link href="/returns" className="hover:text-foreground transition-colors">Returns & Exchanges</Link>
@@ -158,16 +161,8 @@ export const Footer: React.FC = () => {
                 <a href="mailto:zarwinto12@gmail.com" className="hover:text-foreground transition-colors">zarwinto12@gmail.com</a>
               </li>
               <li className="flex gap-2.5 items-center">
-                <Mail className="h-5 w-5 text-primary flex-shrink-0" />
-                <a href="mailto:minhajraza51694@gmail.com" className="hover:text-foreground transition-colors">minhajraza51694@gmail.com</a>
-              </li>
-              <li className="flex gap-2.5 items-center">
                 <MessageCircle className="h-5 w-5 text-primary flex-shrink-0" />
                 <a href="https://wa.me/917982369183" target="_blank" rel="noopener noreferrer" className="hover:text-foreground transition-colors">+91 79823 69183 (WhatsApp)</a>
-              </li>
-              <li className="flex gap-2.5 items-center">
-                <Phone className="h-5 w-5 text-primary flex-shrink-0" />
-                <a href="tel:+916207752766" className="hover:text-foreground transition-colors">+91 62077 52766</a>
               </li>
             </ul>
           </div>

@@ -245,7 +245,8 @@ class _SignupScreenState extends State<SignupScreen> {
           keyboardType: TextInputType.phone,
           decoration: const InputDecoration(
             labelText: 'Mobile Number',
-            hintText: '98765 43210',
+            hintText: 'Enter your phone number',
+            hintStyle: TextStyle(color: Colors.grey),
             prefixIcon: HugeIcon(icon: HugeIcons.strokeRoundedCall, size: 20, color: ZarwintoColors.muted),
           ),
         ),

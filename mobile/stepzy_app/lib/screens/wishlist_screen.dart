@@ -130,6 +130,21 @@ class _WishlistScreenState extends State<WishlistScreen> {
                         style: TextStyle(color: ZarwintoColors.muted, fontSize: 14),
                         textAlign: TextAlign.center,
                       ),
+                      const SizedBox(height: 24),
+                      SizedBox(
+                        width: double.infinity,
+                        child: FilledButton.icon(
+                          onPressed: () {
+                            store.setActiveTab(1);
+                            Navigator.of(context).popUntil((route) => route.isFirst);
+                          },
+                          icon: const HugeIcon(icon: HugeIcons.strokeRoundedStore01, color: Colors.white, size: 20),
+                          label: const Text('Shop Catalog'),
+                          style: FilledButton.styleFrom(
+                            padding: const EdgeInsets.symmetric(vertical: 14),
+                          ),
+                        ),
+                      ),
                     ],
                   ),
                 ),

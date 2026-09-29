@@ -36,6 +36,7 @@ class Product {
     this.breadthCm,
     this.heightCm,
     this.colors = const [],
+    this.gender = 'unisex',
     this.storeId,
   });
 
@@ -90,10 +91,21 @@ class Product {
       ];
     }
 
+    // Resolve brand name safely: prefer the explicit brand_name column,
+    // then the joined brands relation, then a generic fallback.
+    var brandFromJson = json['brand_name'] as String?;
+    if (brandFromJson == null || brandFromJson.trim().isEmpty) {
+      brandFromJson = json['brands']?['name'] as String?;
+    }
+    final resolvedBrandName =
+        (brandFromJson != null && brandFromJson.trim().isNotEmpty)
+            ? brandFromJson
+            : 'Zarwinto';
+
     return Product(
       id: productId,
       brandId: json['brand_id'] as String? ?? 'b1',
-      brandName: json['brands']?['name'] as String? ?? json['brand_name'] as String? ?? 'Zarwinto',
+      brandName: resolvedBrandName,
       categoryId: json['category_id'] as String? ?? 'c1',
       categorySlug: json['categories']?['slug'] as String? ?? json['category_slug'] as String? ?? 'sneakers',
       title: json['title'] as String? ?? 'Sneaker Model',
@@ -121,6 +133,7 @@ class Product {
               ?.map((e) => e.toString())
               .toList() ??
           const [],
+      gender: (json['gender'] as String?)?.toLowerCase() ?? 'unisex',
       storeId: json['store_id'] as String?,
     );
   }
@@ -153,6 +166,7 @@ class Product {
     'breadth_cm': breadthCm,
     'height_cm': heightCm,
     'colors': colors,
+    'gender': gender,
     'store_id': storeId,
   };
 
@@ -176,6 +190,7 @@ class Product {
   final bool newArrival;
   final bool bestSeller;
   final List<String> colors;
+  final String gender;
   final Map<String, String> specifications;
   final double? weightKg;
   final int? lengthCm;

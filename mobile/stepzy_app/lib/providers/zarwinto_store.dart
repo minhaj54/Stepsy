@@ -125,14 +125,34 @@ class ZarwintoStore extends ChangeNotifier {
 
     try {
       debugPrint('[Zarwinto] _loadEssentialData() — loading catalog (first page)...');
-      final data = await repository.loadCatalog();
+      // Load a larger set of products initially (e.g., 50) to ensure Home page sections 
+      // (Featured, New Arrivals, etc.) have enough variety to display.
+      final data = await repository.loadCatalog(productLimit: 50);
       products = data.products;
-      _shopProducts = products.toList()..shuffle();
+      _shopProducts = products.toList();
       categories = data.categories;
       brands = data.brands;
       _productOffset = products.length;
-      _hasMoreProducts = false;
+      _hasMoreProducts = products.length >= 50;
       debugPrint('[Zarwinto] _loadEssentialData() — catalog loaded: ${products.length} products, ${categories.length} categories');
+
+      // Ensure we have enough variety for home page sections
+      try {
+        debugPrint('[Zarwinto] _loadEssentialData() — fetching home sections data...');
+        final featured = await repository.fetchFeaturedProducts(limit: 5);
+        final newArrivals = await repository.fetchNewArrivals(limit: 5);
+        final bestSellers = await repository.fetchBestSellers(limit: 6);
+        
+        final allSectionProducts = [...featured, ...newArrivals, ...bestSellers];
+        for (final p in allSectionProducts) {
+          if (!products.any((existing) => existing.id == p.id)) {
+            products.add(p);
+          }
+        }
+        debugPrint('[Zarwinto] _loadEssentialData() — home sections data loaded');
+      } catch (e) {
+        debugPrint('[Zarwinto] _loadEssentialData() — home sections fetch failed: $e');
+      }
 
       if (repository.client != null) {
         debugPrint('[Zarwinto] _loadEssentialData() — loading banners...');
@@ -210,31 +230,65 @@ class ZarwintoStore extends ChangeNotifier {
     _loadBackgroundData();
   }
 
-  Future<void> loadMoreProducts() async {
-    if (loadingMore || !_hasMoreProducts || repository.client == null) return;
+  Future<void> loadMoreProducts({String? categorySlug, String? brandId, String? gender, bool reset = false}) async {
+    if (loadingMore || repository.client == null) return;
+    if (!reset && !_hasMoreProducts) return;
+
+    if (reset) {
+      _productOffset = 0;
+      _hasMoreProducts = true;
+      _shopProducts = [];
+      notifyListeners();
+    }
 
     loadingMore = true;
     notifyListeners();
 
     try {
-      debugPrint('[Zarwinto] loadMoreProducts() — offset=$_productOffset');
-      final more = await repository.fetchMoreProducts(_productOffset, _productPageSize);
+      debugPrint('[Zarwinto] loadMoreProducts() — offset=$_productOffset reset=$reset');
+      final more = await repository.fetchMoreProducts(
+        _productOffset, 
+        _productPageSize,
+        categorySlug: categorySlug,
+        brandId: brandId,
+        gender: gender,
+      );
       
       if (more.isEmpty) {
         _hasMoreProducts = false;
       } else {
-        products = [...products, ...more];
-        _productOffset = products.length;
+        if (reset) {
+          _shopProducts = more;
+        } else {
+          _shopProducts = [..._shopProducts, ...more];
+        }
+        
+        // Also update the global products list if not already present
+        for (final p in more) {
+          if (!products.any((existing) => existing.id == p.id)) {
+            products.add(p);
+          }
+        }
+        
+        _productOffset = _shopProducts.length;
         _hasMoreProducts = more.length >= _productPageSize;
       }
       
-      debugPrint('[Zarwinto] loadMoreProducts() — total products now: ${products.length}, hasMore=$_hasMoreProducts');
+      debugPrint('[Zarwinto] loadMoreProducts() — total shop products now: ${_shopProducts.length}, hasMore=$_hasMoreProducts');
     } catch (err) {
       debugPrint('[Zarwinto] loadMoreProducts() error: $err');
     } finally {
       loadingMore = false;
       notifyListeners();
     }
+  }
+
+  Future<List<Product>> getProductsByCategory(String categorySlug, {int offset = 0, int limit = 8}) async {
+    return repository.fetchProductsByCategory(categorySlug, offset: offset, limit: limit);
+  }
+
+  Future<List<Product>> searchProducts(String query) async {
+    return repository.searchProducts(query);
   }
 
   List<Product> featuredProducts() =>
@@ -244,7 +298,7 @@ class ZarwintoStore extends ChangeNotifier {
       products.where((product) => product.newArrival).take(5).toList()..shuffle();
 
   List<Product> bestSellers() =>
-      products.where((product) => product.bestSeller).take(5).toList()..shuffle();
+      products.where((product) => product.bestSeller).take(6).toList()..shuffle();
 
   List<Product> _shopProducts = [];
   

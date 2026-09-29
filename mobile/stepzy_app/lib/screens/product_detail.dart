@@ -718,7 +718,15 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
   }
 
   Widget _buildTitleBlock() {
+    final store = ZarwintoScope.of(context, listen: false);
+    final reviews = store.currentProductReviews;
     final product = widget.product;
+    
+    final totalReviews = reviews.length;
+    final double avgRating = totalReviews > 0
+        ? reviews.fold<double>(0, (sum, r) => sum + r.rating) / totalReviews
+        : product.rating;
+
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
       child: Column(
@@ -736,6 +744,41 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
             ),
           const SizedBox(height: 4),
           Text(product.title, style: const TextStyle(fontSize: 18, fontWeight: FontWeight.w700, height: 1.3)),
+          const SizedBox(height: 6),
+          Row(
+            children: [
+              Container(
+                padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
+                decoration: BoxDecoration(
+                  color: ZarwintoColors.accent.withValues(alpha: 0.1),
+                  borderRadius: BorderRadius.circular(6),
+                ),
+                child: Row(
+                  children: [
+                    Text(
+                      avgRating.toStringAsFixed(1),
+                      style: const TextStyle(
+                        fontSize: 12,
+                        fontWeight: FontWeight.w800,
+                        color: ZarwintoColors.foreground,
+                      ),
+                    ),
+                    const SizedBox(width: 2),
+                    const Icon(Icons.star_rounded, size: 14, color: ZarwintoColors.accent),
+                  ],
+                ),
+              ),
+              const SizedBox(width: 8),
+              Text(
+                '$totalReviews ${totalReviews == 1 ? "Rating" : "Ratings"}',
+                style: const TextStyle(
+                  fontSize: 12,
+                  color: ZarwintoColors.muted,
+                  fontWeight: FontWeight.w500,
+                ),
+              ),
+            ],
+          ),
         ],
       ),
     );
@@ -1548,8 +1591,13 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
     final store = ZarwintoScope.of(context, listen: false);
     final reviews = store.currentProductReviews;
     final product = widget.product;
-    final totalReviews = reviews.isNotEmpty ? reviews.length : product.reviewsCount;
-    final avgRating = product.rating;
+    
+    // Dynamic calculation
+    final totalReviews = reviews.length;
+    final double avgRating = totalReviews > 0
+        ? reviews.fold<double>(0, (sum, r) => sum + r.rating) / totalReviews
+        : product.rating;
+        
     final distribution = _buildRatingDistribution(reviews);
 
     return Container(
@@ -1584,11 +1632,17 @@ class _ProductDetailPageState extends State<ProductDetailPage> {
                       style: const TextStyle(fontSize: 32, fontWeight: FontWeight.w900)),
                   Row(
                     children: List.generate(5, (i) {
-                      return Icon(Icons.star_rounded, size: 16,
-                          color: i < avgRating.round() ? ZarwintoColors.accent : ZarwintoColors.border);
+                      final starValue = i + 1;
+                      if (avgRating >= starValue) {
+                        return const Icon(Icons.star_rounded, size: 16, color: ZarwintoColors.accent);
+                      } else if (avgRating >= starValue - 0.5) {
+                        return const Icon(Icons.star_half_rounded, size: 16, color: ZarwintoColors.accent);
+                      } else {
+                        return const Icon(Icons.star_rounded, size: 16, color: ZarwintoColors.border);
+                      }
                     }),
                   ),
-                  Text('$totalReviews Reviews',
+                  Text('$totalReviews ${totalReviews == 1 ? "Review" : "Reviews"}',
                       style: const TextStyle(fontSize: 12, color: ZarwintoColors.muted)),
                 ],
               ),
